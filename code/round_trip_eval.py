@@ -46,10 +46,18 @@ parser.add_argument("--visualize_path", action="store_true", default=False, help
 parser.add_argument("--device", type=str, default="cuda")
 parser.add_argument("--vlm_host", type=str, default="localhost")
 parser.add_argument("--vlm_port", type=int, default=54321)
+parser.add_argument(
+    "--round_trip_mode",
+    type=str,
+    default="static_long_instruction",
+    choices=("static_long_instruction", "phase_prompt"),
+    help=(
+        "static_long_instruction: always query NaVILA with the full outbound-confirm-return instruction. "
+        "phase_prompt: use phase-specific language prompts while still providing no route-memory hints."
+    ),
+)
 parser.add_argument("--confirm_turn_seconds", type=float, default=6.0)
-parser.add_argument("--anchor_interval_m", type=float, default=0.75)
 parser.add_argument("--return_success_radius", type=float, default=2.0)
-parser.add_argument("--return_instruction", type=str, default=None)
 parser.add_argument("--max_return_seconds", type=float, default=100.0)
 
 
@@ -245,12 +253,6 @@ def get_robot_position(env):
     return env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy().copy()
 
 
-def get_robot_yaw(env):
-    robot_quat_w = env.unwrapped.scene["robot"].data.root_quat_w[0].detach().cpu().numpy()
-    _, _, yaw = quat2eulers(robot_quat_w[0], robot_quat_w[1], robot_quat_w[2], robot_quat_w[3])
-    return float(yaw)
-
-
 def parse_vlm_command(text):
     text = "" if text is None else str(text)
     lower_text = text.lower()
@@ -259,40 +261,35 @@ def parse_vlm_command(text):
     return command, duration, is_valid
 
 
-def make_anchor(env, phase, step, anchor_id):
-    pos = get_robot_position(env)
-    return {
-        "id": anchor_id,
-        "phase": phase,
-        "step": int(step),
-        "position": [float(pos[0]), float(pos[1]), float(pos[2])],
-        "yaw": get_robot_yaw(env),
-    }
-
-
-def maybe_add_anchor(env, anchors, phase, step, anchor_interval_m):
-    if not anchors:
-        anchors.append(make_anchor(env, phase, step, 0))
-        return True
-
-    cur_pos = get_robot_position(env)
-    last_pos = np.array(anchors[-1]["position"])
-    if np.linalg.norm(cur_pos[:2] - last_pos[:2]) >= anchor_interval_m:
-        anchors.append(make_anchor(env, phase, step, len(anchors)))
-        return True
-    return False
-
-
-def build_return_instruction(episode, anchors):
-    if args_cli.return_instruction:
-        return args_cli.return_instruction
-
+def build_round_trip_instruction(episode):
     original_instruction = InstructionData(**episode["instruction"]).instruction_text.strip()
     return (
-        "Return to the exact starting point by retracing the route you just traveled in reverse. "
-        "Use the visual scene to go back through the same rooms and corridors. "
-        f"The outbound instruction was: {original_instruction}"
+        f"{original_instruction} "
+        "After confirming the target, turn around and return to the original starting point by retracing the same route in reverse. "
+        "Stop when you are back at the starting point."
     )
+
+
+def build_phase_instruction(episode, phase):
+    original_instruction = InstructionData(**episode["instruction"]).instruction_text.strip()
+    if phase == "outbound":
+        return (
+            f"{original_instruction} "
+            "This is the outbound phase of a round-trip task. Stop at the described target before returning."
+        )
+    if phase == "return":
+        return (
+            "Return to the original starting point by retracing the route you just traveled in reverse. "
+            "Use the visual scene to go back through the same rooms and corridors, then stop at the starting point. "
+            f"The outbound instruction was: {original_instruction}"
+        )
+    return "Confirm the target by scanning in place."
+
+
+def get_query_instruction(episode, phase, round_trip_instruction):
+    if args_cli.round_trip_mode == "static_long_instruction":
+        return round_trip_instruction
+    return build_phase_instruction(episode, phase)
 
 
 def main():
@@ -366,10 +363,14 @@ def main():
     init_frame = rgb_obs[0, :, :, :3].cpu().numpy()
     # init_frame = cv2.rotate(init_frame, cv2.ROTATE_90_CLOCKWISE)
     instruction = InstructionData(**episode["instruction"])
+    round_trip_instruction = build_round_trip_instruction(episode)
+    outbound_instruction = build_phase_instruction(episode, "outbound")
+    return_instruction = build_phase_instruction(episode, "return")
+    current_instruction_text = get_query_instruction(episode, "outbound", round_trip_instruction)
     image_observations = []
     image_observations.append(Image.fromarray(init_frame))
 
-    add_instruction_on_img(init_frame, instruction.instruction_text)
+    add_instruction_on_img(init_frame, f"[outbound] {current_instruction_text}")
     vis_frame = infos["observations"]["viz_camera_obs"][0, :, :, :3].cpu().numpy()
     # vis_frame = cv2.rotate(vis_frame, cv2.ROTATE_90_CLOCKWISE)
     add_instruction_on_img(vis_frame, "")
@@ -384,17 +385,15 @@ def main():
     confirm_turn_steps = int(args_cli.confirm_turn_seconds / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation))
     start_pos = np.array(episode["start_position"], dtype=np.float32)
     goal_pos = np.array(episode["reference_path"][-1], dtype=np.float32)
-    anchors = []
     phase_events = []
+    stop_events = []
     phase = "outbound"
     return_start_step = None
     outbound_stop_output = None
     outbound_measurements = None
     return_success = False
-    current_instruction_text = instruction.instruction_text
     stream_output = ""
     vlm_vel_commands = [0.0, 0.0, 0.0]
-    maybe_add_anchor(env, anchors, phase, num_steps, args_cli.anchor_interval_m)
     # visualizer = define_markers()
     # simulate environment
     while simulation_app.is_running():
@@ -429,6 +428,12 @@ def main():
                     )
 
                     if env_steps_to_go == 0 and "stop" in str(stream_output).lower():
+                        stop_events.append({
+                            "step": int(num_steps),
+                            "phase": phase,
+                            "output": stream_output,
+                            "position": [float(x) for x in get_robot_position(env)],
+                        })
                         if phase == "outbound":
                             outbound_stop_output = stream_output
                             outbound_measurements = infos["measurements"]
@@ -455,13 +460,12 @@ def main():
                 elif phase == "confirm":
                     phase = "return"
                     return_start_step = num_steps
-                    current_instruction_text = build_return_instruction(episode, anchors)
+                    current_instruction_text = get_query_instruction(episode, "return", round_trip_instruction)
                     phase_events.append({
                         "step": int(num_steps),
                         "phase": phase,
                         "event": "confirm_complete_to_return",
-                        "anchor_count": len(anchors),
-                        "return_instruction": current_instruction_text,
+                        "instruction": current_instruction_text,
                     })
                     vlm_vel_commands = [0.0, 0.0, 0.0]
                     target_steps = num_steps + 1
@@ -469,9 +473,6 @@ def main():
                     stream_output = "[Return] query NaVILA with return instruction"
 
         obs, _, done, infos = env.step(torch.tensor(vlm_vel_commands, device = obs.device))
-
-        if phase == "outbound":
-            maybe_add_anchor(env, anchors, phase, num_steps, args_cli.anchor_interval_m)
 
         distance_to_start = float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2]))
         if phase == "return" and distance_to_start <= args_cli.return_success_radius:
@@ -530,20 +531,23 @@ def main():
     distance_to_goal = float(np.linalg.norm(final_pos[:2] - goal_pos[:2]))
     outbound_success = bool(outbound_measurements and outbound_measurements.get("success", 0.0) > 0.0)
     measurements["round_trip"] = {
+        "mode": args_cli.round_trip_mode,
         "completed_phase": phase,
         "outbound_success": outbound_success,
         "return_success": bool(return_success),
         "round_trip_success": bool(outbound_success and return_success),
         "distance_to_start": distance_to_start,
         "distance_to_goal": distance_to_goal,
-        "anchor_count": len(anchors),
+        "round_trip_instruction": round_trip_instruction,
+        "outbound_instruction": outbound_instruction,
+        "return_instruction": return_instruction,
         "outbound_stop_output": outbound_stop_output,
         "return_success_radius": float(args_cli.return_success_radius),
+        "stop_events": stop_events,
         "phase_events": phase_events,
-        "anchors": anchors,
     }
 
-    result_dir = f"eval_results/round_trip_{args_cli.task}_loco_{args_cli.load_run}"
+    result_dir = f"eval_results/round_trip_{args_cli.round_trip_mode}_{args_cli.task}_loco_{args_cli.load_run}"
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
 
