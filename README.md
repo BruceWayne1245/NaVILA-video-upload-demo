@@ -321,6 +321,62 @@ Results saved to: `eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02/`
 
 ---
 
+## Project Progress Log
+
+### 2026-06-05 — Round-Trip Benchmark Skeleton
+
+After confirming the baseline NaVILA + Isaac Sim VLN-CE deployment on six episodes, the next project stage is to construct a single-episode long-horizon task with an Outbound -> Confirm -> Return structure.
+
+Implemented first skeleton script:
+
+```text
+code/round_trip_eval.py
+```
+
+The working copy in the Isaac project is:
+
+```text
+/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/round_trip_eval.py
+```
+
+Current behavior:
+
+- Uses the original VLN-CE episode instruction as the Outbound phase.
+- Interprets a NaVILA `stop` during Outbound as a phase transition rather than ending the episode.
+- Runs a scripted Confirm phase as a 360-degree scan.
+- Starts a Return phase with a generated instruction asking NaVILA to retrace the route back to the start.
+- Records sparse outbound route anchors as the first route-template representation.
+- Saves phase events, anchors, outbound success, return distance-to-start, return success, and round-trip success into the measurement JSON.
+- Writes results under `eval_results/round_trip_<task>_loco_<run>/` so baseline results are not overwritten.
+
+Run command:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && \
+OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision \
+  --num_envs=1 \
+  --history_length=9 \
+  --load_run=2024-09-25_23-22-02 \
+  --headless \
+  --enable_cameras \
+  --episode_idx=0
+```
+
+This is intentionally a benchmark skeleton, not the final memory-constrained method. The next technical steps are:
+
+- Run the script with GPU access and inspect the first round-trip behavior.
+- Replace the plain return instruction with route-template prompt hints.
+- Add explicit return-template inversion from outbound anchors.
+- Add parser-failure logging and fallback trigger logic for invalid NaVILA outputs.
+- Add local geometric descriptors once RGB-D / LiDAR observations are exposed cleanly from Isaac.
+
+---
+
 ## Key Differences vs RTX 5090 (Blackwell) Setup
 
 This deployment is significantly simpler than running on a Blackwell GPU:

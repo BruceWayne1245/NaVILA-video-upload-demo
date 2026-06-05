@@ -1,0 +1,577 @@
+# Copyright (c) 2022-2024, The lab Project Developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+"""Script to play a checkpoint if an RL agent from RSL-RL."""
+
+"""Launch Isaac Sim Simulator first."""
+
+import argparse
+import gymnasium as gym
+import os
+import json
+import math
+import torch
+import numpy as np
+import imageio
+from PIL import Image
+import cv2
+import time
+import base64
+import io
+import socket
+import json
+
+from omni.isaac.lab.app import AppLauncher
+
+# local imports
+import cli_args  # isort: skip
+
+# isaaclab argparse arguments
+parser = argparse.ArgumentParser(description="Run a single-episode outbound-confirm-return VLN benchmark.")
+parser.add_argument(
+    "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
+)
+parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
+parser.add_argument("--task", type=str, default=None, help="Name of the task.")
+parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+
+parser.add_argument("--history_length", default=0, type=int, help="Length of history buffer.")
+parser.add_argument("--use_cnn", action="store_true", default=None, help="Name of the run folder to resume from.")
+parser.add_argument("--use_rnn", action="store_true", default=False, help="Use RNN in the actor-critic model.")
+parser.add_argument("--visualize_path", action="store_true", default=False, help="Visualize the path in the simulator.")
+
+# navila argparse arguments
+parser.add_argument("--device", type=str, default="cuda")
+parser.add_argument("--vlm_host", type=str, default="localhost")
+parser.add_argument("--vlm_port", type=int, default=54321)
+parser.add_argument("--confirm_turn_seconds", type=float, default=6.0)
+parser.add_argument("--anchor_interval_m", type=float, default=0.75)
+parser.add_argument("--return_success_radius", type=float, default=2.0)
+parser.add_argument("--return_instruction", type=str, default=None)
+parser.add_argument("--max_return_seconds", type=float, default=100.0)
+
+
+# r2r argparse arguments
+parser.add_argument("--episode_idx", type=int, default=0)
+
+# RSL-RL cli arguments
+cli_args.add_rsl_rl_args(parser)
+# append AppLauncher cli args
+AppLauncher.add_app_launcher_args(parser)
+args_cli = parser.parse_args()
+
+
+# launch omniverse app
+app_launcher = AppLauncher(args_cli)
+simulation_app = app_launcher.app
+
+from rsl_rl.runners import OnPolicyRunner
+
+import omni.isaac.lab_tasks  # noqa: F401
+from omni.isaac.lab_tasks.utils import get_checkpoint_path, parse_env_cfg
+from omni.isaac.lab.utils.io import load_yaml
+import omni.isaac.lab.utils.math as math_utils
+from omni.isaac.lab.markers import VisualizationMarkers, VisualizationMarkersCfg
+from omni.isaac.lab.utils import update_class_from_dict
+from omni.isaac.lab_tasks.utils.wrappers.rsl_rl import (
+    RslRlOnPolicyRunnerCfg,
+    RslRlVecEnvWrapper,
+)
+import omni.isaac.lab.sim as sim_utils
+
+from omni.isaac.vlnce.config import *
+from omni.isaac.vlnce.utils import ASSETS_DIR, RslRlVecEnvHistoryWrapper, VLNEnvWrapper
+from omni.isaac.vlnce.utils.eval_utils import (
+    get_vel_command, 
+    read_episodes, 
+    add_instruction_on_img,
+    InstructionData, 
+)
+from omni.isaac.vlnce.utils.measures import PathLength, DistanceToGoal, Success, SPL, OracleNavigationError, OracleSuccess, MeasureManager
+
+
+def quat2eulers(q0, q1, q2, q3):
+    """
+    Calculates the roll, pitch, and yaw angles from a quaternion.
+
+    Args:
+        q0: The scalar component of the quaternion.
+        q1: The x-component of the quaternion.
+        q2: The y-component of the quaternion.
+        q3: The z-component of the quaternion.
+
+    Returns:
+        A tuple containing the roll, pitch, and yaw angles in radians.
+    """
+
+    roll = math.atan2(2 * (q2 * q3 + q0 * q1), q0**2 - q1**2 - q2**2 + q3**2)
+    pitch = math.asin(2 * (q1 * q3 - q0 * q2))
+    yaw = math.atan2(2 * (q1 * q2 + q0 * q3), q0**2 + q1**2 - q2**2 - q3**2)
+
+    return roll, pitch, yaw
+
+
+def define_markers() -> VisualizationMarkers:
+    """Define path markers with various different shapes."""
+    marker_cfg = VisualizationMarkersCfg(
+        prim_path="/Visuals/pathMarkers",
+        markers={
+            "waypoint": sim_utils.SphereCfg(
+                radius=0.1,
+                visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.0, 1.0, 0.0)),
+            ),
+        },
+    )
+    return VisualizationMarkers(marker_cfg)
+
+
+def reset_start_pos_rot(env_cfg, args_cli, episode):
+    scene_id = os.path.splitext(os.path.basename(episode["scene_id"]))[0]
+    env_cfg.scene.terrain.obj_filepath = os.path.join(ASSETS_DIR, f"matterport_usd/{scene_id}/{scene_id}.usd")
+    
+    start_pos, start_rot, goal_pos = episode["start_position"], episode["start_rotation"], episode["reference_path"][-1]
+    env_cfg.scene.robot.init_state.rot = start_rot
+
+    if "go2" in args_cli.task:
+        env_cfg.scene.robot.init_state.pos = (start_pos[0], start_pos[1], start_pos[2]+0.4)
+    elif "h1" in args_cli.task:
+        env_cfg.scene.robot.init_state.pos = (start_pos[0], start_pos[1], start_pos[2]+1.0)
+    else:
+        env_cfg.scene.robot.init_state.pos = (start_pos[0], start_pos[1], start_pos[2]+0.5)
+
+    env_cfg.scene.terrain.origins = env_cfg.scene.robot.init_state.pos
+
+    env_cfg.scene.disk_1.init_state.pos = ([start_pos[0], start_pos[1], start_pos[2] + 2.5])
+    env_cfg.scene.disk_2.init_state.pos = ([goal_pos[0], goal_pos[1], goal_pos[2] + 2.5])
+
+    return env_cfg
+
+
+def add_measurement(env, episode):
+    measure_manager = MeasureManager()
+    measure_names = ["PathLength", "DistanceToGoal", "Success", "SPL", "OracleNavigationError", "OracleSuccess"]
+    for measure_name in measure_names:
+        measure = eval(measure_name)(env, episode, measure_manager)
+        measure_manager.register_measure(measure)
+    
+    env.measure_manager = measure_manager
+    return
+
+
+def sample_images_and_send_to_vlm(image_list, vlm_host, vlm_port, query):
+    if len(image_list) == 0:
+        print("Did not receive any images.")
+        return None
+    elif len(image_list) < 8:
+        print("Not enough images received, padding.")
+        image_list = image_list.copy()
+        # append image value=0, in front of the existing images, image size equal to the last one
+        for _ in range(8 - len(image_list)):
+            image_list.insert(0, Image.new('RGB', image_list[-1].size, (0, 0, 0)))
+    else:
+        image_list = image_list.copy()
+        
+    num_images = len(image_list)
+    indices = [int(i * (num_images - 1) / 7) for i in range(7)]
+    sampled_images = [image_list[i] for i in indices]
+    sampled_images.append(image_list[-1])
+
+    # save sampled images
+    # time_stamp = time.strftime("%Y%m%d-%H%M%S")
+    # if not os.path.exists("test_images"):
+    #     os.makedirs("test_images")
+    # for i, img in enumerate(sampled_images):
+    #     # convert to PIL Image
+    #     img = Image.fromarray(img)
+    #     img.save(os.path.join("test_images", f"{time_stamp}_image_{i}.jpg"))
+
+    # Convert images to base64 for transmission
+    encoded_images = []
+    for image in sampled_images:
+        # Ensure PIL Image for JPEG encoding
+        if isinstance(image, np.ndarray):
+            array_image = image
+            if array_image.dtype != np.uint8:
+                # Convert to uint8. If values are 0-1, scale; otherwise clip to 0-255
+                if array_image.max() <= 1.0:
+                    array_image = (array_image * 255.0).clip(0, 255).astype(np.uint8)
+                else:
+                    array_image = array_image.clip(0, 255).astype(np.uint8)
+            pil_image = Image.fromarray(array_image)
+        elif isinstance(image, Image.Image):
+            pil_image = image
+        else:
+            # Fallback: try to construct a PIL image from whatever object is provided
+            pil_image = Image.fromarray(np.array(image, dtype=np.uint8))
+
+        np_image = np.array(pil_image)
+        np_bgr = cv2.cvtColor(np_image, cv2.COLOR_RGB2BGR)
+        _, buf = cv2.imencode(".jpg", np_bgr)
+        encoded_images.append(base64.b64encode(buf.tobytes()).decode())
+
+    # Prepare request data
+    request_data = {
+        'images': encoded_images,
+        'query': query
+    }
+
+    # Send to VLM server
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((vlm_host, vlm_port))
+        
+        # Send data
+        data_bytes = json.dumps(request_data).encode()
+        s.sendall(len(data_bytes).to_bytes(8, 'big'))
+        s.sendall(data_bytes)
+        
+        # Receive response
+        size_data = s.recv(8)
+        size = int.from_bytes(size_data, 'big')
+        
+        response_data = b''
+        while len(response_data) < size:
+            packet = s.recv(4096)
+            if not packet:
+                break
+            response_data += packet
+            
+        response = json.loads(response_data.decode())
+        return response
+
+
+def get_robot_position(env):
+    return env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy().copy()
+
+
+def get_robot_yaw(env):
+    robot_quat_w = env.unwrapped.scene["robot"].data.root_quat_w[0].detach().cpu().numpy()
+    _, _, yaw = quat2eulers(robot_quat_w[0], robot_quat_w[1], robot_quat_w[2], robot_quat_w[3])
+    return float(yaw)
+
+
+def parse_vlm_command(text):
+    text = "" if text is None else str(text)
+    lower_text = text.lower()
+    is_valid = any(keyword in lower_text for keyword in ("turn left", "turn right", "move forward", "move", "stop"))
+    command, duration = get_vel_command(text)
+    return command, duration, is_valid
+
+
+def make_anchor(env, phase, step, anchor_id):
+    pos = get_robot_position(env)
+    return {
+        "id": anchor_id,
+        "phase": phase,
+        "step": int(step),
+        "position": [float(pos[0]), float(pos[1]), float(pos[2])],
+        "yaw": get_robot_yaw(env),
+    }
+
+
+def maybe_add_anchor(env, anchors, phase, step, anchor_interval_m):
+    if not anchors:
+        anchors.append(make_anchor(env, phase, step, 0))
+        return True
+
+    cur_pos = get_robot_position(env)
+    last_pos = np.array(anchors[-1]["position"])
+    if np.linalg.norm(cur_pos[:2] - last_pos[:2]) >= anchor_interval_m:
+        anchors.append(make_anchor(env, phase, step, len(anchors)))
+        return True
+    return False
+
+
+def build_return_instruction(episode, anchors):
+    if args_cli.return_instruction:
+        return args_cli.return_instruction
+
+    original_instruction = InstructionData(**episode["instruction"]).instruction_text.strip()
+    return (
+        "Return to the exact starting point by retracing the route you just traveled in reverse. "
+        "Use the visual scene to go back through the same rooms and corridors. "
+        f"The outbound instruction was: {original_instruction}"
+    )
+
+
+def main():
+    """IsaacSim round-trip evaluation using NaVILA and trained low-level policy."""
+
+    # read R2R test episodes
+    r2r_data_path = os.path.join(ASSETS_DIR, "vln_ce_isaac_v1.json.gz")
+    all_episodes = read_episodes(r2r_data_path)
+    episode = all_episodes[args_cli.episode_idx]
+
+    env_cfg = parse_env_cfg(args_cli.task, num_envs=args_cli.num_envs)
+
+    # reset the position and rotation of the robot
+    env_cfg = reset_start_pos_rot(env_cfg, args_cli, episode)
+
+    agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(
+        args_cli.task, args_cli, play=True
+    )
+
+    # specify directory for logging experiments
+    log_root_path = os.path.join(os.path.dirname(__file__),"../logs", "rsl_rl", agent_cfg.experiment_name)
+    log_root_path = os.path.abspath(log_root_path)
+    log_dir = os.path.join(log_root_path, args_cli.load_run)
+    print(f"[INFO] Loading run from directory: {log_dir}")
+
+    # update agent config with the one from the loaded run
+    log_agent_cfg_file_path = os.path.join(log_dir, "params", "agent.yaml")
+    assert os.path.exists(log_agent_cfg_file_path), f"Agent config file not found: {log_agent_cfg_file_path}"
+    log_agent_cfg_dict = load_yaml(log_agent_cfg_file_path)
+    update_class_from_dict(agent_cfg, log_agent_cfg_dict)
+
+    # specify directory for logging experiments
+    resume_path = get_checkpoint_path(log_root_path, args_cli.load_run, agent_cfg.load_checkpoint)
+    print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+
+    # create isaac environment
+    env = gym.make(args_cli.task, cfg=env_cfg, render_mode=None)
+    # wrap around environment for rsl-rl
+    if args_cli.history_length > 0:
+        env = RslRlVecEnvHistoryWrapper(env, history_length=args_cli.history_length)
+    else:
+        env = RslRlVecEnvWrapper(env)
+
+    # load previously trained model
+    ppo_runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+    ppo_runner.load(resume_path)
+    print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+    policy = ppo_runner.get_inference_policy(device=env.unwrapped.device)
+
+    all_measures = ["PathLength", "DistanceToGoal", "Success", "SPL", "OracleNavigationError", "OracleSuccess"]
+    env = VLNEnvWrapper(env, policy, args_cli.task, episode, high_level_obs_key="camera_obs",
+                        measure_names=all_measures)
+    
+    # set view pos and target
+    robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
+    robot_quat_w = env.unwrapped.scene["robot"].data.root_quat_w[0].detach().cpu().numpy()
+    roll, pitch, yaw = quat2eulers(robot_quat_w[0], robot_quat_w[1], robot_quat_w[2], robot_quat_w[3])
+    cam_eye = (robot_pos_w[0] - 0.8 * math.sin(-yaw), robot_pos_w[1] - 0.8 * math.cos(-yaw), robot_pos_w[2] + 0.8)
+    cam_target = (robot_pos_w[0], robot_pos_w[1], robot_pos_w[2])
+    # set the camera view
+    env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)
+    
+    # step with zeros actions to get the initial frame
+    obs, infos = env.reset()
+
+    # NaViLA training gets image observations each 0.5s, visualize every 0.1s
+    steps_per_image = 0.5 / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation)
+    steps_per_viz_image = 0.1 / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation)
+
+    rgb_obs = infos["observations"]["camera_obs"]
+    init_frame = rgb_obs[0, :, :, :3].cpu().numpy()
+    # init_frame = cv2.rotate(init_frame, cv2.ROTATE_90_CLOCKWISE)
+    instruction = InstructionData(**episode["instruction"])
+    image_observations = []
+    image_observations.append(Image.fromarray(init_frame))
+
+    add_instruction_on_img(init_frame, instruction.instruction_text)
+    vis_frame = infos["observations"]["viz_camera_obs"][0, :, :, :3].cpu().numpy()
+    # vis_frame = cv2.rotate(vis_frame, cv2.ROTATE_90_CLOCKWISE)
+    add_instruction_on_img(vis_frame, "")
+    rgb_obses = [np.concatenate([init_frame, vis_frame], axis=1)]
+
+    num_steps = 0
+    target_steps = 0
+    same_pos_count = 0
+    prev_pos = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
+    max_episode_steps = 100 * 0.5 / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation)
+    max_return_steps = args_cli.max_return_seconds / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation)
+    confirm_turn_steps = int(args_cli.confirm_turn_seconds / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation))
+    start_pos = np.array(episode["start_position"], dtype=np.float32)
+    goal_pos = np.array(episode["reference_path"][-1], dtype=np.float32)
+    anchors = []
+    phase_events = []
+    phase = "outbound"
+    return_start_step = None
+    outbound_stop_output = None
+    outbound_measurements = None
+    return_success = False
+    current_instruction_text = instruction.instruction_text
+    stream_output = ""
+    vlm_vel_commands = [0.0, 0.0, 0.0]
+    maybe_add_anchor(env, anchors, phase, num_steps, args_cli.anchor_interval_m)
+    # visualizer = define_markers()
+    # simulate environment
+    while simulation_app.is_running():
+        # run everything in inference mode
+        with torch.inference_mode():
+            if num_steps == target_steps:
+                if phase in ("outbound", "return"):
+                    stream_output = sample_images_and_send_to_vlm(
+                        image_observations,
+                        args_cli.vlm_host,
+                        args_cli.vlm_port,
+                        current_instruction_text,
+                    )
+                    vlm_vel_commands, time_to_go, is_parseable = parse_vlm_command(stream_output)
+                    env_steps_to_go = int(time_to_go / (
+                        env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation
+                    ))
+                    target_steps = num_steps + env_steps_to_go
+                    phase_events.append({
+                        "step": int(num_steps),
+                        "phase": phase,
+                        "event": "vlm_command",
+                        "output": stream_output,
+                        "parseable": bool(is_parseable),
+                        "command": [float(x) for x in vlm_vel_commands],
+                        "duration_seconds": float(time_to_go),
+                    })
+                    print(
+                        f"[{phase}] VLM output: {stream_output}\n"
+                        f"Vel Command: {vlm_vel_commands}, Env Steps to go: {env_steps_to_go}, "
+                        f"Parseable: {is_parseable}\n"
+                    )
+
+                    if env_steps_to_go == 0 and "stop" in str(stream_output).lower():
+                        if phase == "outbound":
+                            outbound_stop_output = stream_output
+                            outbound_measurements = infos["measurements"]
+                            phase = "confirm"
+                            phase_events.append({
+                                "step": int(num_steps),
+                                "phase": phase,
+                                "event": "outbound_stop_to_confirm",
+                                "distance_to_goal": float(np.linalg.norm(get_robot_position(env)[:2] - goal_pos[:2])),
+                            })
+                            vlm_vel_commands = [0.0, 0.0, np.pi / 6.0]
+                            target_steps = num_steps + confirm_turn_steps
+                            stream_output = "[Confirm] scripted 360-degree scan"
+                            image_observations = []
+                        else:
+                            phase_events.append({
+                                "step": int(num_steps),
+                                "phase": phase,
+                                "event": "return_stop",
+                                "distance_to_start": float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2])),
+                            })
+                            env.set_stop_called(True)
+
+                elif phase == "confirm":
+                    phase = "return"
+                    return_start_step = num_steps
+                    current_instruction_text = build_return_instruction(episode, anchors)
+                    phase_events.append({
+                        "step": int(num_steps),
+                        "phase": phase,
+                        "event": "confirm_complete_to_return",
+                        "anchor_count": len(anchors),
+                        "return_instruction": current_instruction_text,
+                    })
+                    vlm_vel_commands = [0.0, 0.0, 0.0]
+                    target_steps = num_steps + 1
+                    image_observations = []
+                    stream_output = "[Return] query NaVILA with return instruction"
+
+        obs, _, done, infos = env.step(torch.tensor(vlm_vel_commands, device = obs.device))
+
+        if phase == "outbound":
+            maybe_add_anchor(env, anchors, phase, num_steps, args_cli.anchor_interval_m)
+
+        distance_to_start = float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2]))
+        if phase == "return" and distance_to_start <= args_cli.return_success_radius:
+            return_success = True
+            phase_events.append({
+                "step": int(num_steps),
+                "phase": phase,
+                "event": "return_success_radius_reached",
+                "distance_to_start": distance_to_start,
+            })
+            break
+
+        if phase == "return" and return_start_step is not None and num_steps - return_start_step > max_return_steps:
+            phase_events.append({
+                "step": int(num_steps),
+                "phase": phase,
+                "event": "return_timeout",
+                "distance_to_start": distance_to_start,
+            })
+            break
+
+        if done or env.is_stop_called or (phase == "outbound" and num_steps > max_episode_steps):
+            break
+
+        cur_pos = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
+        robot_vel = np.linalg.norm(env.unwrapped.scene["robot"].data.root_vel_w[0].detach().cpu().numpy())
+        if np.linalg.norm(cur_pos - prev_pos) < 0.01 and robot_vel < 0.01:
+            same_pos_count += 1
+        else:
+            same_pos_count = 0
+        prev_pos = cur_pos
+
+        # Break out of the loop if the robot has stayed in the same location for 500 steps
+        if same_pos_count >= 1000:
+            print("Robot has stayed in the same location for 1000 steps. Breaking out of the loop.")
+            break
+
+        if num_steps % steps_per_image == 0:
+            curr_frame = infos["observations"]["camera_obs"][0, :, :, :3].cpu().numpy()
+            image_observations.append(Image.fromarray(curr_frame))
+            curr_frame_copy = curr_frame.copy()
+            add_instruction_on_img(curr_frame_copy, f"[{phase}] {current_instruction_text}")
+            
+        if num_steps % steps_per_viz_image == 0:
+            curr_vis_frame = infos["observations"]["viz_camera_obs"][0, :, :, :3].cpu().numpy()
+            add_instruction_on_img(curr_vis_frame, stream_output)
+            rgb_obses.append(np.concatenate([curr_frame_copy, curr_vis_frame], axis=1))
+
+        num_steps += 1
+
+        # if args_cli.visualize_path:
+        #     visualizer.visualize(reference_path_isaac)
+    measurements = infos["measurements"]
+    final_pos = get_robot_position(env)
+    distance_to_start = float(np.linalg.norm(final_pos[:2] - start_pos[:2]))
+    distance_to_goal = float(np.linalg.norm(final_pos[:2] - goal_pos[:2]))
+    outbound_success = bool(outbound_measurements and outbound_measurements.get("success", 0.0) > 0.0)
+    measurements["round_trip"] = {
+        "completed_phase": phase,
+        "outbound_success": outbound_success,
+        "return_success": bool(return_success),
+        "round_trip_success": bool(outbound_success and return_success),
+        "distance_to_start": distance_to_start,
+        "distance_to_goal": distance_to_goal,
+        "anchor_count": len(anchors),
+        "outbound_stop_output": outbound_stop_output,
+        "return_success_radius": float(args_cli.return_success_radius),
+        "phase_events": phase_events,
+        "anchors": anchors,
+    }
+
+    result_dir = f"eval_results/round_trip_{args_cli.task}_loco_{args_cli.load_run}"
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+
+    measurement_dir = os.path.join(result_dir, "measurements")
+    if not os.path.exists(measurement_dir):
+        os.makedirs(measurement_dir)
+    with open(f"{measurement_dir}/{int(episode['episode_id'])-1}.json", "w") as f:
+        json.dump(measurements, f, indent=4)
+
+
+    video_dir = os.path.join(result_dir, "videos")
+    if not os.path.exists(video_dir):
+        os.makedirs(video_dir)
+
+    writer = imageio.get_writer(f"{video_dir}/output_{int(episode['episode_id'])-1}.mp4", fps=10)
+    for frame in rgb_obses:
+        frame = frame.astype(np.uint8)
+        writer.append_data(frame)
+
+    writer.close()
+
+    # close the simulator
+    env.close()
+
+
+
+if __name__ == "__main__":
+    # run the main function
+    main()
+    # close sim app
+    simulation_app.close()
