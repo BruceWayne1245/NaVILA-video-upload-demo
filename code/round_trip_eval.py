@@ -391,6 +391,8 @@ def main():
     return_start_step = None
     outbound_stop_output = None
     outbound_measurements = None
+    outbound_stop_distance_to_goal = None
+    outbound_success = False
     return_success = False
     stream_output = ""
     vlm_vel_commands = [0.0, 0.0, 0.0]
@@ -437,12 +439,17 @@ def main():
                         if phase == "outbound":
                             outbound_stop_output = stream_output
                             outbound_measurements = infos["measurements"]
+                            outbound_stop_distance_to_goal = float(
+                                np.linalg.norm(get_robot_position(env)[:2] - goal_pos[:2])
+                            )
+                            outbound_success = outbound_stop_distance_to_goal <= float(episode["goals"][0]["radius"])
                             phase = "confirm"
                             phase_events.append({
                                 "step": int(num_steps),
                                 "phase": phase,
                                 "event": "outbound_stop_to_confirm",
-                                "distance_to_goal": float(np.linalg.norm(get_robot_position(env)[:2] - goal_pos[:2])),
+                                "distance_to_goal": outbound_stop_distance_to_goal,
+                                "success": bool(outbound_success),
                             })
                             vlm_vel_commands = [0.0, 0.0, np.pi / 6.0]
                             target_steps = num_steps + confirm_turn_steps
@@ -529,7 +536,6 @@ def main():
     final_pos = get_robot_position(env)
     distance_to_start = float(np.linalg.norm(final_pos[:2] - start_pos[:2]))
     distance_to_goal = float(np.linalg.norm(final_pos[:2] - goal_pos[:2]))
-    outbound_success = bool(outbound_measurements and outbound_measurements.get("success", 0.0) > 0.0)
     measurements["round_trip"] = {
         "mode": args_cli.round_trip_mode,
         "completed_phase": phase,
@@ -542,6 +548,8 @@ def main():
         "outbound_instruction": outbound_instruction,
         "return_instruction": return_instruction,
         "outbound_stop_output": outbound_stop_output,
+        "outbound_stop_distance_to_goal": outbound_stop_distance_to_goal,
+        "outbound_goal_radius": float(episode["goals"][0]["radius"]),
         "return_success_radius": float(args_cli.return_success_radius),
         "stop_events": stop_events,
         "phase_events": phase_events,

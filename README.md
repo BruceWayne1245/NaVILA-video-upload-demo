@@ -401,6 +401,42 @@ The next technical steps are:
 - Use the stronger language-only baseline as the comparison target for the later external-memory agent.
 - Only after this baseline is measured, add route-template memory, geometric hints, and fallback control as the proposed method.
 
+### 2026-06-05 — First `phase_prompt` Round-Trip Test
+
+Ran `phase_prompt` on `go2_matterport_vision`, episode 0.
+
+Artifacts:
+
+```text
+results/round_trip_phase_prompt_episode0/
+├── output_0.mp4
+├── measurement_raw_before_outbound_success_fix.json
+└── summary.md
+```
+
+Observed behavior:
+
+- Outbound reached the original target region and NaVILA emitted `stop`.
+- The evaluator transitioned from Outbound to scripted Confirm, then into Return inside the same simulator episode.
+- Return did not reach the original starting point.
+
+Key numbers:
+
+```text
+outbound stop step: 1200
+outbound stop distance to goal: 0.493 m
+outbound goal radius: 3.0 m
+outbound success: true by distance threshold
+return success: false
+round-trip success: false
+final distance to start: 8.523 m
+final distance to outbound goal: 2.974 m
+```
+
+Important evaluator fix:
+
+The raw JSON from this first run records `round_trip.outbound_success=false`, but this is a logging bug: the evaluator inferred outbound success from the final post-return measurement. The code has been fixed so that outbound success is computed at the first outbound `stop` using the outbound goal radius.
+
 ---
 
 ## Key Differences vs RTX 5090 (Blackwell) Setup
