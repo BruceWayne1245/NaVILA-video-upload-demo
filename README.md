@@ -437,6 +437,38 @@ Important evaluator fix:
 
 The raw JSON from this first run records `round_trip.outbound_success=false`, but this is a logging bug: the evaluator inferred outbound success from the final post-return measurement. The code has been fixed so that outbound success is computed at the first outbound `stop` using the outbound goal radius.
 
+### 2026-06-05 — Second `phase_prompt` Run After Evaluator Fix
+
+Ran `phase_prompt` again on `go2_matterport_vision`, episode 0, after fixing outbound-success logging.
+
+Artifacts:
+
+```text
+results/round_trip_phase_prompt_episode0_run2/
+├── output_0.mp4
+├── measurement.json
+└── summary.md
+```
+
+Key numbers:
+
+```text
+outbound stop step: 1425
+outbound stop distance to goal: 0.780 m
+outbound goal radius: 3.0 m
+outbound success: true
+return stop step: 4801
+return stop distance to start: 6.055 m
+final distance to start: 6.062 m
+return success: false
+round-trip success: false
+top-level path length: 29.794 m
+```
+
+Interpretation:
+
+The phase-prompt baseline can complete the outbound portion and transition through Confirm into Return, but it still fails the return-to-start objective. In this run, NaVILA stopped during Return while still about 6 m from the original start. This supports keeping `phase_prompt` as a language-only baseline before adding the external route-memory agent.
+
 ---
 
 ## Key Differences vs RTX 5090 (Blackwell) Setup
