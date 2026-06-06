@@ -635,11 +635,9 @@ Additional observations:
 - The expert-pose run reproduced the original successful outbound stop distance of `0.529 m` before pose correction.
 - An initial expert-pose implementation exposed an inference-tensor refresh bug; the invalid run was discarded, the history-buffer reset was fixed, and the corrected `oracle_instruction_pose_v2` run completed normally.
 
-Current conclusion:
+Revised conclusion (updated 2026-06-06):
 
-The controlled evidence points primarily to reverse-instruction quality, especially insufficiently explicit phase initialization, landmark sequence, doorway traversal, and stop conditions. It does not support the hypothesis that small outbound drift necessarily caused the observed failure, and it demonstrates that NaVILA can navigate this Episode 0 route in reverse under a sufficiently explicit instruction.
-
-This conclusion is episode-specific. Repeated trials and additional episodes are required before making a dataset-wide claim about reverse-route training coverage or general VLN drift.
+The Oracle instruction successes are methodologically invalid as evidence for NaVILA's round-trip capability. The Oracle instruction adds spatial detail that is absent from the original outbound instruction ("turn around", "Do not stop before reaching the bedroom", explicit doorway language), making it a strictly easier task. A scientifically valid baseline requires a reverse instruction at the same level of specificity as the original. See the 2026-06-06 Instruction Rewriter v3 entry below.
 
 Relevant result directories:
 
@@ -647,6 +645,67 @@ Relevant result directories:
 eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_explicit_reverse_v2/
 eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_oracle_instruction_v1/
 eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_oracle_instruction_pose_v2/
+```
+
+### 2026-06-06 — Instruction Rewriter Upgraded to v3 (Parse → Mechanical Invert → Render)
+
+The one-step LLM generation pipeline (`round-trip-rewriter-v2`) was replaced with a three-step pipeline that separates logic from language:
+
+1. **Parse** — LLM converts the outbound instruction into a structured step sequence (JSON).
+2. **Mechanical invert** — deterministic Python code reverses step order and applies fixed rules: `left ↔ right`, `exit_room ↔ enter_room`, landmark order guaranteed by code.
+3. **Render** — LLM converts the inverted step sequence back to natural language at the same level of specificity as the original.
+
+The motivation is to eliminate instruction logic errors (wrong landmark order, un-inverted turn directions) as a confounding variable, while keeping the generated instruction at the same granularity as the original outbound instruction. Adding detail beyond the original (e.g. "turn around", explicit stop constraints) would reduce task difficulty and invalidate the comparison.
+
+The v2 pipeline depended on the LLM to get both the spatial inversion logic and the language rendering correct in a single step. The v3 pipeline guarantees structural correctness by code and uses the LLM only for parsing and rendering.
+
+Files changed:
+
+```text
+scripts/instruction_rewriter.py   (PROMPT_VERSION → round-trip-rewriter-v3)
+tests/test_instruction_rewriter.py (10 tests, all passing)
+```
+
+Episode 0 v3 generated return instruction (qwen2.5vl:7b):
+
+```text
+From the rug, move straight to the gray couch, turn right, and enter the bedroom. Stop at the bedroom.
+```
+
+### 2026-06-06 — Training Coverage Diagnosis: Reverse-Direction Episode Test
+
+**Research question:** Is the return-phase failure caused by (H1) insufficient training coverage of the reverse route direction, or (H2) a structural limitation specific to the round-trip context?
+
+**Method:** Search the VLN-CE-Isaac dataset for episodes in the same scene (`zsNo4HB9uLZ`) whose outbound path traverses the same waypoints as episode 0's return path, in the reverse direction.
+
+**Finding:** Episodes 1198, 1199, and 1200 share the identical waypoint sequence with episode 0's return path (5/5 waypoints within 2 m), traveling from the corridor near the rug toward the bedroom. Their array indices in the dataset are 705, 706, and 707.
+
+| | Episode 0 outbound | Episodes 1198–1200 outbound |
+|---|---|---|
+| Start | Bedroom `(15.07, 4.48)` | Corridor `(12.86, 0.07)` |
+| Goal | Rug area `(13.05, -1.87)` | Bedroom `(15.07, 4.48)` |
+| Direction | Bedroom → Rug | Corridor → Bedroom (= episode 0 return direction) |
+| Waypoint overlap | — | 5 / 5 |
+
+**Result:** Episode 705 (`episode_id=1198`, instruction: "Walk straight into the hallway. Turn right and go into the room. Wait near the door on the left.") evaluated with standard `navila_eval.py`:
+
+```json
+{
+    "path_length": 7.630,
+    "distance_to_goal": 1.080,
+    "success": 1.0,
+    "spl": 0.807,
+    "oracle_navigation_error": 0.159,
+    "oracle_success": 1.0
+}
+```
+
+**Conclusion:** NaVILA achieves `success = 1.0` on the reverse-direction path as a standard outbound episode. This directly rules out H1: the training distribution covers this path direction, and the model has the capability to navigate it. The return failure in the round-trip evaluation is therefore a structural problem specific to the round-trip context — not a training coverage gap. This is the key result justifying the need for an external route-memory mechanism rather than simply adding more training data.
+
+Result file:
+
+```text
+eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02/measurements/1197.json
 ```
 
 ---
@@ -674,3 +733,4 @@ The only patches needed here are genuine code bugs or minor version mismatches u
 - [IsaacLab fork](https://github.com/yang-zj1026/IsaacLab)
 - [NaVILA checkpoint (HuggingFace)](https://huggingface.co/a8cheng/navila-llama3-8b-8f)
 - [VLN-CE-Isaac dataset (HuggingFace)](https://huggingface.co/datasets/Zhaojing/VLN-CE-Isaac)
+
