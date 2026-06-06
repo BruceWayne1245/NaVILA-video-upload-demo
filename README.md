@@ -469,6 +469,103 @@ Interpretation:
 
 The phase-prompt baseline can complete the outbound portion and transition through Confirm into Return, but it still fails the return-to-start objective. In this run, NaVILA stopped during Return while still about 6 m from the original start. This supports keeping `phase_prompt` as a language-only baseline before adding the external route-memory agent.
 
+### 2026-06-06 — Return-Failure Diagnosis
+
+Reviewed both `phase_prompt` runs using the saved command events, measurements, and videos.
+
+Findings:
+
+- All Return-phase NaVILA outputs were parseable navigation commands; neither run failed because of an invalid-language-output fallback.
+- The robot did not remain physically stuck for a prolonged period.
+- Run 1 stayed mainly around the living-room area and timed out without returning.
+- Run 2 entered a corridor, later selected an incorrect direction, returned toward the living-room area, and emitted `stop` while still about `6.06 m` from the start.
+- The second run therefore shows both route-selection/re-localization failure and incorrect task-completion judgment.
+
+The existing logs do not contain a full per-step pose trajectory, so they cannot yet distinguish gradual geometric drift from a discrete wrong turn at a junction. A later baseline instrumentation update should record pose, heading, distance to the reversed reference path, along-path progress, commanded motion, and executed motion.
+
+### 2026-06-06 — Explicit Reverse-Instruction Generator
+
+Added an offline instruction-rewriting module to the working NaVILA-Bench project:
+
+```text
+scripts/instruction_rewriter.py
+tests/test_instruction_rewriter.py
+```
+
+The module:
+
+- accepts an episode's original outbound instruction;
+- asks a local or OpenAI-compatible LLM for an independently executable Return instruction;
+- requires JSON output;
+- reverses landmark/route order and directional actions through prompt constraints;
+- rejects unchanged, empty, refusal, and obvious stop-first outputs;
+- caches the generated instruction so benchmark runs are deterministic;
+- supports `cache_only` evaluation, keeping the instruction-generation LLM outside the navigation loop.
+
+The initial `llama3.2` generation was rejected during manual review because it reversed landmark order incorrectly and introduced ambiguous room transitions. The prompt was strengthened and versioned as `round-trip-rewriter-v2`. A second generation using local `qwen2.5vl:7b` produced:
+
+```text
+Outbound:
+Exit the bedroom and turn left. Walk straight passing the gray couch
+and stop near the rug.
+
+Return:
+From the rug, walk back past the gray couch. Turn right, enter the bedroom,
+and stop at the original starting location.
+```
+
+Five unit tests currently cover generation, caching, cache-only loading, unchanged-output rejection, and rejection of an outbound `stop` repeated as the first Return action.
+
+Important limitation:
+
+The current generator validates format and several obvious logical errors, but it does **not** mathematically prove that an LLM-generated reverse instruction is geometrically correct. Sparse source instructions may omit junctions, landmark-side relations, or the exact visual identity of the starting location. Generated instructions must therefore remain versioned and manually reviewed before benchmark use.
+
+Planned correction work:
+
+- parse the outbound instruction into structured route steps;
+- mechanically reverse step order and invert directional relations;
+- validate landmark order with a second pass;
+- use the episode reference path and heading to check turn geometry;
+- record an explicit human-review status in the cache and measurement JSON.
+
+### 2026-06-06 — Explicit Reverse-Instruction Baseline Test
+
+Checked system resources before the run:
+
+```text
+GPU: RTX 4090, approximately 23.6 GB VRAM free before loading models
+System memory: approximately 117 GB available
+SSD4T: approximately 2.7 TB available
+```
+
+Ran Episode 0 in `phase_prompt` mode using the reviewed `qwen2.5vl:7b` reverse instruction from the deterministic cache. The result directory used the suffix `explicit_reverse_v2` so the previous runs were not overwritten.
+
+Key results:
+
+```text
+outbound stop step: 1200
+outbound stop distance to goal: 0.529 m
+outbound success: true
+return stop step: 4976
+return stop distance to start: 11.279 m
+final distance to start: 11.281 m
+return success: false
+round-trip success: false
+```
+
+Observed behavior:
+
+- The explicit instruction changed the Return behavior: the robot left the living-room region and entered a long corridor.
+- It entered the wrong part of the environment, continued issuing valid movement commands, and finally emitted `stop` far from the original start.
+- This run demonstrates that replacing the abstract “retrace the route” prompt with a manually reviewed, explicit reverse instruction is not sufficient by itself.
+- The result is consistent with failures in visual re-localization, junction selection, route-progress estimation, and stop judgment.
+
+This remains a language-only baseline. It still uses no route memory, anchor matching, geometric hints, template inversion, or fallback controller.
+
+Operational note:
+
+After Isaac Sim shut down, `nvidia-smi` temporarily lost communication with NVML even though the NVIDIA kernel modules remained loaded and no NVIDIA Xid entry was found in the checked kernel-log window. GPU/driver health should be confirmed before another simulation run.
+
 ---
 
 ## Key Differences vs RTX 5090 (Blackwell) Setup
