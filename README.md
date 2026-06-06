@@ -566,6 +566,89 @@ Operational note:
 
 After Isaac Sim shut down, `nvidia-smi` temporarily lost communication with NVML even though the NVIDIA kernel modules remained loaded and no NVIDIA Xid entry was found in the checked kernel-log window. GPU/driver health should be confirmed before another simulation run.
 
+### 2026-06-06 — Strict Long-Instruction Baseline
+
+After GPU/NVML communication recovered, ran Episode 0 in `static_long_instruction` mode using the same cached `qwen2.5vl:7b` outbound + explicit Return instruction.
+
+Key results:
+
+```text
+outbound success: false
+return started: false
+closest outbound distance to goal: 0.143 m
+final distance to outbound goal: 3.004 m
+final distance to start: 8.410 m
+path length: 13.854 m
+stop events: 0
+outbound timeout: approximately 50 seconds
+```
+
+Observed behavior:
+
+- The robot correctly left the bedroom and entered the living-room area.
+- It passed through the target region and came within `0.143 m` of the outbound goal.
+- NaVILA did not emit `stop`, so the evaluator never transitioned to Confirm or Return.
+- It continued navigating and moved away from the outbound target until timeout.
+
+Interpretation:
+
+This is a subtask-boundary or phase-transition failure. Under the full combined instruction, NaVILA failed to recognize that the outbound subtask had finished. This run does not measure reverse-route ability because Return never started.
+
+Result directory:
+
+```text
+eval_results/round_trip_static_long_instruction_go2_matterport_vision_loco_2024-09-25_23-22-02_strict_explicit_reverse_v2/
+```
+
+### 2026-06-06 — Controlled Phase-Prompt Return Diagnosis
+
+Added reusable diagnostic controls to `round_trip_eval.py`:
+
+```text
+--return_instruction_file=<path>
+--return_instruction_override=<text>
+--oracle_return_pose
+```
+
+The evaluator now records the natural Return pose, optional expert-corrected pose, selected Return instruction, and phase-transition events. `--oracle_return_pose` places the robot at the expert outbound endpoint and faces it toward the previous expert waypoint when Return begins.
+
+Three Episode 0 conditions were compared:
+
+| Return condition | Outbound | Return | Final distance to start |
+|---|---:|---:|---:|
+| Generated reverse instruction + natural pose | Success | Failure | `11.281 m` |
+| Human Oracle instruction + natural pose | Success | Success | `1.995 m` |
+| Human Oracle instruction + expert pose | Success | Success | `1.992 m` |
+
+The human Oracle Return instruction was:
+
+```text
+From the rug, turn around. Retrace the route past the gray couch and continue straight back
+toward the bedroom doorway. Turn right through the doorway into the bedroom and stop at the
+original starting position inside the bedroom. Do not stop before reaching the bedroom.
+```
+
+Additional observations:
+
+- The natural-pose Oracle run began Return approximately `1.01 m` from the expert endpoint and still succeeded.
+- Both Oracle-instruction runs entered the configured `2.0 m` Return success radius.
+- The expert-pose run reproduced the original successful outbound stop distance of `0.529 m` before pose correction.
+- An initial expert-pose implementation exposed an inference-tensor refresh bug; the invalid run was discarded, the history-buffer reset was fixed, and the corrected `oracle_instruction_pose_v2` run completed normally.
+
+Current conclusion:
+
+The controlled evidence points primarily to reverse-instruction quality, especially insufficiently explicit phase initialization, landmark sequence, doorway traversal, and stop conditions. It does not support the hypothesis that small outbound drift necessarily caused the observed failure, and it demonstrates that NaVILA can navigate this Episode 0 route in reverse under a sufficiently explicit instruction.
+
+This conclusion is episode-specific. Repeated trials and additional episodes are required before making a dataset-wide claim about reverse-route training coverage or general VLN drift.
+
+Relevant result directories:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_explicit_reverse_v2/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_oracle_instruction_v1/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_oracle_instruction_pose_v2/
+```
+
 ---
 
 ## Key Differences vs RTX 5090 (Blackwell) Setup
