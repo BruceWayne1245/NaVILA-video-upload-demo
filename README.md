@@ -708,6 +708,118 @@ Result file:
 eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02/measurements/1197.json
 ```
 
+### 2026-06-16 - Return-Failure Ablations: Pose Drift vs Instruction Quality
+
+Ran a focused set of Episode 0 round-trip ablations to separate three possible causes of Return failure:
+
+1. accumulated outbound pose drift at the start of Return;
+2. quality and training-distribution fit of the generated reverse instruction;
+3. the round-trip context itself, including phase transition, visual history, and stop judgment.
+
+All runs used the same language-only `phase_prompt` round-trip evaluator and no route memory, anchor matching, geometric hints, or fallback controller unless explicitly noted. The standard v3 reverse instruction was:
+
+```text
+From the rug, move straight to the gray couch, turn right, and enter the bedroom. Stop at the bedroom. This is the return phase. Stop only when you have reached the original starting location.
+```
+
+The retrieved reverse-direction dataset instruction from Episode 705 / `episode_id=1198` was:
+
+```text
+Walk straight into the hallway. Turn right and go into the room. Wait near the door on the left.
+```
+
+#### Round-trip: v3 reverse instruction vs oracle Return pose
+
+| Condition | Outbound | Return | Final distance to start | Return-start pose error |
+|---|---:|---:|---:|---:|
+| v3 reverse instruction + natural Return pose | true | false | `11.213 m` | XY `0.300 m`, yaw `-46.4 deg` |
+| v3 reverse instruction + oracle Return pose | true | false | `10.029 m` | after reset: XY `0.000 m`, yaw `0.0 deg` |
+
+Key observation: oracle Return pose reset worked exactly, but did not recover success. This means accumulated outbound pose drift is not by itself a sufficient explanation for Return failure.
+
+#### Same reverse path as a normal single-trip episode
+
+Used Episode 705 (`episode_id=1198`) in the same scene (`zsNo4HB9uLZ`). This episode follows the reverse direction of Episode 0's Return path as a normal VLN task.
+
+| Single-trip condition on Episode 705 | Success | SPL | Distance to goal |
+|---|---:|---:|---:|
+| Original Episode 705 instruction | `1.0` | `0.892` | `0.317 m` |
+| Episode 0 v3 reverse instruction used as override | `0.0` | `0.000` | `17.740 m` |
+
+Key observation: NaVILA succeeds on this reverse-direction route with the dataset's natural instruction, but fails badly when the v3 reverse instruction is used as the user instruction. This shows reverse-instruction wording and training-distribution fit are a major confound.
+
+#### Round-trip using Episode 705's natural instruction as Return instruction
+
+| Condition | Outbound | Return | Final distance to start | Termination |
+|---|---:|---:|---:|---|
+| Episode 705 instruction + natural Return pose | true | false | `3.532 m` | Return stop at `3.532 m` |
+| Episode 705 instruction + oracle Return pose | true | false | `11.351 m` | Return stop at `11.351 m` |
+
+Replacing the v3 reverse instruction with Episode 705's natural instruction improved the natural-pose Return substantially (`11.21 m` -> `3.53 m` from start), but still did not enter the configured `2.0 m` success radius. Adding oracle Return pose to the Episode 705 instruction did not help in this run.
+
+Current interpretation:
+
+- v3 reverse-instruction quality is insufficient and materially worsens Return behavior.
+- Pose drift exists, especially heading error at Return start, but correcting the Return pose alone does not restore success.
+- Round-trip context remains a separate failure factor: phase transition, accumulated visual history, current-view mismatch, and premature stop judgment can still break Return even with a dataset instruction that succeeds as a clean single-trip episode.
+
+Result directories:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_drift_natural_ep0_v3/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_drift_oracle_pose_ep0_v3/
+eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02_ep1198_original_instruction/
+eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02_ep1198_episode0_v3_return_instruction/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_drift_natural_ep0_ep705_return_instruction/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_drift_oracle_pose_ep0_ep705_return_instruction/
+```
+
+### 2026-06-16 - Instruction Rewriter v4: Dataset Reverse-Path Retrieval
+
+Upgraded the reverse-instruction generator from v3 to v4.
+
+Previous v3 behavior:
+
+- parsed the outbound instruction;
+- mechanically inverted the parsed route;
+- rendered a reverse instruction with an LLM;
+- for Episode 0 produced the weak instruction beginning with `From the rug...`.
+
+Problem identified by ablations:
+
+- the v3 instruction failed even as a clean single-trip override on Episode 705;
+- the dataset's natural reverse-direction instruction succeeded on that same route;
+- therefore the reverse instruction must be treated as a real experimental variable, not as a solved preprocessing step.
+
+New v4 behavior:
+
+1. Given the current dataset path and episode index, search the same scene for episodes whose reference path overlaps the current episode's Return path in reverse order.
+2. Rank candidates by matched waypoints, path-length agreement, coverage, mean waypoint distance, and dataset index.
+3. If a strong reverse-path neighbor exists, use that episode's original VLN instruction as the Return instruction.
+4. If no neighbor exists, fall back to the parse -> mechanical invert -> render pipeline.
+
+For Episode 0, v4 retrieves:
+
+```text
+episode_index=705; episode_id=1198; matched_waypoints=5; mean_distance_m=0.000
+```
+
+and uses:
+
+```text
+Walk straight into the hallway. Turn right and go into the room. Wait near the door on the left.
+```
+
+The cache was updated with a `round-trip-rewriter-v4` entry, so `--instruction_rewriter_provider=cache_only` now resolves Episode 0 to the dataset reverse-path instruction when dataset context is available.
+
+Implementation notes:
+
+```text
+scripts/instruction_rewriter.py    # v4 retrieval + fallback generator
+scripts/round_trip_eval.py         # passes dataset path and episode index into InstructionRewriter
+tests/test_instruction_rewriter.py # 11 tests passing, including reverse-path retrieval ranking
+```
+
 ---
 
 ## Key Differences vs RTX 5090 (Blackwell) Setup
