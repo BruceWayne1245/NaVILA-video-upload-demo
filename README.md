@@ -820,6 +820,84 @@ scripts/round_trip_eval.py         # passes dataset path and episode index into 
 tests/test_instruction_rewriter.py # 11 tests passing, including reverse-path retrieval ranking
 ```
 
+### 2026-06-16 - Per-Step Trajectory Logging and Stronger Oracle Reset
+
+Added per-step trajectory logging to the round-trip evaluator so every completed run can be diagnosed from a JSONL trajectory file rather than only from final measurements.
+
+Each round-trip measurement now records:
+
+```text
+round_trip.trajectory_file
+round_trip.trajectory_record_count
+```
+
+Each trajectory record includes:
+
+- step index and current phase;
+- robot position, quaternion, yaw, root velocity, and planar speed;
+- active high-level command and latest VLM output;
+- distance to the original start and outbound goal;
+- nearest point on the outbound reference path and reversed return path.
+
+Also strengthened `--oracle_return_pose`. It now resets more than just the robot pose:
+
+- writes the expert return-start pose and zero root velocity;
+- clears low-level proprioceptive history;
+- rebuilds low-level observations as normal writable tensors;
+- clears stop/same-position state;
+- clears the VLM image history;
+- forces the first Return VLM query to use a fresh post-reset camera frame.
+
+Two implementation bugs were exposed and fixed while validating this:
+
+1. The local IsaacLab `SimulationContext` does not expose `write_data_to_sim()`, so the call is now version-gated.
+2. Rebuilding low-level observations inside `torch.inference_mode()` created inference tensors that the VLN wrapper could not update in place. The refresh path now temporarily disables inference mode and clones detached tensors.
+
+#### v4 rerun with trajectory logging
+
+Both runs used Episode 0, `phase_prompt`, `cache_only`, and the v4 dataset reverse-path instruction retrieved from Episode 705:
+
+```text
+Walk straight into the hallway. Turn right and go into the room. Wait near the door on the left.
+```
+
+| Condition | Outbound | Return | Round trip | Final distance to start | Trajectory records |
+|---|---:|---:|---:|---:|---:|
+| v4 baseline, natural Return pose | true | true | true | `1.995 m` | `2963` |
+| v4 baseline + stronger oracle reset | true | false | false | `13.295 m` | `3152` |
+
+Baseline details:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_traj_baseline_ep0/
+measurements/0.json
+trajectories/output_0.jsonl
+```
+
+- `instruction_rewriter_provider`: `dataset_reverse_path_neighbor`
+- `instruction_rewriter_model`: `episode_index=705;episode_id=1198;matched_waypoints=5;mean_distance_m=0.000`
+- outbound stop distance to goal: `0.195 m`
+- Return-start pose error before oracle correction: XY `0.456 m`, yaw `-72.6 deg`
+- final distance to start: `1.995 m`, inside the configured `2.0 m` success radius
+
+Oracle-reset details:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_traj_oracle_reset_ep0/
+measurements/0.json
+trajectories/output_0.jsonl
+```
+
+- oracle reset itself was exact: post-reset XY error `0.000 m`, z error `0.000 m`, yaw error `0.0 deg`
+- Return began near the reversed reference path: trajectory sample at Return start had nearest-return-path distance `0.063 m`
+- Return initially moved closer to start (`6.673 m` -> `5.691 m`), then drifted away (`9.096 m`, `12.101 m`) and finally stopped at `13.295 m`
+
+Current interpretation:
+
+- The v4 instruction fix is material: the natural-pose v4 baseline succeeded where earlier v3 variants failed.
+- The stronger oracle reset now cleanly isolates robot pose, low-level history, VLM visual history, and stop/memory state at Return transition.
+- Because oracle reset was exact but the Return trajectory still diverged after the reset, this failure is not explained by accumulated outbound pose drift alone. The per-step log points to post-reset Return-phase visual decision/control drift or stop judgment as the next target.
+
 ---
 
 ## Key Differences vs RTX 5090 (Blackwell) Setup
@@ -845,4 +923,3 @@ The only patches needed here are genuine code bugs or minor version mismatches u
 - [IsaacLab fork](https://github.com/yang-zj1026/IsaacLab)
 - [NaVILA checkpoint (HuggingFace)](https://huggingface.co/a8cheng/navila-llama3-8b-8f)
 - [VLN-CE-Isaac dataset (HuggingFace)](https://huggingface.co/datasets/Zhaojing/VLN-CE-Isaac)
-
