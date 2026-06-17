@@ -953,6 +953,60 @@ Current interpretation:
 - On random episodes, many failures happen before Return because Outbound itself does not reliably terminate successfully.
 - For return-specific diagnosis, future tests should either pre-screen for episodes with stable Outbound success or use an oracle Return-start setup to isolate the Return leg from Outbound failure.
 
+### 2026-06-17 — v4 Baseline: 5 New Random Episodes Across 5 Scenes
+
+Ran 5 new episodes sampled from the v4-eligible pool (episodes that have at least one reverse-path neighbor in the same scene). Selected one best candidate per scene, prioritising highest matched-waypoint count and lowest mean path distance. All runs used `phase_prompt` mode and `cache_only` instruction provider (v4 dataset reverse-path retrieval).
+
+System state before run: GPU 24018 MB VRAM free, RAM 120 GB available, SSD4T 2.7 TB available.
+
+| ep_idx | ep_id | scene | Reverse-neighbor source | Outbound | Return | Round trip | Final distance to start |
+|---:|---:|---|---|---:|---:|---:|---:|
+| 366 | 601 | `X7HyMhZNoso` | ep_idx=1038, ep_id=1759, 7 matched, mean 0.000 m | true | false | false | `7.441 m` (timeout) |
+| 105 | 151 | `QUCTc6BB5sX` | ep_idx=993, ep_id=1699, 7 matched, mean 0.000 m | true | true | **true** | `1.997 m` |
+| 3 | 7 | `x8F5xyUWy9e` | ep_idx=354, ep_id=583, 5 matched, mean 0.000 m | false* | true | false | `1.997 m` |
+| 132 | 193 | `2azQ1b91cZZ` | ep_idx=756, ep_id=1288, 7 matched, mean 0.258 m | false | — | false | — |
+| 612 | 1069 | `zsNo4HB9uLZ` | ep_idx=678, ep_id=1165, 7 matched, mean 0.000 m | false | — | false | — |
+
+*ep3 outbound stopped at 3.919 m, marginally outside the 3.0 m goal radius.
+
+Per-episode notes:
+
+- **Episode 366 (X7HyMhZNoso):** Outbound completed successfully (stopped at 2.456 m from goal). During Return, the robot became stuck in alternating left/right 45-degree turns from approximately step 3750 onward, timed out at step 7051 with distance to start 7.441 m. Classic Return visual-decision failure with no forward progress.
+
+- **Episode 105 (QUCTc6BB5sX):** Full round-trip success. Outbound stopped cleanly at 1.186 m from goal. Return distance improved continuously from 11.875 m → 9.822 m → 6.861 m → 3.019 m across 500-step checkpoints. Final distance to start: 1.997 m (inside 2.0 m radius).
+
+- **Episode 3 (x8F5xyUWy9e):** Anomalous result. Outbound formally failed (stopped at 3.919 m, just outside the 3.0 m goal radius) but Return still succeeded (final distance 1.997 m). The robot reached the outbound target area closely enough to execute a successful Return despite the formal outbound failure. This round-trip is counted as a failure (outbound unconfirmed), but it suggests Return capability in this episode is robust even from a slightly incorrect outbound endpoint.
+
+- **Episode 132 (2azQ1b91cZZ):** Outbound never emitted a stop; the episode timed out in the outbound phase at 5.421 m from original start. Return never started.
+
+- **Episode 612 (zsNo4HB9uLZ):** Same failure mode as ep132 — outbound timeout without stop, Return never started. Final position was 2.962 m from the original start (still in outbound phase).
+
+Updated cumulative results across all random episodes tested with v4 (excluding the 6 Episode 0 stability runs):
+
+| ep_idx | scene | Outbound | Return | Round trip | Final dist to start |
+|---:|---|---:|---:|---:|---:|
+| 189 | `2azQ1b91cZZ` | true | false | false | `7.217 m` |
+| 278 | `EU6Fwq7SyZv` | false | — | false | — |
+| 799 | `zsNo4HB9uLZ` | false | — | false | — |
+| 366 | `X7HyMhZNoso` | true | false | false | `7.441 m` |
+| 105 | `QUCTc6BB5sX` | true | true | **true** | `1.997 m` |
+| 3 | `x8F5xyUWy9e` | false* | true | false | `1.997 m` |
+| 132 | `2azQ1b91cZZ` | false | — | false | — |
+| 612 | `zsNo4HB9uLZ` | false | — | false | — |
+
+Round-trip success rate on random episodes: **1 / 8 (12.5%)**, versus 6 / 6 for the Episode 0 stability set. Both confirmed successes (ep0 and ep105) ended just inside the 2.0 m threshold (1.995–1.997 m), suggesting they are near-threshold cases rather than comfortable successes. Outbound failure is the dominant blocker: 5 of 8 random episodes failed before Return started.
+
+Result directories:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep366/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep105/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep3/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep132/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep612/
+```
+
+
 ---
 
 ## Key Differences vs RTX 5090 (Blackwell) Setup
