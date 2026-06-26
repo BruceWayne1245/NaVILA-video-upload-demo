@@ -4,7 +4,13 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
-**Latest round-trip route-memory test (2026-06-26):** on 10 prior outbound-success / return-failure episodes, relative-odometry route memory improved round-trip success from `0/10` to `3/10`. Per-step JSONL trajectories are saved under [`results/route_memory_batch_10_20260626/trajectories`](results/route_memory_batch_10_20260626/trajectories).
+**Latest round-trip route-memory test (2026-06-26):** route memory has been redesigned around action-integrated relative anchor edges rather than simulator/world-coordinate pose deltas. On the 10 selected outbound-success / return-failure baseline episodes, the latest relative-edge run reached `4/10` round-trip success with mean final distance `3.689 m` versus baseline `0/10` and `6.830 m`. Per-step JSONL trajectories for the 10-episode batch are saved under [`results/route_memory_batch_10_20260626/trajectories`](results/route_memory_batch_10_20260626/trajectories).
+
+**Route-memory local descriptor update (2026-06-26):** descriptor extraction previously returned `unavailable` because `height_scan` / `depth_measurement` were not top-level observation keys in Isaac. A dedicated non-concatenated `route_memory_obs` group now exposes local geometry for anchor matching. A validation rerun on episode `994` confirmed descriptor availability: `17/17` anchors saved `height_map` descriptors, with `distance_to_start=4.355 m`. The return still failed because the robot never entered the acquisition radius for the first target anchor, so `lock_anchor=0` and `anchor_correction=0`. The next target is debugging the first inverse-edge/control-frame convention.
+
+Episode 994 route-memory-observation artifacts:
+- Per-step trajectory JSONL: [`results/route_memory_routeobs_20260626_ep994/trajectories/ep994_output_1699.jsonl`](results/route_memory_routeobs_20260626_ep994/trajectories/ep994_output_1699.jsonl)
+- Measurement JSON: [`results/route_memory_routeobs_20260626_ep994/measurements/ep994_1699.json`](results/route_memory_routeobs_20260626_ep994/measurements/ep994_1699.json)
 
 ---
 
