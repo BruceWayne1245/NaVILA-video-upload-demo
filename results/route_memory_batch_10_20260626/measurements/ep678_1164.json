@@ -1,0 +1,2979 @@
+{
+    "path_length": 24.896356906841902,
+    "distance_to_goal": 10.649267902395254,
+    "success": 0.0,
+    "spl": 0.0,
+    "oracle_navigation_error": 0.2194874624374091,
+    "oracle_success": 1.0,
+    "round_trip": {
+        "mode": "phase_prompt",
+        "completed_phase": "return",
+        "outbound_success": true,
+        "return_success": true,
+        "round_trip_success": true,
+        "distance_to_start": 2.690601348876953,
+        "distance_to_goal": 10.43704891204834,
+        "round_trip_instruction": "Outbound: Walk into and through the kitchen. Stop next to the long wooden dining table. After reaching the outbound destination, stop and confirm it. Return: Walk straight through the kitchen. Turn slightly right to continue walking straight down the hallway. Turn right and wait near the entrance of the second room on the left. Stop when you reach the original starting location.",
+        "outbound_instruction": "Walk into and through the kitchen. Stop next to the long wooden dining table. This is the outbound phase of a round-trip task. Stop at the described destination before beginning the return.",
+        "return_instruction": "Walk straight through the kitchen. Turn slightly right to continue walking straight down the hallway. Turn right and wait near the entrance of the second room on the left.",
+        "instruction_rewriter_provider": "dataset_reverse_path_neighbor",
+        "instruction_rewriter_model": "episode_index=612;episode_id=1069;matched_waypoints=7;mean_distance_m=0.000",
+        "return_instruction_override": false,
+        "return_instruction_file": null,
+        "oracle_return_pose_enabled": false,
+        "return_pose_before_oracle": [
+            13.845793724060059,
+            2.16556453704834,
+            0.3168650269508362,
+            0.3588092029094696,
+            0.015162083320319653,
+            0.015614055097103119,
+            0.9331571459770203
+        ],
+        "return_pose_after_oracle": [
+            13.845793724060059,
+            2.16556453704834,
+            0.3168650269508362,
+            0.3588092029094696,
+            0.015162083320319653,
+            0.015614055097103119,
+            0.9331571459770203
+        ],
+        "oracle_return_pose": [
+            14.051600456237793,
+            1.9895999431610107,
+            0.4216279983520508,
+            0.12309927493333817,
+            0.0,
+            0.0,
+            0.9923943877220154
+        ],
+        "return_pose_error_before_oracle": {
+            "xy_error_m": 0.27077656984329224,
+            "z_error_m": 0.1047629714012146,
+            "yaw_error_rad": -0.48768345006847014,
+            "yaw_error_deg": -27.942203427302356
+        },
+        "return_pose_error_after_oracle": {
+            "xy_error_m": 0.27077656984329224,
+            "z_error_m": 0.1047629714012146,
+            "yaw_error_rad": -0.48768345006847014,
+            "yaw_error_deg": -27.942203427302356
+        },
+        "outbound_stop_output": "I think I should stop because I have finished the instruction.",
+        "outbound_stop_distance_to_goal": 0.5047591924667358,
+        "episode_goal_radius": 3.0,
+        "success_radius": 3.0,
+        "success_requires_stop": true,
+        "trajectory_file": "trajectories/output_1164.jsonl",
+        "trajectory_record_count": 3902,
+        "stop_events": [
+            {
+                "step": 2025,
+                "phase": "outbound",
+                "output": "I think I should stop because I have finished the instruction.",
+                "position": [
+                    13.605703353881836,
+                    2.226153612136841,
+                    0.3145330250263214
+                ]
+            },
+            {
+                "step": 3901,
+                "phase": "return",
+                "output": "I think I should stop because I have finished the instruction.",
+                "position": [
+                    3.73431134223938,
+                    3.532956123352051,
+                    0.30991366505622864
+                ]
+            }
+        ],
+        "phase_events": [
+            {
+                "step": 0,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 75,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 150,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 225,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 300,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 375,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 400,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 425,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 450,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 525,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 600,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 675,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 750,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 775,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 800,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 875,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 950,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1025,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 1050,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 1075,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1150,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1225,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1300,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1375,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1450,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1525,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1600,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1675,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 1700,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 1725,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1800,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1875,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1950,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2025,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "I think I should stop because I have finished the instruction.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.0
+            },
+            {
+                "step": 2025,
+                "phase": "confirm",
+                "event": "outbound_stop_to_confirm",
+                "distance_to_goal": 0.5047591924667358,
+                "success": true
+            },
+            {
+                "step": 2325,
+                "phase": "return",
+                "event": "confirm_complete_to_return",
+                "instruction": "Walk straight through the kitchen. Turn slightly right to continue walking straight down the hallway. Turn right and wait near the entrance of the second room on the left.",
+                "oracle_return_pose_enabled": false,
+                "pose_before_oracle": [
+                    13.845793724060059,
+                    2.16556453704834,
+                    0.3168650269508362,
+                    0.3588092029094696,
+                    0.015162083320319653,
+                    0.015614055097103119,
+                    0.9331571459770203
+                ],
+                "pose_after_oracle": [
+                    13.845793724060059,
+                    2.16556453704834,
+                    0.3168650269508362,
+                    0.3588092029094696,
+                    0.015162083320319653,
+                    0.015614055097103119,
+                    0.9331571459770203
+                ],
+                "pose_error_before_oracle": {
+                    "xy_error_m": 0.27077656984329224,
+                    "z_error_m": 0.1047629714012146,
+                    "yaw_error_rad": -0.48768345006847014,
+                    "yaw_error_deg": -27.942203427302356
+                },
+                "pose_error_after_oracle": {
+                    "xy_error_m": 0.27077656984329224,
+                    "z_error_m": 0.1047629714012146,
+                    "yaw_error_rad": -0.48768345006847014,
+                    "yaw_error_deg": -27.942203427302356
+                }
+            },
+            {
+                "step": 2326,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says on the recorded route; aligned; next anchor 0.23 m; remaining route distance to start 13.27 m.]",
+                "progress": {
+                    "nearest_segment_index": 0,
+                    "next_anchor_index": 1,
+                    "nearest_distance_m": 0.001235028263181448,
+                    "lateral_error_m": -0.0012350281467661262,
+                    "heading_error_deg": -2.07626831356909,
+                    "distance_to_next_anchor_m": 0.22987203299999237,
+                    "remaining_distance_m": 13.274222206615836,
+                    "remaining_anchors": 14
+                },
+                "route_local_pose": [
+                    0.0006140596131275183,
+                    -0.0012505618195627914,
+                    0.011558818761386206
+                ]
+            },
+            {
+                "step": 2326,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 2351,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says on the recorded route; turn right 16 deg toward the route; next anchor 0.23 m; remaining route distance to start 13.27 m.]",
+                "progress": {
+                    "nearest_segment_index": 0,
+                    "next_anchor_index": 1,
+                    "nearest_distance_m": 0.004804745316505432,
+                    "lateral_error_m": -0.004408735316246748,
+                    "heading_error_deg": -16.06233419561019,
+                    "distance_to_next_anchor_m": 0.23246540129184723,
+                    "remaining_distance_m": 13.274866938591003,
+                    "remaining_anchors": 14
+                },
+                "route_local_pose": [
+                    -0.0020183496214732193,
+                    -0.004360257311435082,
+                    0.2556617178038483
+                ]
+            },
+            {
+                "step": 2351,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 2376,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says on the recorded route; turn right 29 deg toward the route; next anchor 0.21 m; remaining route distance to start 13.26 m.]",
+                "progress": {
+                    "nearest_segment_index": 0,
+                    "next_anchor_index": 1,
+                    "nearest_distance_m": 0.0032383089419454336,
+                    "lateral_error_m": 0.0032383089419454336,
+                    "heading_error_deg": -28.61408697952522,
+                    "distance_to_next_anchor_m": 0.21193434298038483,
+                    "remaining_distance_m": 13.25626309437074,
+                    "remaining_anchors": 14
+                },
+                "route_local_pose": [
+                    0.018678087052047414,
+                    0.002778247188838805,
+                    0.4747311307795299
+                ]
+            },
+            {
+                "step": 2376,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2451,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 0.31 m left of the recorded route; turn right 37 deg toward the route; next anchor 0.85 m; remaining route distance to start 12.83 m.]",
+                "progress": {
+                    "nearest_segment_index": 1,
+                    "next_anchor_index": 2,
+                    "nearest_distance_m": 0.3057113289833069,
+                    "lateral_error_m": 0.3057112991809845,
+                    "heading_error_deg": -37.330949122179064,
+                    "distance_to_next_anchor_m": 0.847055971622467,
+                    "remaining_distance_m": 12.830834575606152,
+                    "remaining_anchors": 13
+                },
+                "route_local_pose": [
+                    0.4639031173679551,
+                    0.28507993246276697,
+                    0.5847099175722262
+                ]
+            },
+            {
+                "step": 2451,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2526,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 0.68 m left of the recorded route; turn right 41 deg toward the route; next anchor 0.75 m; remaining route distance to start 12.37 m.]",
+                "progress": {
+                    "nearest_segment_index": 1,
+                    "next_anchor_index": 2,
+                    "nearest_distance_m": 0.6751921772956848,
+                    "lateral_error_m": 0.67519211769104,
+                    "heading_error_deg": -41.446892570704385,
+                    "distance_to_next_anchor_m": 0.7490390539169312,
+                    "remaining_distance_m": 12.365176724948679,
+                    "remaining_anchors": 13
+                },
+                "route_local_pose": [
+                    0.9531982748758783,
+                    0.6226352860890463,
+                    0.6565466825748829
+                ]
+            },
+            {
+                "step": 2526,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2601,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 1.09 m left of the recorded route; turn right 51 deg toward the route; next anchor 1.48 m; remaining route distance to start 12.03 m.]",
+                "progress": {
+                    "nearest_segment_index": 2,
+                    "next_anchor_index": 3,
+                    "nearest_distance_m": 1.085429072380066,
+                    "lateral_error_m": 1.0854291915893555,
+                    "heading_error_deg": -51.210432783274904,
+                    "distance_to_next_anchor_m": 1.4752575159072876,
+                    "remaining_distance_m": 12.0321709206187,
+                    "remaining_anchors": 12
+                },
+                "route_local_pose": [
+                    1.4078398857803633,
+                    0.9983659443997576,
+                    0.7387996553101238
+                ]
+            },
+            {
+                "step": 2601,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2676,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 1.58 m left of the recorded route; turn right 54 deg toward the route; next anchor 1.70 m; remaining route distance to start 11.67 m.]",
+                "progress": {
+                    "nearest_segment_index": 2,
+                    "next_anchor_index": 3,
+                    "nearest_distance_m": 1.58050537109375,
+                    "lateral_error_m": 1.58050537109375,
+                    "heading_error_deg": -54.003463145279774,
+                    "distance_to_next_anchor_m": 1.704549789428711,
+                    "remaining_distance_m": 11.67140868336848,
+                    "remaining_anchors": 12
+                },
+                "route_local_pose": [
+                    1.8407031424205818,
+                    1.431816283439488,
+                    0.787547231235278
+                ]
+            },
+            {
+                "step": 2676,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2751,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 2.09 m left of the recorded route; turn right 57 deg toward the route; next anchor 2.11 m; remaining route distance to start 11.33 m.]",
+                "progress": {
+                    "nearest_segment_index": 2,
+                    "next_anchor_index": 3,
+                    "nearest_distance_m": 2.087782144546509,
+                    "lateral_error_m": 2.087782144546509,
+                    "heading_error_deg": -57.042959625658334,
+                    "distance_to_next_anchor_m": 2.108609914779663,
+                    "remaining_distance_m": 11.328695120106147,
+                    "remaining_anchors": 12
+                },
+                "route_local_pose": [
+                    2.257617426217028,
+                    1.8801072482030712,
+                    0.840596452420663
+                ]
+            },
+            {
+                "step": 2751,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2826,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 2.56 m left of the recorded route; turn right 49 deg toward the route; next anchor 2.62 m; remaining route distance to start 10.60 m.]",
+                "progress": {
+                    "nearest_segment_index": 3,
+                    "next_anchor_index": 4,
+                    "nearest_distance_m": 2.5606422424316406,
+                    "lateral_error_m": 2.5606424808502197,
+                    "heading_error_deg": -49.17978561375787,
+                    "distance_to_next_anchor_m": 2.6228861808776855,
+                    "remaining_distance_m": 10.60013703109048,
+                    "remaining_anchors": 11
+                },
+                "route_local_pose": [
+                    2.6922775701601855,
+                    2.326750416218696,
+                    0.845862134236169
+                ]
+            },
+            {
+                "step": 2826,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 2851,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 2.62 m left of the recorded route; turn right 39 deg toward the route; next anchor 2.67 m; remaining route distance to start 10.54 m.]",
+                "progress": {
+                    "nearest_segment_index": 3,
+                    "next_anchor_index": 4,
+                    "nearest_distance_m": 2.6222593784332275,
+                    "lateral_error_m": 2.6222596168518066,
+                    "heading_error_deg": -38.85573760001082,
+                    "distance_to_next_anchor_m": 2.6704275608062744,
+                    "remaining_distance_m": 10.53703490204937,
+                    "remaining_anchors": 11
+                },
+                "route_local_pose": [
+                    2.7561442299635113,
+                    2.3875749777377777,
+                    0.665673504262302
+                ]
+            },
+            {
+                "step": 2851,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2926,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 2.94 m left of the recorded route; turn right 40 deg toward the route; next anchor 2.94 m; remaining route distance to start 10.10 m.]",
+                "progress": {
+                    "nearest_segment_index": 3,
+                    "next_anchor_index": 4,
+                    "nearest_distance_m": 2.9418861865997314,
+                    "lateral_error_m": 2.9418864250183105,
+                    "heading_error_deg": -39.96240812365627,
+                    "distance_to_next_anchor_m": 2.942763090133667,
+                    "remaining_distance_m": 10.10395307562165,
+                    "remaining_anchors": 11
+                },
+                "route_local_pose": [
+                    3.1931835092620284,
+                    2.7017689823017204,
+                    0.6849885486346848
+                ]
+            },
+            {
+                "step": 2926,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3001,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 3.31 m left of the recorded route; turn right 40 deg toward the route; next anchor 3.34 m; remaining route distance to start 9.47 m.]",
+                "progress": {
+                    "nearest_segment_index": 4,
+                    "next_anchor_index": 5,
+                    "nearest_distance_m": 3.30706524848938,
+                    "lateral_error_m": 3.307065486907959,
+                    "heading_error_deg": -39.78613198021239,
+                    "distance_to_next_anchor_m": 3.3367481231689453,
+                    "remaining_distance_m": 9.469132215877185,
+                    "remaining_anchors": 10
+                },
+                "route_local_pose": [
+                    3.671918178335415,
+                    3.0843944116474873,
+                    0.7303846616556272
+                ]
+            },
+            {
+                "step": 3001,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3076,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 3.69 m left of the recorded route; turn right 42 deg toward the route; next anchor 3.82 m; remaining route distance to start 9.00 m.]",
+                "progress": {
+                    "nearest_segment_index": 5,
+                    "next_anchor_index": 6,
+                    "nearest_distance_m": 3.6911661624908447,
+                    "lateral_error_m": 3.6911661624908447,
+                    "heading_error_deg": -41.789870195080105,
+                    "distance_to_next_anchor_m": 3.8188726902008057,
+                    "remaining_distance_m": 9.003788661143227,
+                    "remaining_anchors": 9
+                },
+                "route_local_pose": [
+                    4.152876333123966,
+                    3.485767783209994,
+                    0.7572985292303046
+                ]
+            },
+            {
+                "step": 3076,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3151,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 4.10 m left of the recorded route; turn right 44 deg toward the route; next anchor 4.13 m; remaining route distance to start 8.53 m.]",
+                "progress": {
+                    "nearest_segment_index": 5,
+                    "next_anchor_index": 6,
+                    "nearest_distance_m": 4.101104736328125,
+                    "lateral_error_m": 4.101104736328125,
+                    "heading_error_deg": -43.51182006743307,
+                    "distance_to_next_anchor_m": 4.131864547729492,
+                    "remaining_distance_m": 8.527700260386219,
+                    "remaining_anchors": 9
+                },
+                "route_local_pose": [
+                    4.6173319253270995,
+                    3.9088407091922814,
+                    0.7873522240571599
+                ]
+            },
+            {
+                "step": 3151,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3226,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 4.53 m left of the recorded route; turn right 47 deg toward the route; next anchor 4.53 m; remaining route distance to start 8.07 m.]",
+                "progress": {
+                    "nearest_segment_index": 5,
+                    "next_anchor_index": 6,
+                    "nearest_distance_m": 4.5347065925598145,
+                    "lateral_error_m": 4.534706115722656,
+                    "heading_error_deg": -47.262338923641956,
+                    "distance_to_next_anchor_m": 4.534900665283203,
+                    "remaining_distance_m": 8.066418760808864,
+                    "remaining_anchors": 9
+                },
+                "route_local_pose": [
+                    5.066325648187681,
+                    4.355154386084538,
+                    0.8528111267561368
+                ]
+            },
+            {
+                "step": 3226,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3301,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 4.98 m left of the recorded route; turn right 48 deg toward the route; next anchor 5.04 m; remaining route distance to start 7.80 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 4.977200984954834,
+                    "lateral_error_m": 4.977200508117676,
+                    "heading_error_deg": -48.23788681877639,
+                    "distance_to_next_anchor_m": 5.037970542907715,
+                    "remaining_distance_m": 7.799934709179733,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    5.512733551908127,
+                    4.7978976863510585,
+                    0.8311955975682699
+                ]
+            },
+            {
+                "step": 3301,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3376,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 5.42 m left of the recorded route; turn right 49 deg toward the route; next anchor 5.43 m; remaining route distance to start 7.35 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 5.416000843048096,
+                    "lateral_error_m": 5.4160003662109375,
+                    "heading_error_deg": -49.190823433578984,
+                    "distance_to_next_anchor_m": 5.42594051361084,
+                    "remaining_distance_m": 7.348074348618406,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    5.969269255595064,
+                    5.231830856919503,
+                    0.847827479059384
+                ]
+            },
+            {
+                "step": 3376,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 25 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3401,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 5.56 m left of the recorded route; turn right 48 deg toward the route; next anchor 5.56 m; remaining route distance to start 7.20 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 5.555799961090088,
+                    "lateral_error_m": 5.555799961090088,
+                    "heading_error_deg": -48.25056684162072,
+                    "distance_to_next_anchor_m": 5.558688640594482,
+                    "remaining_distance_m": 7.198980367640332,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    6.11985266457027,
+                    5.37002471825056,
+                    0.8314169057161315
+                ]
+            },
+            {
+                "step": 3401,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 25 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3426,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 5.69 m left of the recorded route; turn right 47 deg toward the route; next anchor 5.69 m; remaining route distance to start 7.05 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 5.690716743469238,
+                    "lateral_error_m": 5.69071626663208,
+                    "heading_error_deg": -47.129422850348696,
+                    "distance_to_next_anchor_m": 5.690800189971924,
+                    "remaining_distance_m": 7.050691405986519,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    6.269578450047293,
+                    5.503344944989056,
+                    0.8118492516794842
+                ]
+            },
+            {
+                "step": 3426,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 25 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3451,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 5.84 m left of the recorded route; turn right 48 deg toward the route; next anchor 5.84 m; remaining route distance to start 7.02 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 5.840435028076172,
+                    "lateral_error_m": 5.839107036590576,
+                    "heading_error_deg": -47.5206405168695,
+                    "distance_to_next_anchor_m": 5.840435028076172,
+                    "remaining_distance_m": 7.019794940948486,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    6.426578469432317,
+                    5.65006213969542,
+                    0.8186772880522414
+                ]
+            },
+            {
+                "step": 3451,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3476,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 5.90 m left of the recorded route; turn right 38 deg toward the route; next anchor 5.90 m; remaining route distance to start 7.02 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 5.902609348297119,
+                    "lateral_error_m": 5.899962425231934,
+                    "heading_error_deg": -37.89001179596833,
+                    "distance_to_next_anchor_m": 5.902609348297119,
+                    "remaining_distance_m": 7.019794940948486,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    6.479453909033728,
+                    5.7103545232784265,
+                    0.6505911078353859
+                ]
+            },
+            {
+                "step": 3476,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3501,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 5.90 m left of the recorded route; turn right 29 deg toward the route; next anchor 5.91 m; remaining route distance to start 7.02 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 5.907196998596191,
+                    "lateral_error_m": 5.9040913581848145,
+                    "heading_error_deg": -28.617403663818152,
+                    "distance_to_next_anchor_m": 5.907196998596191,
+                    "remaining_distance_m": 7.019794940948486,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    6.494263918119712,
+                    5.714324729620293,
+                    0.4887535656821639
+                ]
+            },
+            {
+                "step": 3501,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3526,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 5.91 m left of the recorded route; turn right 19 deg toward the route; next anchor 5.92 m; remaining route distance to start 7.02 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 5.9153218269348145,
+                    "lateral_error_m": 5.911742210388184,
+                    "heading_error_deg": -18.910339556118817,
+                    "distance_to_next_anchor_m": 5.9153218269348145,
+                    "remaining_distance_m": 7.019794940948486,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    6.508582774579613,
+                    5.7218226754951935,
+                    0.31933333630064503
+                ]
+            },
+            {
+                "step": 3526,
+                "phase": "return",
+                "event": "route_memory_fallback",
+                "reason": "low_net_displacement",
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3526,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3551,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 5.92 m left of the recorded route; turn right 11 deg toward the route; next anchor 5.93 m; remaining route distance to start 7.02 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 5.926913261413574,
+                    "lateral_error_m": 5.92302942276001,
+                    "heading_error_deg": -11.240373983645652,
+                    "distance_to_next_anchor_m": 5.926913261413574,
+                    "remaining_distance_m": 7.019794940948486,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    6.517481730026752,
+                    5.733014999183336,
+                    0.1854671835463765
+                ]
+            },
+            {
+                "step": 3551,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3626,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 6.10 m left of the recorded route; turn right 20 deg toward the route; next anchor 6.14 m; remaining route distance to start 7.02 m.]",
+                "progress": {
+                    "nearest_segment_index": 6,
+                    "next_anchor_index": 7,
+                    "nearest_distance_m": 6.138165473937988,
+                    "lateral_error_m": 6.099841594696045,
+                    "heading_error_deg": -20.052941780047092,
+                    "distance_to_next_anchor_m": 6.138165473937988,
+                    "remaining_distance_m": 7.019794940948486,
+                    "remaining_anchors": 8
+                },
+                "route_local_pose": [
+                    6.989658330311769,
+                    5.904778315345273,
+                    0.33927550714880295
+                ]
+            },
+            {
+                "step": 3626,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3651,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 6.18 m left of the recorded route; turn right 18 deg toward the route; next anchor 6.25 m; remaining route distance to start 6.99 m.]",
+                "progress": {
+                    "nearest_segment_index": 7,
+                    "next_anchor_index": 8,
+                    "nearest_distance_m": 6.176044940948486,
+                    "lateral_error_m": 6.176044940948486,
+                    "heading_error_deg": -18.12475023862564,
+                    "distance_to_next_anchor_m": 6.253340244293213,
+                    "remaining_distance_m": 6.994630732084164,
+                    "remaining_anchors": 7
+                },
+                "route_local_pose": [
+                    7.045263889941794,
+                    5.935932640213887,
+                    0.18957345745501253
+                ]
+            },
+            {
+                "step": 3651,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3676,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 6.22 m left of the recorded route; turn right 9 deg toward the route; next anchor 6.29 m; remaining route distance to start 6.97 m.]",
+                "progress": {
+                    "nearest_segment_index": 7,
+                    "next_anchor_index": 8,
+                    "nearest_distance_m": 6.2196807861328125,
+                    "lateral_error_m": 6.219680309295654,
+                    "heading_error_deg": -8.985442548861725,
+                    "distance_to_next_anchor_m": 6.292662143707275,
+                    "remaining_distance_m": 6.970058696805644,
+                    "remaining_anchors": 7
+                },
+                "route_local_pose": [
+                    7.0751554231222515,
+                    5.9761117916727935,
+                    0.030062446915795724
+                ]
+            },
+            {
+                "step": 3676,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3751,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 6.32 m left of the recorded route; aligned; next anchor 6.33 m; remaining route distance to start 6.42 m.]",
+                "progress": {
+                    "nearest_segment_index": 7,
+                    "next_anchor_index": 8,
+                    "nearest_distance_m": 6.319235801696777,
+                    "lateral_error_m": 6.319235324859619,
+                    "heading_error_deg": -7.570534485858821,
+                    "distance_to_next_anchor_m": 6.33242654800415,
+                    "remaining_distance_m": 6.422977389704205,
+                    "remaining_anchors": 7
+                },
+                "route_local_pose": [
+                    7.630433242136246,
+                    6.005704005599259,
+                    0.0053676426033797
+                ]
+            },
+            {
+                "step": 3751,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3776,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 6.33 m left of the recorded route; turn left 10 deg toward the route; next anchor 6.36 m; remaining route distance to start 5.57 m.]",
+                "progress": {
+                    "nearest_segment_index": 8,
+                    "next_anchor_index": 9,
+                    "nearest_distance_m": 6.331237316131592,
+                    "lateral_error_m": 6.33123779296875,
+                    "heading_error_deg": 9.83685799295892,
+                    "distance_to_next_anchor_m": 6.356042385101318,
+                    "remaining_distance_m": 5.573878094813244,
+                    "remaining_anchors": 6
+                },
+                "route_local_pose": [
+                    7.703647946857577,
+                    6.014878239009969,
+                    -0.1758395406997921
+                ]
+            },
+            {
+                "step": 3776,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3801,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 6.32 m left of the recorded route; turn left 19 deg toward the route; next anchor 6.35 m; remaining route distance to start 5.55 m.]",
+                "progress": {
+                    "nearest_segment_index": 8,
+                    "next_anchor_index": 9,
+                    "nearest_distance_m": 6.324476718902588,
+                    "lateral_error_m": 6.324476718902588,
+                    "heading_error_deg": 19.19160323928721,
+                    "distance_to_next_anchor_m": 6.347418785095215,
+                    "remaining_distance_m": 5.552075522883282,
+                    "remaining_anchors": 6
+                },
+                "route_local_pose": [
+                    7.725422340170245,
+                    6.008026740138174,
+                    -0.3391106459335088
+                ]
+            },
+            {
+                "step": 3801,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 25 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 3826,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 6.27 m left of the recorded route; turn left 18 deg toward the route; next anchor 6.29 m; remaining route distance to start 5.42 m.]",
+                "progress": {
+                    "nearest_segment_index": 8,
+                    "next_anchor_index": 9,
+                    "nearest_distance_m": 6.27417516708374,
+                    "lateral_error_m": 6.27417516708374,
+                    "heading_error_deg": 17.64275040743459,
+                    "distance_to_next_anchor_m": 6.287481784820557,
+                    "remaining_distance_m": 5.421735139221907,
+                    "remaining_anchors": 6
+                },
+                "route_local_pose": [
+                    7.855552521752811,
+                    5.957184522905869,
+                    -0.31207806438884245
+                ]
+            },
+            {
+                "step": 3826,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 3901,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route memory says 6.08 m left of the recorded route; turn left 15 deg toward the route; next anchor 6.13 m; remaining route distance to start 4.80 m.]",
+                "progress": {
+                    "nearest_segment_index": 9,
+                    "next_anchor_index": 10,
+                    "nearest_distance_m": 6.079866409301758,
+                    "lateral_error_m": 6.079866409301758,
+                    "heading_error_deg": 15.106726397419923,
+                    "distance_to_next_anchor_m": 6.131237506866455,
+                    "remaining_distance_m": 4.803014652469031,
+                    "remaining_anchors": 5
+                },
+                "route_local_pose": [
+                    8.420799437041104,
+                    5.762115284276449,
+                    -0.25915448134065017
+                ]
+            },
+            {
+                "step": 3901,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "I think I should stop because I have finished the instruction.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.0
+            },
+            {
+                "step": 3901,
+                "phase": "return",
+                "event": "return_stop",
+                "distance_to_start": 2.697326898574829,
+                "success": true
+            }
+        ],
+        "route_memory": {
+            "enabled": true,
+            "localizer": "relative_odometry",
+            "anchor_spacing_m": 1.0,
+            "hint_mode": "compact",
+            "fallback_enabled": true,
+            "outbound_anchor_count": 15,
+            "return_anchor_count": 15,
+            "outbound_path_length_m": 13.274866326343203,
+            "return_path_length_m": 13.274866326343203,
+            "outbound_template": {
+                "anchors": [
+                    {
+                        "index": 0,
+                        "step": 0,
+                        "delta_from_prev": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "route_pose": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "route_s_m": 0.0,
+                        "command": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "[Init] outbound start"
+                    },
+                    {
+                        "index": 1,
+                        "step": 199,
+                        "delta_from_prev": [
+                            0.881631797679332,
+                            0.4787060762670007,
+                            0.5929888132041226
+                        ],
+                        "route_pose": [
+                            0.881631797679332,
+                            0.4787060762670007,
+                            0.5929888132041226
+                        ],
+                        "route_s_m": 1.0032119088877673,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 2,
+                        "step": 456,
+                        "delta_from_prev": [
+                            1.001275401403322,
+                            0.0072381409086618165,
+                            -0.9430040103846845
+                        ],
+                        "route_pose": [
+                            1.707918588471944,
+                            1.0442632877857325,
+                            -0.35001519718056195
+                        ],
+                        "route_s_m": 2.004513471924197,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 3,
+                        "step": 581,
+                        "delta_from_prev": [
+                            0.9972751646984417,
+                            0.12584791193459752,
+                            0.13940779380877588
+                        ],
+                        "route_pose": [
+                            2.6878812380532597,
+                            0.8205030221258753,
+                            -0.21060740337178607
+                        ],
+                        "route_s_m": 3.009697759039053,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 4,
+                        "step": 819,
+                        "delta_from_prev": [
+                            0.9984101743073891,
+                            0.07592890244796952,
+                            1.140687806860184
+                        ],
+                        "route_pose": [
+                            3.6801038907812123,
+                            0.6860326469461752,
+                            0.9300804034883979
+                        ],
+                        "route_s_m": 4.01099096004836,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 5,
+                        "step": 941,
+                        "delta_from_prev": [
+                            0.9992043547790599,
+                            -0.07345186779343105,
+                            0.05280364336175036
+                        ],
+                        "route_pose": [
+                            4.336281818036765,
+                            1.4431555215671892,
+                            0.9828840468501483
+                        ],
+                        "route_s_m": 5.0128914139317695,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 6,
+                        "step": 1103,
+                        "delta_from_prev": [
+                            0.9924783542884883,
+                            -0.13464650917754029,
+                            -0.3256522864400585
+                        ],
+                        "route_pose": [
+                            4.998774578429253,
+                            2.1943188251120476,
+                            0.6572317604100898
+                        ],
+                        "route_s_m": 6.014461664171304,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 7,
+                        "step": 1226,
+                        "delta_from_prev": [
+                            1.0029961053286534,
+                            0.06851008026425642,
+                            0.17198749341741626
+                        ],
+                        "route_pose": [
+                            5.750978311070075,
+                            2.861315349093602,
+                            0.829219253827506
+                        ],
+                        "route_s_m": 7.019794851926617,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 8,
+                        "step": 1345,
+                        "delta_from_prev": [
+                            1.0045904067508822,
+                            0.012317667437376556,
+                            0.10060021003340591
+                        ],
+                        "route_pose": [
+                            6.420447500300205,
+                            3.61042456338652,
+                            0.929819463860912
+                        ],
+                        "route_s_m": 8.024460771656655,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 9,
+                        "step": 1464,
+                        "delta_from_prev": [
+                            0.9993556852441521,
+                            -0.049706305797472705,
+                            0.02133370716732441
+                        ],
+                        "route_pose": [
+                            7.057881108149254,
+                            4.381696822741403,
+                            0.9511531710282364
+                        ],
+                        "route_s_m": 9.025051848203832,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 10,
+                        "step": 1584,
+                        "delta_from_prev": [
+                            1.0050728469938937,
+                            -0.06337637900372028,
+                            0.021647850515816525
+                        ],
+                        "route_pose": [
+                            7.693165639494865,
+                            5.163106803105758,
+                            0.9728010215440529
+                        ],
+                        "route_s_m": 10.032120859334665,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 11,
+                        "step": 1749,
+                        "delta_from_prev": [
+                            0.9920835742768217,
+                            -0.1328252803441084,
+                            -0.30334978185793426
+                        ],
+                        "route_pose": [
+                            8.361471154031275,
+                            5.908251160051839,
+                            0.6694512396861186
+                        ],
+                        "route_s_m": 11.033056608245834,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 12,
+                        "step": 1873,
+                        "delta_from_prev": [
+                            1.0074246993352103,
+                            0.027965351396372684,
+                            0.10173472904365434
+                        ],
+                        "route_pose": [
+                            9.134101583816621,
+                            6.555343738188131,
+                            0.771185968729773
+                        ],
+                        "route_s_m": 12.040869381388426,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 13,
+                        "step": 1996,
+                        "delta_from_prev": [
+                            1.003382755494307,
+                            0.014219227592215278,
+                            0.0755224867184424
+                        ],
+                        "route_pose": [
+                            9.843701270929937,
+                            7.264884029155001,
+                            0.8467084554482154
+                        ],
+                        "route_s_m": 13.044352884220768,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 14,
+                        "step": 2025,
+                        "delta_from_prev": [
+                            0.23047098623104162,
+                            -0.00442396935165458,
+                            0.005485916029443149
+                        ],
+                        "route_pose": [
+                            9.99969135093578,
+                            7.434600091856515,
+                            0.8521943714776585
+                        ],
+                        "route_s_m": 13.274866326343203,
+                        "command": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "I think I should stop because I have finished the instruction."
+                    }
+                ]
+            },
+            "return_template": {
+                "anchors": [
+                    {
+                        "index": 0,
+                        "step": 2025,
+                        "delta_from_prev": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "route_pose": [
+                            -0.0,
+                            0.0,
+                            -3.1415926535897927
+                        ],
+                        "route_s_m": 0.0,
+                        "command": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "I think I should stop because I have finished the instruction."
+                    },
+                    {
+                        "index": 1,
+                        "step": 1996,
+                        "delta_from_prev": [
+                            -0.2304432487932736,
+                            0.005688240917432064,
+                            -0.00548591602944295
+                        ],
+                        "route_pose": [
+                            0.2304432487932736,
+                            -0.005688240917431933,
+                            3.1361067375603504
+                        ],
+                        "route_s_m": 0.23051344212243485,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 2,
+                        "step": 1873,
+                        "delta_from_prev": [
+                            -1.0015954961710851,
+                            0.06152725011298162,
+                            -0.07552248671844229
+                        ],
+                        "route_pose": [
+                            1.2316861417217502,
+                            -0.07270920641989898,
+                            3.060584250841908
+                        ],
+                        "route_s_m": 1.233996944954777,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 3,
+                        "step": 1749,
+                        "delta_from_prev": [
+                            -1.0050559364236744,
+                            0.0744926195598745,
+                            -0.10173472904365434
+                        ],
+                        "route_pose": [
+                            2.22741818091553,
+                            -0.22828649214104346,
+                            2.958849521798254
+                        ],
+                        "route_s_m": 2.241809718097368,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 4,
+                        "step": 1584,
+                        "delta_from_prev": [
+                            -0.9864636281730126,
+                            -0.16959328919536418,
+                            0.3033497818579341
+                        ],
+                        "route_pose": [
+                            3.2282758947665107,
+                            -0.2407848949731668,
+                            -3.0209860035233986
+                        ],
+                        "route_s_m": 3.242745467008538,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 5,
+                        "step": 1464,
+                        "delta_from_prev": [
+                            -1.0034654976076276,
+                            0.08511749697394133,
+                            -0.021647850515816636
+                        ],
+                        "route_pose": [
+                            4.234692914922058,
+                            -0.20455266179245823,
+                            -3.0426338540392153
+                        ],
+                        "route_s_m": 4.2498144781393705,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 6,
+                        "step": 1345,
+                        "delta_from_prev": [
+                            -0.9980679376246507,
+                            0.07101333925058591,
+                            -0.02133370716732408
+                        ],
+                        "route_pose": [
+                            5.234893808260351,
+                            -0.17661209216469986,
+                            -3.0639675612065393
+                        ],
+                        "route_s_m": 5.250405554686548,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 7,
+                        "step": 1226,
+                        "delta_from_prev": [
+                            -1.0007483338459109,
+                            0.088636237350386,
+                            -0.10060021003340604
+                        ],
+                        "route_pose": [
+                            6.239502062083533,
+                            -0.18737622786328023,
+                            3.1186175359396415
+                        ],
+                        "route_s_m": 6.255071474416585,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 8,
+                        "step": 1103,
+                        "delta_from_prev": [
+                            -0.9999233480765574,
+                            0.10415429119162642,
+                            -0.17198749341741637
+                        ],
+                        "route_pose": [
+                            7.236768767407087,
+                            -0.3144743665410985,
+                            2.946630042522225
+                        ],
+                        "route_s_m": 7.260404662171899,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 9,
+                        "step": 941,
+                        "delta_from_prev": [
+                            -0.9833929537128709,
+                            -0.18995069031924514,
+                            0.32565228644005845
+                        ],
+                        "route_pose": [
+                            8.238330376232755,
+                            -0.318634882305072,
+                            -3.010902978217303
+                        ],
+                        "route_s_m": 8.261974912411432,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 10,
+                        "step": 819,
+                        "delta_from_prev": [
+                            -0.9939349511435157,
+                            0.12608660669205587,
+                            -0.052803643361750474
+                        ],
+                        "route_pose": [
+                            9.24022065132879,
+                            -0.31411867152951434,
+                            -3.0637066215790534
+                        ],
+                        "route_s_m": 9.263875366294842,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 11,
+                        "step": 581,
+                        "delta_from_prev": [
+                            -0.4853198685454131,
+                            0.8758154483580018,
+                            -1.140687806860184
+                        ],
+                        "route_pose": [
+                            9.792214076085004,
+                            -1.1495175782880587,
+                            2.078790878740349
+                        ],
+                        "route_s_m": 10.26516856730415,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 12,
+                        "step": 456,
+                        "delta_from_prev": [
+                            -1.005087468457068,
+                            0.013951050611390847,
+                            -0.13940779380877588
+                        ],
+                        "route_pose": [
+                            10.26892543915319,
+                            -2.0344705303619373,
+                            1.9393830849315732
+                        ],
+                        "route_s_m": 11.270352854419006,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 13,
+                        "step": 199,
+                        "delta_from_prev": [
+                            -0.5822505567315952,
+                            -0.8146097896078487,
+                            0.9430040103846844
+                        ],
+                        "route_pose": [
+                            11.238607370707491,
+                            -2.2841138193891304,
+                            2.8823870953162576
+                        ],
+                        "route_s_m": 12.271654417455435,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 14,
+                        "step": 0,
+                        "delta_from_prev": [
+                            -0.9986355153896191,
+                            0.09571437476550859,
+                            -0.5929888132041223
+                        ],
+                        "route_pose": [
+                            12.179349564135237,
+                            -2.632593746557106,
+                            2.2893982821121353
+                        ],
+                        "route_s_m": 13.274866326343203,
+                        "command": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "[Init] outbound start"
+                    }
+                ]
+            },
+            "current_return_pose": [
+                8.428132810344467,
+                5.760039357836968,
+                -0.25828912083604344
+            ],
+            "hint_events": [
+                {
+                    "step": 2326,
+                    "hint": "[System Hint: route memory says on the recorded route; aligned; next anchor 0.23 m; remaining route distance to start 13.27 m.]",
+                    "progress": {
+                        "nearest_segment_index": 0,
+                        "next_anchor_index": 1,
+                        "nearest_distance_m": 0.001235028263181448,
+                        "lateral_error_m": -0.0012350281467661262,
+                        "heading_error_deg": -2.07626831356909,
+                        "distance_to_next_anchor_m": 0.22987203299999237,
+                        "remaining_distance_m": 13.274222206615836,
+                        "remaining_anchors": 14
+                    },
+                    "route_local_pose": [
+                        0.0006140596131275183,
+                        -0.0012505618195627914,
+                        0.011558818761386206
+                    ]
+                },
+                {
+                    "step": 2351,
+                    "hint": "[System Hint: route memory says on the recorded route; turn right 16 deg toward the route; next anchor 0.23 m; remaining route distance to start 13.27 m.]",
+                    "progress": {
+                        "nearest_segment_index": 0,
+                        "next_anchor_index": 1,
+                        "nearest_distance_m": 0.004804745316505432,
+                        "lateral_error_m": -0.004408735316246748,
+                        "heading_error_deg": -16.06233419561019,
+                        "distance_to_next_anchor_m": 0.23246540129184723,
+                        "remaining_distance_m": 13.274866938591003,
+                        "remaining_anchors": 14
+                    },
+                    "route_local_pose": [
+                        -0.0020183496214732193,
+                        -0.004360257311435082,
+                        0.2556617178038483
+                    ]
+                },
+                {
+                    "step": 2376,
+                    "hint": "[System Hint: route memory says on the recorded route; turn right 29 deg toward the route; next anchor 0.21 m; remaining route distance to start 13.26 m.]",
+                    "progress": {
+                        "nearest_segment_index": 0,
+                        "next_anchor_index": 1,
+                        "nearest_distance_m": 0.0032383089419454336,
+                        "lateral_error_m": 0.0032383089419454336,
+                        "heading_error_deg": -28.61408697952522,
+                        "distance_to_next_anchor_m": 0.21193434298038483,
+                        "remaining_distance_m": 13.25626309437074,
+                        "remaining_anchors": 14
+                    },
+                    "route_local_pose": [
+                        0.018678087052047414,
+                        0.002778247188838805,
+                        0.4747311307795299
+                    ]
+                },
+                {
+                    "step": 2451,
+                    "hint": "[System Hint: route memory says 0.31 m left of the recorded route; turn right 37 deg toward the route; next anchor 0.85 m; remaining route distance to start 12.83 m.]",
+                    "progress": {
+                        "nearest_segment_index": 1,
+                        "next_anchor_index": 2,
+                        "nearest_distance_m": 0.3057113289833069,
+                        "lateral_error_m": 0.3057112991809845,
+                        "heading_error_deg": -37.330949122179064,
+                        "distance_to_next_anchor_m": 0.847055971622467,
+                        "remaining_distance_m": 12.830834575606152,
+                        "remaining_anchors": 13
+                    },
+                    "route_local_pose": [
+                        0.4639031173679551,
+                        0.28507993246276697,
+                        0.5847099175722262
+                    ]
+                },
+                {
+                    "step": 2526,
+                    "hint": "[System Hint: route memory says 0.68 m left of the recorded route; turn right 41 deg toward the route; next anchor 0.75 m; remaining route distance to start 12.37 m.]",
+                    "progress": {
+                        "nearest_segment_index": 1,
+                        "next_anchor_index": 2,
+                        "nearest_distance_m": 0.6751921772956848,
+                        "lateral_error_m": 0.67519211769104,
+                        "heading_error_deg": -41.446892570704385,
+                        "distance_to_next_anchor_m": 0.7490390539169312,
+                        "remaining_distance_m": 12.365176724948679,
+                        "remaining_anchors": 13
+                    },
+                    "route_local_pose": [
+                        0.9531982748758783,
+                        0.6226352860890463,
+                        0.6565466825748829
+                    ]
+                },
+                {
+                    "step": 2601,
+                    "hint": "[System Hint: route memory says 1.09 m left of the recorded route; turn right 51 deg toward the route; next anchor 1.48 m; remaining route distance to start 12.03 m.]",
+                    "progress": {
+                        "nearest_segment_index": 2,
+                        "next_anchor_index": 3,
+                        "nearest_distance_m": 1.085429072380066,
+                        "lateral_error_m": 1.0854291915893555,
+                        "heading_error_deg": -51.210432783274904,
+                        "distance_to_next_anchor_m": 1.4752575159072876,
+                        "remaining_distance_m": 12.0321709206187,
+                        "remaining_anchors": 12
+                    },
+                    "route_local_pose": [
+                        1.4078398857803633,
+                        0.9983659443997576,
+                        0.7387996553101238
+                    ]
+                },
+                {
+                    "step": 2676,
+                    "hint": "[System Hint: route memory says 1.58 m left of the recorded route; turn right 54 deg toward the route; next anchor 1.70 m; remaining route distance to start 11.67 m.]",
+                    "progress": {
+                        "nearest_segment_index": 2,
+                        "next_anchor_index": 3,
+                        "nearest_distance_m": 1.58050537109375,
+                        "lateral_error_m": 1.58050537109375,
+                        "heading_error_deg": -54.003463145279774,
+                        "distance_to_next_anchor_m": 1.704549789428711,
+                        "remaining_distance_m": 11.67140868336848,
+                        "remaining_anchors": 12
+                    },
+                    "route_local_pose": [
+                        1.8407031424205818,
+                        1.431816283439488,
+                        0.787547231235278
+                    ]
+                },
+                {
+                    "step": 2751,
+                    "hint": "[System Hint: route memory says 2.09 m left of the recorded route; turn right 57 deg toward the route; next anchor 2.11 m; remaining route distance to start 11.33 m.]",
+                    "progress": {
+                        "nearest_segment_index": 2,
+                        "next_anchor_index": 3,
+                        "nearest_distance_m": 2.087782144546509,
+                        "lateral_error_m": 2.087782144546509,
+                        "heading_error_deg": -57.042959625658334,
+                        "distance_to_next_anchor_m": 2.108609914779663,
+                        "remaining_distance_m": 11.328695120106147,
+                        "remaining_anchors": 12
+                    },
+                    "route_local_pose": [
+                        2.257617426217028,
+                        1.8801072482030712,
+                        0.840596452420663
+                    ]
+                },
+                {
+                    "step": 2826,
+                    "hint": "[System Hint: route memory says 2.56 m left of the recorded route; turn right 49 deg toward the route; next anchor 2.62 m; remaining route distance to start 10.60 m.]",
+                    "progress": {
+                        "nearest_segment_index": 3,
+                        "next_anchor_index": 4,
+                        "nearest_distance_m": 2.5606422424316406,
+                        "lateral_error_m": 2.5606424808502197,
+                        "heading_error_deg": -49.17978561375787,
+                        "distance_to_next_anchor_m": 2.6228861808776855,
+                        "remaining_distance_m": 10.60013703109048,
+                        "remaining_anchors": 11
+                    },
+                    "route_local_pose": [
+                        2.6922775701601855,
+                        2.326750416218696,
+                        0.845862134236169
+                    ]
+                },
+                {
+                    "step": 2851,
+                    "hint": "[System Hint: route memory says 2.62 m left of the recorded route; turn right 39 deg toward the route; next anchor 2.67 m; remaining route distance to start 10.54 m.]",
+                    "progress": {
+                        "nearest_segment_index": 3,
+                        "next_anchor_index": 4,
+                        "nearest_distance_m": 2.6222593784332275,
+                        "lateral_error_m": 2.6222596168518066,
+                        "heading_error_deg": -38.85573760001082,
+                        "distance_to_next_anchor_m": 2.6704275608062744,
+                        "remaining_distance_m": 10.53703490204937,
+                        "remaining_anchors": 11
+                    },
+                    "route_local_pose": [
+                        2.7561442299635113,
+                        2.3875749777377777,
+                        0.665673504262302
+                    ]
+                },
+                {
+                    "step": 2926,
+                    "hint": "[System Hint: route memory says 2.94 m left of the recorded route; turn right 40 deg toward the route; next anchor 2.94 m; remaining route distance to start 10.10 m.]",
+                    "progress": {
+                        "nearest_segment_index": 3,
+                        "next_anchor_index": 4,
+                        "nearest_distance_m": 2.9418861865997314,
+                        "lateral_error_m": 2.9418864250183105,
+                        "heading_error_deg": -39.96240812365627,
+                        "distance_to_next_anchor_m": 2.942763090133667,
+                        "remaining_distance_m": 10.10395307562165,
+                        "remaining_anchors": 11
+                    },
+                    "route_local_pose": [
+                        3.1931835092620284,
+                        2.7017689823017204,
+                        0.6849885486346848
+                    ]
+                },
+                {
+                    "step": 3001,
+                    "hint": "[System Hint: route memory says 3.31 m left of the recorded route; turn right 40 deg toward the route; next anchor 3.34 m; remaining route distance to start 9.47 m.]",
+                    "progress": {
+                        "nearest_segment_index": 4,
+                        "next_anchor_index": 5,
+                        "nearest_distance_m": 3.30706524848938,
+                        "lateral_error_m": 3.307065486907959,
+                        "heading_error_deg": -39.78613198021239,
+                        "distance_to_next_anchor_m": 3.3367481231689453,
+                        "remaining_distance_m": 9.469132215877185,
+                        "remaining_anchors": 10
+                    },
+                    "route_local_pose": [
+                        3.671918178335415,
+                        3.0843944116474873,
+                        0.7303846616556272
+                    ]
+                },
+                {
+                    "step": 3076,
+                    "hint": "[System Hint: route memory says 3.69 m left of the recorded route; turn right 42 deg toward the route; next anchor 3.82 m; remaining route distance to start 9.00 m.]",
+                    "progress": {
+                        "nearest_segment_index": 5,
+                        "next_anchor_index": 6,
+                        "nearest_distance_m": 3.6911661624908447,
+                        "lateral_error_m": 3.6911661624908447,
+                        "heading_error_deg": -41.789870195080105,
+                        "distance_to_next_anchor_m": 3.8188726902008057,
+                        "remaining_distance_m": 9.003788661143227,
+                        "remaining_anchors": 9
+                    },
+                    "route_local_pose": [
+                        4.152876333123966,
+                        3.485767783209994,
+                        0.7572985292303046
+                    ]
+                },
+                {
+                    "step": 3151,
+                    "hint": "[System Hint: route memory says 4.10 m left of the recorded route; turn right 44 deg toward the route; next anchor 4.13 m; remaining route distance to start 8.53 m.]",
+                    "progress": {
+                        "nearest_segment_index": 5,
+                        "next_anchor_index": 6,
+                        "nearest_distance_m": 4.101104736328125,
+                        "lateral_error_m": 4.101104736328125,
+                        "heading_error_deg": -43.51182006743307,
+                        "distance_to_next_anchor_m": 4.131864547729492,
+                        "remaining_distance_m": 8.527700260386219,
+                        "remaining_anchors": 9
+                    },
+                    "route_local_pose": [
+                        4.6173319253270995,
+                        3.9088407091922814,
+                        0.7873522240571599
+                    ]
+                },
+                {
+                    "step": 3226,
+                    "hint": "[System Hint: route memory says 4.53 m left of the recorded route; turn right 47 deg toward the route; next anchor 4.53 m; remaining route distance to start 8.07 m.]",
+                    "progress": {
+                        "nearest_segment_index": 5,
+                        "next_anchor_index": 6,
+                        "nearest_distance_m": 4.5347065925598145,
+                        "lateral_error_m": 4.534706115722656,
+                        "heading_error_deg": -47.262338923641956,
+                        "distance_to_next_anchor_m": 4.534900665283203,
+                        "remaining_distance_m": 8.066418760808864,
+                        "remaining_anchors": 9
+                    },
+                    "route_local_pose": [
+                        5.066325648187681,
+                        4.355154386084538,
+                        0.8528111267561368
+                    ]
+                },
+                {
+                    "step": 3301,
+                    "hint": "[System Hint: route memory says 4.98 m left of the recorded route; turn right 48 deg toward the route; next anchor 5.04 m; remaining route distance to start 7.80 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 4.977200984954834,
+                        "lateral_error_m": 4.977200508117676,
+                        "heading_error_deg": -48.23788681877639,
+                        "distance_to_next_anchor_m": 5.037970542907715,
+                        "remaining_distance_m": 7.799934709179733,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        5.512733551908127,
+                        4.7978976863510585,
+                        0.8311955975682699
+                    ]
+                },
+                {
+                    "step": 3376,
+                    "hint": "[System Hint: route memory says 5.42 m left of the recorded route; turn right 49 deg toward the route; next anchor 5.43 m; remaining route distance to start 7.35 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.416000843048096,
+                        "lateral_error_m": 5.4160003662109375,
+                        "heading_error_deg": -49.190823433578984,
+                        "distance_to_next_anchor_m": 5.42594051361084,
+                        "remaining_distance_m": 7.348074348618406,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        5.969269255595064,
+                        5.231830856919503,
+                        0.847827479059384
+                    ]
+                },
+                {
+                    "step": 3401,
+                    "hint": "[System Hint: route memory says 5.56 m left of the recorded route; turn right 48 deg toward the route; next anchor 5.56 m; remaining route distance to start 7.20 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.555799961090088,
+                        "lateral_error_m": 5.555799961090088,
+                        "heading_error_deg": -48.25056684162072,
+                        "distance_to_next_anchor_m": 5.558688640594482,
+                        "remaining_distance_m": 7.198980367640332,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.11985266457027,
+                        5.37002471825056,
+                        0.8314169057161315
+                    ]
+                },
+                {
+                    "step": 3426,
+                    "hint": "[System Hint: route memory says 5.69 m left of the recorded route; turn right 47 deg toward the route; next anchor 5.69 m; remaining route distance to start 7.05 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.690716743469238,
+                        "lateral_error_m": 5.69071626663208,
+                        "heading_error_deg": -47.129422850348696,
+                        "distance_to_next_anchor_m": 5.690800189971924,
+                        "remaining_distance_m": 7.050691405986519,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.269578450047293,
+                        5.503344944989056,
+                        0.8118492516794842
+                    ]
+                },
+                {
+                    "step": 3451,
+                    "hint": "[System Hint: route memory says 5.84 m left of the recorded route; turn right 48 deg toward the route; next anchor 5.84 m; remaining route distance to start 7.02 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.840435028076172,
+                        "lateral_error_m": 5.839107036590576,
+                        "heading_error_deg": -47.5206405168695,
+                        "distance_to_next_anchor_m": 5.840435028076172,
+                        "remaining_distance_m": 7.019794940948486,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.426578469432317,
+                        5.65006213969542,
+                        0.8186772880522414
+                    ]
+                },
+                {
+                    "step": 3476,
+                    "hint": "[System Hint: route memory says 5.90 m left of the recorded route; turn right 38 deg toward the route; next anchor 5.90 m; remaining route distance to start 7.02 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.902609348297119,
+                        "lateral_error_m": 5.899962425231934,
+                        "heading_error_deg": -37.89001179596833,
+                        "distance_to_next_anchor_m": 5.902609348297119,
+                        "remaining_distance_m": 7.019794940948486,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.479453909033728,
+                        5.7103545232784265,
+                        0.6505911078353859
+                    ]
+                },
+                {
+                    "step": 3501,
+                    "hint": "[System Hint: route memory says 5.90 m left of the recorded route; turn right 29 deg toward the route; next anchor 5.91 m; remaining route distance to start 7.02 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.907196998596191,
+                        "lateral_error_m": 5.9040913581848145,
+                        "heading_error_deg": -28.617403663818152,
+                        "distance_to_next_anchor_m": 5.907196998596191,
+                        "remaining_distance_m": 7.019794940948486,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.494263918119712,
+                        5.714324729620293,
+                        0.4887535656821639
+                    ]
+                },
+                {
+                    "step": 3526,
+                    "hint": "[System Hint: route memory says 5.91 m left of the recorded route; turn right 19 deg toward the route; next anchor 5.92 m; remaining route distance to start 7.02 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.9153218269348145,
+                        "lateral_error_m": 5.911742210388184,
+                        "heading_error_deg": -18.910339556118817,
+                        "distance_to_next_anchor_m": 5.9153218269348145,
+                        "remaining_distance_m": 7.019794940948486,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.508582774579613,
+                        5.7218226754951935,
+                        0.31933333630064503
+                    ]
+                },
+                {
+                    "step": 3551,
+                    "hint": "[System Hint: route memory says 5.92 m left of the recorded route; turn right 11 deg toward the route; next anchor 5.93 m; remaining route distance to start 7.02 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.926913261413574,
+                        "lateral_error_m": 5.92302942276001,
+                        "heading_error_deg": -11.240373983645652,
+                        "distance_to_next_anchor_m": 5.926913261413574,
+                        "remaining_distance_m": 7.019794940948486,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.517481730026752,
+                        5.733014999183336,
+                        0.1854671835463765
+                    ]
+                },
+                {
+                    "step": 3626,
+                    "hint": "[System Hint: route memory says 6.10 m left of the recorded route; turn right 20 deg toward the route; next anchor 6.14 m; remaining route distance to start 7.02 m.]",
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 6.138165473937988,
+                        "lateral_error_m": 6.099841594696045,
+                        "heading_error_deg": -20.052941780047092,
+                        "distance_to_next_anchor_m": 6.138165473937988,
+                        "remaining_distance_m": 7.019794940948486,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.989658330311769,
+                        5.904778315345273,
+                        0.33927550714880295
+                    ]
+                },
+                {
+                    "step": 3651,
+                    "hint": "[System Hint: route memory says 6.18 m left of the recorded route; turn right 18 deg toward the route; next anchor 6.25 m; remaining route distance to start 6.99 m.]",
+                    "progress": {
+                        "nearest_segment_index": 7,
+                        "next_anchor_index": 8,
+                        "nearest_distance_m": 6.176044940948486,
+                        "lateral_error_m": 6.176044940948486,
+                        "heading_error_deg": -18.12475023862564,
+                        "distance_to_next_anchor_m": 6.253340244293213,
+                        "remaining_distance_m": 6.994630732084164,
+                        "remaining_anchors": 7
+                    },
+                    "route_local_pose": [
+                        7.045263889941794,
+                        5.935932640213887,
+                        0.18957345745501253
+                    ]
+                },
+                {
+                    "step": 3676,
+                    "hint": "[System Hint: route memory says 6.22 m left of the recorded route; turn right 9 deg toward the route; next anchor 6.29 m; remaining route distance to start 6.97 m.]",
+                    "progress": {
+                        "nearest_segment_index": 7,
+                        "next_anchor_index": 8,
+                        "nearest_distance_m": 6.2196807861328125,
+                        "lateral_error_m": 6.219680309295654,
+                        "heading_error_deg": -8.985442548861725,
+                        "distance_to_next_anchor_m": 6.292662143707275,
+                        "remaining_distance_m": 6.970058696805644,
+                        "remaining_anchors": 7
+                    },
+                    "route_local_pose": [
+                        7.0751554231222515,
+                        5.9761117916727935,
+                        0.030062446915795724
+                    ]
+                },
+                {
+                    "step": 3751,
+                    "hint": "[System Hint: route memory says 6.32 m left of the recorded route; aligned; next anchor 6.33 m; remaining route distance to start 6.42 m.]",
+                    "progress": {
+                        "nearest_segment_index": 7,
+                        "next_anchor_index": 8,
+                        "nearest_distance_m": 6.319235801696777,
+                        "lateral_error_m": 6.319235324859619,
+                        "heading_error_deg": -7.570534485858821,
+                        "distance_to_next_anchor_m": 6.33242654800415,
+                        "remaining_distance_m": 6.422977389704205,
+                        "remaining_anchors": 7
+                    },
+                    "route_local_pose": [
+                        7.630433242136246,
+                        6.005704005599259,
+                        0.0053676426033797
+                    ]
+                },
+                {
+                    "step": 3776,
+                    "hint": "[System Hint: route memory says 6.33 m left of the recorded route; turn left 10 deg toward the route; next anchor 6.36 m; remaining route distance to start 5.57 m.]",
+                    "progress": {
+                        "nearest_segment_index": 8,
+                        "next_anchor_index": 9,
+                        "nearest_distance_m": 6.331237316131592,
+                        "lateral_error_m": 6.33123779296875,
+                        "heading_error_deg": 9.83685799295892,
+                        "distance_to_next_anchor_m": 6.356042385101318,
+                        "remaining_distance_m": 5.573878094813244,
+                        "remaining_anchors": 6
+                    },
+                    "route_local_pose": [
+                        7.703647946857577,
+                        6.014878239009969,
+                        -0.1758395406997921
+                    ]
+                },
+                {
+                    "step": 3801,
+                    "hint": "[System Hint: route memory says 6.32 m left of the recorded route; turn left 19 deg toward the route; next anchor 6.35 m; remaining route distance to start 5.55 m.]",
+                    "progress": {
+                        "nearest_segment_index": 8,
+                        "next_anchor_index": 9,
+                        "nearest_distance_m": 6.324476718902588,
+                        "lateral_error_m": 6.324476718902588,
+                        "heading_error_deg": 19.19160323928721,
+                        "distance_to_next_anchor_m": 6.347418785095215,
+                        "remaining_distance_m": 5.552075522883282,
+                        "remaining_anchors": 6
+                    },
+                    "route_local_pose": [
+                        7.725422340170245,
+                        6.008026740138174,
+                        -0.3391106459335088
+                    ]
+                },
+                {
+                    "step": 3826,
+                    "hint": "[System Hint: route memory says 6.27 m left of the recorded route; turn left 18 deg toward the route; next anchor 6.29 m; remaining route distance to start 5.42 m.]",
+                    "progress": {
+                        "nearest_segment_index": 8,
+                        "next_anchor_index": 9,
+                        "nearest_distance_m": 6.27417516708374,
+                        "lateral_error_m": 6.27417516708374,
+                        "heading_error_deg": 17.64275040743459,
+                        "distance_to_next_anchor_m": 6.287481784820557,
+                        "remaining_distance_m": 5.421735139221907,
+                        "remaining_anchors": 6
+                    },
+                    "route_local_pose": [
+                        7.855552521752811,
+                        5.957184522905869,
+                        -0.31207806438884245
+                    ]
+                },
+                {
+                    "step": 3901,
+                    "hint": "[System Hint: route memory says 6.08 m left of the recorded route; turn left 15 deg toward the route; next anchor 6.13 m; remaining route distance to start 4.80 m.]",
+                    "progress": {
+                        "nearest_segment_index": 9,
+                        "next_anchor_index": 10,
+                        "nearest_distance_m": 6.079866409301758,
+                        "lateral_error_m": 6.079866409301758,
+                        "heading_error_deg": 15.106726397419923,
+                        "distance_to_next_anchor_m": 6.131237506866455,
+                        "remaining_distance_m": 4.803014652469031,
+                        "remaining_anchors": 5
+                    },
+                    "route_local_pose": [
+                        8.420799437041104,
+                        5.762115284276449,
+                        -0.25915448134065017
+                    ]
+                }
+            ],
+            "fallback_events": [
+                {
+                    "step": 3526,
+                    "reason": "low_net_displacement",
+                    "command": [
+                        0.0,
+                        0.0,
+                        -0.5235987755982988
+                    ],
+                    "duration_seconds": 0.5,
+                    "progress": {
+                        "nearest_segment_index": 6,
+                        "next_anchor_index": 7,
+                        "nearest_distance_m": 5.9153218269348145,
+                        "lateral_error_m": 5.911742210388184,
+                        "heading_error_deg": -18.910339556118817,
+                        "distance_to_next_anchor_m": 5.9153218269348145,
+                        "remaining_distance_m": 7.019794940948486,
+                        "remaining_anchors": 8
+                    },
+                    "route_local_pose": [
+                        6.508582774579613,
+                        5.7218226754951935,
+                        0.31933333630064503
+                    ]
+                }
+            ]
+        }
+    }
+}

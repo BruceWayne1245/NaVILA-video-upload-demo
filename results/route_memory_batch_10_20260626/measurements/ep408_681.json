@@ -1,0 +1,479 @@
+{
+    "path_length": 2.6276183948845144,
+    "distance_to_goal": 5.483508400920265,
+    "success": 0.0,
+    "spl": 0.0,
+    "oracle_navigation_error": 5.438051344048518,
+    "oracle_success": 0.0,
+    "round_trip": {
+        "mode": "phase_prompt",
+        "completed_phase": "outbound",
+        "outbound_success": false,
+        "return_success": false,
+        "round_trip_success": false,
+        "distance_to_start": 2.125422239303589,
+        "distance_to_goal": 4.365211009979248,
+        "round_trip_instruction": "Outbound: Walk down the hall and turn left. Go through the door and turn right. Wait in front of the statue. After reaching the outbound destination, stop and confirm it. Return: Leave the room, cross the hall and wait in the room next to the stairs. Stop when you reach the original starting location.",
+        "outbound_instruction": "Walk down the hall and turn left. Go through the door and turn right. Wait in front of the statue. This is the outbound phase of a round-trip task. Stop at the described destination before beginning the return.",
+        "return_instruction": "Leave the room, cross the hall and wait in the room next to the stairs.",
+        "instruction_rewriter_provider": "dataset_reverse_path_neighbor",
+        "instruction_rewriter_model": "episode_index=522;episode_id=907;matched_waypoints=4;mean_distance_m=0.761",
+        "return_instruction_override": false,
+        "return_instruction_file": null,
+        "oracle_return_pose_enabled": false,
+        "return_pose_before_oracle": null,
+        "return_pose_after_oracle": null,
+        "oracle_return_pose": null,
+        "return_pose_error_before_oracle": null,
+        "return_pose_error_after_oracle": null,
+        "outbound_stop_output": null,
+        "outbound_stop_distance_to_goal": null,
+        "episode_goal_radius": 3.0,
+        "success_radius": 3.0,
+        "success_requires_stop": true,
+        "trajectory_file": "trajectories/output_681.jsonl",
+        "trajectory_record_count": 1666,
+        "stop_events": [],
+        "phase_events": [
+            {
+                "step": 0,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 25,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 50,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 75,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 25 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 100,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 175,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 250,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 275,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 300,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 375,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 450,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 475,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 550,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 625,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 700,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 775,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 850,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 925,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1000,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1075,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1150,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1225,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1300,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1375,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1450,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1525,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1600,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            }
+        ],
+        "route_memory": {
+            "enabled": true,
+            "localizer": "relative_odometry",
+            "anchor_spacing_m": 1.0,
+            "hint_mode": "compact",
+            "fallback_enabled": true,
+            "outbound_anchor_count": 3,
+            "return_anchor_count": 0,
+            "outbound_path_length_m": 2.006719139815674,
+            "return_path_length_m": 0.0,
+            "outbound_template": {
+                "anchors": [
+                    {
+                        "index": 0,
+                        "step": 0,
+                        "delta_from_prev": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "route_pose": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "route_s_m": 0.0,
+                        "command": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "[Init] outbound start"
+                    },
+                    {
+                        "index": 1,
+                        "step": 184,
+                        "delta_from_prev": [
+                            0.9058340964650018,
+                            0.4334176413002548,
+                            0.6482442782897907
+                        ],
+                        "route_pose": [
+                            0.9058340964650018,
+                            0.4334176413002548,
+                            0.6482442782897907
+                        ],
+                        "route_s_m": 1.0041843765508616,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    },
+                    {
+                        "index": 2,
+                        "step": 392,
+                        "delta_from_prev": [
+                            0.9916296762141419,
+                            -0.14746707024237482,
+                            -0.011558285995211581
+                        ],
+                        "route_pose": [
+                            1.7853456575153381,
+                            0.9145988603157454,
+                            0.6366859922945791
+                        ],
+                        "route_s_m": 2.006719139815674,
+                        "command": [
+                            0.5,
+                            0.0,
+                            0.0
+                        ],
+                        "vlm_output": "The next action is move forward 75 cm."
+                    }
+                ]
+            },
+            "return_template": {
+                "anchors": []
+            },
+            "current_return_pose": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "hint_events": [],
+            "fallback_events": []
+        }
+    }
+}

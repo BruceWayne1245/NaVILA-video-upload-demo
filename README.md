@@ -4,6 +4,8 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
+**Latest round-trip route-memory test (2026-06-26):** on 10 prior outbound-success / return-failure episodes, relative-odometry route memory improved round-trip success from `0/10` to `3/10`. Per-step JSONL trajectories are saved under [`results/route_memory_batch_10_20260626/trajectories`](results/route_memory_batch_10_20260626/trajectories).
+
 ---
 
 ## Hardware & System
@@ -1079,6 +1081,62 @@ The three confirmed round-trip successes were:
 Interpretation: the larger 30-episode sample keeps the same pattern seen in the earlier random v4 runs. v4 reverse-path retrieval can produce full round-trip success, but successes remain narrow-margin cases ending just inside the 2.0 m return-success radius. Outbound failure is still common, and among episodes that do enter Return, visual decision and stop-judgment errors remain the main failure modes.
 
 
+### 2026-06-26 — Relative-Odometry Route-Memory Batch Test
+
+Updated the round-trip evaluator so outbound and return success both use the official `3.0 m` goal radius. Return success now requires a VLM-issued `stop` inside the start radius; entering the radius alone does not terminate the episode or count as success.
+
+Implemented the first external route-memory agent:
+
+- Records outbound anchors using relative odometry deltas rather than storing Isaac/global coordinates.
+- Builds a reversed route template for Return.
+- Injects compact route-progress hints into the Return prompt, including the remaining route-template distance to the start.
+- Adds a conservative fallback controller for low-progress or oscillatory Return behavior.
+
+Batch selection:
+
+- Source: previous 30-episode phase-prompt baseline.
+- Criterion: baseline outbound success was true and baseline return success was false.
+- Tested episodes: `4, 5, 134, 187, 367, 368, 408, 678, 680, 994`.
+- Excluded episode `1040` because it was a borderline case under the current `3.0 m` radius.
+
+Artifacts:
+
+```text
+results/route_memory_batch_10_20260626/
+├── summary.tsv
+├── summary.json
+├── measurements/
+└── trajectories/
+```
+
+Key aggregate result:
+
+| Method | Outbound Success | Return Success | Round-Trip Success | Final Distance Improved |
+|---|---:|---:|---:|---:|
+| Baseline | 10/10 | 0/10 | 0/10 | - |
+| Route memory, relative odometry | 8/10 | 3/10 | 3/10 | 7/10 |
+
+Per-episode comparison:
+
+| Episode | Baseline Return | Baseline Distance to Start (m) | Route-Memory Outbound | Route-Memory Return | Route-Memory Distance to Start (m) | Return Stop Count | Fallback Count |
+|---:|:---:|---:|:---:|:---:|---:|---:|---:|
+| 4 | False | 10.151 | True | False | 0.000 | 0 | 2 |
+| 5 | False | 8.598 | True | False | 8.859 | 0 | 16 |
+| 134 | False | 6.223 | False | False | 2.605 | 0 | 0 |
+| 187 | False | 11.813 | True | False | 8.820 | 0 | 18 |
+| 367 | False | 5.793 | True | True | 1.765 | 1 | 2 |
+| 368 | False | 6.826 | True | False | 7.137 | 0 | 12 |
+| 408 | False | 6.884 | False | False | 2.125 | 0 | 0 |
+| 678 | False | 3.782 | True | True | 2.691 | 1 | 1 |
+| 680 | False | 3.710 | True | True | 1.925 | 1 | 1 |
+| 994 | False | 4.522 | True | False | 4.742 | 1 | 1 |
+
+Interpretation:
+
+- The route-memory framework produced a clear return improvement on this hard subset: round-trip success rose from `0/10` to `3/10`.
+- Seven of ten episodes ended closer to the start than the baseline.
+- Episode `4` reached `0.000 m` from the start but did not emit a Return-phase VLM `stop`, so it is correctly counted as return failure under the stop-required rule.
+- Episodes `134` and `408` regressed on outbound success, so the current framework is promising but not stable enough to claim a general improvement.
 
 ---
 
