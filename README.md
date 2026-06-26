@@ -12,6 +12,13 @@ Episode 994 route-memory-observation artifacts:
 - Per-step trajectory JSONL: [`results/route_memory_routeobs_20260626_ep994/trajectories/ep994_output_1699.jsonl`](results/route_memory_routeobs_20260626_ep994/trajectories/ep994_output_1699.jsonl)
 - Measurement JSON: [`results/route_memory_routeobs_20260626_ep994/measurements/ep994_1699.json`](results/route_memory_routeobs_20260626_ep994/measurements/ep994_1699.json)
 
+**Episode 368 relative-start hint source test (2026-06-26):** after removing the reversed anchor/template mechanism, two single-episode runs tested whether the return hint helps when the relative start position is accurate. The action-integrated hint drifted badly and failed: the final hint claimed the start was `2.20 m` away while the true Isaac distance was `7.84 m`. Replacing only the hint source with Isaac ground-truth pose made the same episode succeed: the VLM stopped at `2.19 m` from the start, inside the `3.0 m` success radius. This suggests the relative-start hint is useful, but the relative pose must come from a reliable state source such as Isaac pose, robot odometry, SLAM, or visual odometry rather than integrating VLM-issued commands.
+
+| Episode | Hint Source | Outbound | Return | Round Trip | Final Distance to Start (m) | Hint Events | Per-Step Records |
+| ---: | --- | :---: | :---: | :---: | ---: | ---: | --- |
+| 368 | Action-integrated relative start | True | False | False | 7.840 | 95 | [`jsonl`](results/episode368_hint_source_comparison_20260626/trajectories/ep368_action_integrated_relative_start_output_602.jsonl) |
+| 368 | Isaac ground-truth relative start | True | True | True | 2.195 | 83 | [`jsonl`](results/episode368_hint_source_comparison_20260626/trajectories/ep368_isaac_relative_start_output_602.jsonl) |
+
 ---
 
 ## Hardware & System
