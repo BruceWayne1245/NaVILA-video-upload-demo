@@ -4,20 +4,9 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
-**Latest round-trip route-memory test (2026-06-26):** route memory has been redesigned around action-integrated relative anchor edges rather than simulator/world-coordinate pose deltas. On the 10 selected outbound-success / return-failure baseline episodes, the latest relative-edge run reached `4/10` round-trip success with mean final distance `3.689 m` versus baseline `0/10` and `6.830 m`. Per-step JSONL trajectories for the 10-episode batch are saved under [`results/route_memory_batch_10_20260626/trajectories`](results/route_memory_batch_10_20260626/trajectories).
+**Latest route-memory relocalization update (2026-06-27):** route memory has been extended from "only useful after entering an anchor acquisition radius" to a map-free relocalization interface. Each outbound anchor can now carry RGB, depth, local geometry, camera intrinsics, and route-distance metadata. Return-stage code can accept an estimated metric relative pose to any saved anchor and convert it into a prompt hint such as "route anchor A0 is 0.61 m away, 112 deg to your left; estimated remaining route via anchor is 0.61 m." An Isaac oracle-anchor backend verified the full hint pipeline on episode `994`: outbound success true, return success true, round-trip success true, final distance to start `0.619 m`.
 
-**Route-memory local descriptor update (2026-06-26):** descriptor extraction previously returned `unavailable` because `height_scan` / `depth_measurement` were not top-level observation keys in Isaac. A dedicated non-concatenated `route_memory_obs` group now exposes local geometry for anchor matching. A validation rerun on episode `994` confirmed descriptor availability: `17/17` anchors saved `height_map` descriptors, with `distance_to_start=4.355 m`. The return still failed because the robot never entered the acquisition radius for the first target anchor, so `lock_anchor=0` and `anchor_correction=0`. The next target is debugging the first inverse-edge/control-frame convention.
-
-Episode 994 route-memory-observation artifacts:
-- Per-step trajectory JSONL: [`results/route_memory_routeobs_20260626_ep994/trajectories/ep994_output_1699.jsonl`](results/route_memory_routeobs_20260626_ep994/trajectories/ep994_output_1699.jsonl)
-- Measurement JSON: [`results/route_memory_routeobs_20260626_ep994/measurements/ep994_1699.json`](results/route_memory_routeobs_20260626_ep994/measurements/ep994_1699.json)
-
-**Episode 368 relative-start hint source test (2026-06-26):** after removing the reversed anchor/template mechanism, two single-episode runs tested whether the return hint helps when the relative start position is accurate. The action-integrated hint drifted badly and failed: the final hint claimed the start was `2.20 m` away while the true Isaac distance was `7.84 m`. Replacing only the hint source with Isaac ground-truth pose made the same episode succeed: the VLM stopped at `2.19 m` from the start, inside the `3.0 m` success radius. This suggests the relative-start hint is useful, but the relative pose must come from a reliable state source such as Isaac pose, robot odometry, SLAM, or visual odometry rather than integrating VLM-issued commands.
-
-| Episode | Hint Source | Outbound | Return | Round Trip | Final Distance to Start (m) | Hint Events | Per-Step Records |
-| ---: | --- | :---: | :---: | :---: | ---: | ---: | --- |
-| 368 | Action-integrated relative start | True | False | False | 7.840 | 95 | [`jsonl`](results/episode368_hint_source_comparison_20260626/trajectories/ep368_action_integrated_relative_start_output_602.jsonl) |
-| 368 | Isaac ground-truth relative start | True | True | True | 2.195 | 83 | [`jsonl`](results/episode368_hint_source_comparison_20260626/trajectories/ep368_isaac_relative_start_output_602.jsonl) |
+**First real feature-depth backend test (2026-06-27):** a classical `RGB + depth + ORB matches + 3D-3D RANSAC/Kabsch` backend is now wired behind the same `AnchorRelocalization` interface. On episode `994`, the relaxed backend produced `12` real relocalization estimates from `76` attempts, but the estimates were low-confidence (`6-11` 3D inliers typical) and did not improve the final result: return success remained false with final distance `4.424 m`. This confirms the architecture is usable, but ORB+depth is not strong enough for the target cross-view/low-overlap relocalization problem; the next backend target is LightGlue/SuperPoint, LoFTR, MicKey, or another stronger map-free relative-pose model.
 
 ---
 
@@ -1150,6 +1139,194 @@ Interpretation:
 - Seven of ten episodes ended closer to the start than the baseline.
 - Episode `4` reached `0.000 m` from the start but did not emit a Return-phase VLM `stop`, so it is correctly counted as return failure under the stop-required rule.
 - Episodes `134` and `408` regressed on outbound success, so the current framework is promising but not stable enough to claim a general improvement.
+
+---
+
+### 2026-06-27 — Anchor Relocalization Interface and Feature-Depth Backend
+
+Motivation:
+
+The previous route-memory design still depended on the robot entering a local anchor acquisition radius before an anchor could help. This fails in cases like episode `994`, where local geometry descriptors are available but the robot never reaches the first target anchor, so `lock_anchor=0` and anchor correction never activates.
+
+The route-memory agent was redesigned so anchors can be used as map-free relocalization references. Instead of asking "am I standing on this anchor?", the Return stage can now ask "where is this saved outbound anchor relative to my current frame?" A successful relocalizer returns a metric relative pose:
+
+```text
+AnchorRelocalization(
+  anchor_index=<saved outbound anchor>,
+  anchor_dx_m=<anchor forward distance in robot frame>,
+  anchor_dy_m=<anchor left/right distance in robot frame>,
+  anchor_dtheta_rad=<relative heading>,
+  confidence=<backend confidence>,
+  backend=<backend name>
+)
+```
+
+The agent then converts that into route-progress hints:
+
+```text
+[System Hint: route anchor A0 is 0.61 m away, 112 deg to your left;
+estimated remaining route via anchor is 0.61 m;
+start vector dx=-0.23 m, dy=0.56 m.]
+```
+
+Implemented code changes:
+
+- `scripts/route_memory_agent.py`
+  - Added `RouteAnchor`, `AnchorRelocalization`, and anchor-relative fields on `RelativeStartProgress`.
+  - Keeps the old action-integrated relative-start estimate as a fallback.
+  - Stores sparse outbound anchors with route-distance metadata.
+  - Accepts external relocalization outputs and prioritizes anchor-relative progress when confidence is high enough.
+  - Summarizes descriptors by shape/range in measurements instead of dumping large arrays.
+- `scripts/round_trip_eval.py`
+  - Added `--route_relocalization_backend={none,oracle_anchor,feature_depth}`.
+  - Added `--route_relocalization_window` and `--route_relocalization_interval_updates`.
+  - Extracts route-memory descriptors from `camera_obs`, `depth_obs`, and `route_memory_obs`.
+  - Saves RGB, metric depth, camera intrinsics, height map, and height scan into anchor descriptors.
+  - Records anchor relocalization fields in every per-step JSONL trajectory.
+- `scripts/vlm_server.py`
+  - Fixed a robustness issue where an empty socket connection or malformed JSON request could crash the server.
+- `tests/test_route_memory_agent.py`
+  - Added tests for anchor saving, anchor-route remaining distance, low-confidence relocalization rejection, and relocalization-driven hint generation.
+
+Validation commands:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench
+
+env PYTHONPATH=scripts python -m unittest tests/test_route_memory_agent.py
+
+env PYTHONPYCACHEPREFIX=/tmp/navila_pycache \
+  python -m py_compile \
+  scripts/vlm_server.py \
+  scripts/route_memory_agent.py \
+  scripts/round_trip_eval.py
+```
+
+Both checks passed.
+
+#### Oracle-anchor closed-loop test
+
+The first test used Isaac pose only to simulate a perfect anchor relocalizer. It does not count as a proposed method result; its purpose is to verify the complete plumbing:
+
+```text
+current frame -> anchor relative pose -> anchor route hint -> VLM Return prompt -> stop decision
+```
+
+Run configuration:
+
+```bash
+TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision \
+  --num_envs=1 \
+  --history_length=9 \
+  --load_run=2024-09-25_23-22-02 \
+  --headless \
+  --enable_cameras \
+  --round_trip_mode=phase_prompt \
+  --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory \
+  --route_hint_mode=compact \
+  --route_relocalization_backend=oracle_anchor \
+  --result_suffix=oracle_anchor_reloc_ep994_20260627
+```
+
+Artifacts:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_oracle_anchor_reloc_ep994_20260627/
+├── measurements/1699.json
+├── trajectories/output_1699.jsonl
+└── videos/output_1699.mp4
+```
+
+Result:
+
+| Episode | Backend | Outbound | Return | Round trip | Final distance to start | Anchors | Relocalization events | Hint events |
+|---:|---|:---:|:---:|:---:|---:|---:|---:|---:|
+| 994 | `oracle_anchor` | True | True | True | `0.619 m` | 17 | 2052 | 36 |
+
+Interpretation:
+
+- The anchor-relative hint pipeline is correct.
+- The VLM can use a metric anchor/start hint to stop near the start when the relative pose source is accurate.
+- This supports the hypothesis that previous failures are primarily caused by unreliable relative pose estimation, not by the prompt-hint idea itself.
+
+#### First real feature-depth backend
+
+A first non-oracle backend was added:
+
+```text
+RGB + depth + ORB feature matching + 3D-3D RANSAC/Kabsch
+```
+
+The backend:
+
+- extracts ORB features from the current RGB frame and saved anchor RGB frames;
+- matches features with ratio test and cross-check fallback;
+- uses aligned depth to back-project matched pixels into metric 3D;
+- estimates a rigid 3D transform with RANSAC and Kabsch;
+- converts the resulting anchor translation into robot-frame `dx/dy` for `AnchorRelocalization`.
+
+Strict run:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_feature_depth_reloc_ep994_20260627/
+```
+
+Result:
+
+- Relocalization events: `0`
+- Return success: false
+- Final distance to start: `4.363 m`
+
+Relaxed run:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_feature_depth_relaxed_ep994_20260627/
+```
+
+Result:
+
+| Episode | Backend | Outbound | Return | Round trip | Final distance to start | Anchors | Relocalization events |
+|---:|---|:---:|:---:|:---:|---:|---:|---:|
+| 994 | `feature_depth_orb_3d3d` | True | False | False | `4.424 m` | 17 | 12 |
+
+Diagnostics from the relaxed run:
+
+```json
+{
+  "attempts": 76,
+  "candidate_anchors": 608,
+  "ransac_failed": 591,
+  "no_pose_selected": 64,
+  "low_confidence_pose": 4,
+  "successful_estimates": 12
+}
+```
+
+Representative successful estimates were low confidence:
+
+```text
+anchor_index=10, dx=1.10 m, dy=-0.09 m, confidence=0.347, inliers=11
+anchor_index=8,  dx=1.59 m, dy=-0.65 m, confidence=0.215, inliers=8
+anchor_index=15, dx=-1.43 m, dy=-0.91 m, confidence=0.158, inliers=7
+```
+
+Interpretation:
+
+- The real backend is wired correctly: it can produce `AnchorRelocalization` events and drive anchor-relative hints without crashing the evaluator.
+- ORB+depth is too weak for this setting. Most candidate anchor matches fail RANSAC, and successful estimates usually have only `6-11` 3D inliers.
+- Anchor choice is unstable under this backend, so the Return prompt can receive noisy hints and does not improve over the baseline.
+- The next backend should be a stronger cross-view matcher or learned map-free relative-pose model: SuperPoint/LightGlue, LoFTR, or MicKey-style metric relative pose.
+
+Current conclusion:
+
+The research direction remains valid. The oracle-anchor result proves that "remote anchor relative pose -> Return hint" is useful when pose is reliable. The first real classical backend proves the integration path works but also shows that handcrafted ORB+depth matching is not enough for the viewpoint change and low-overlap conditions in these VLN-CE trajectories.
 
 ---
 
