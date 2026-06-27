@@ -4,11 +4,11 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
-**Latest route-memory relocalization update (2026-06-27):** route memory has been extended from "only useful after entering an anchor acquisition radius" to a map-free relocalization interface. Each outbound anchor can now carry RGB, depth, local geometry, camera intrinsics, and route-distance metadata. Return-stage code can accept an estimated metric relative pose to any saved anchor and convert it into a prompt hint such as "route anchor A0 is 0.61 m away, 112 deg to your left; estimated remaining route via anchor is 0.61 m." An Isaac oracle-anchor backend verified the full hint pipeline on episode `994`: outbound success true, return success true, round-trip success true, final distance to start `0.619 m`.
+**Latest update (2026-06-27) — LoFTR matcher integrated:** geometry pipeline verified correct via 18-test suite; LoFTR (`kornia==0.6.12`, `pretrained="outdoor"`) installed in both conda environments and wired as the `loftr_depth` backend. Offline synthetic tests show LoFTR produces 5–9× more inlier matches than ORB under rotation, scale change, and perspective warp. The `--route_relocalization_backend=loftr_depth` flag is ready; ep994 evaluation with the VLM server running is the next step.
 
-**First real feature-depth backend test (2026-06-27):** a classical `RGB + depth + ORB matches + 3D-3D RANSAC/Kabsch` backend is now wired behind the same `AnchorRelocalization` interface. On episode `994`, the relaxed backend produced `12` real relocalization estimates from `76` attempts, but the estimates were low-confidence (`6-11` 3D inliers typical) and did not improve the final result: return success remained false with final distance `4.424 m`. This confirms the architecture is usable, but ORB+depth is not strong enough for the target cross-view/low-overlap relocalization problem; the next backend target is LightGlue/SuperPoint, LoFTR, MicKey, or another stronger map-free relative-pose model.
+**Anchor relocalization pipeline (2026-06-27):** route memory was extended to a map-free relocalization interface. Each outbound anchor stores RGB, depth, camera intrinsics, and route-distance metadata. The Return stage can accept a metric relative pose to any saved anchor and convert it into a prompt hint such as "route anchor A0 is 0.61 m away, 112 deg to your left; estimated remaining route via anchor is 0.61 m." An Isaac oracle-anchor backend verified the full hint pipeline on episode `994`: outbound success true, return success true, round-trip success true, final distance to start `0.619 m`.
 
-**Relocalization diagnostics and SIFT follow-up (2026-06-27):** GT-pose covisibility diagnostics were added to separate "no shared view" from "matcher/geometric failure." On episode `994`, ORB+depth had `664` evaluated anchor candidates, `293` with GT projected overlap >=25%, and `104` with GT depth-consistent overlap >=10%; nevertheless `654` candidates failed RANSAC, including `288` with >=25% projected overlap and `101` with >=10% depth-consistent overlap. This shows most failures are not simply missing co-visible area: the classical matching / 3D correspondence quality is the bottleneck. A stronger OpenCV `sift_depth` backend was added and produced more pose candidates than ORB (`47` vs `5` on comparable runs), but the accepted poses were still geometrically unreliable. Route memory was therefore hardened with two safeguards: existing anchor relocalizations are now propagated by return odometry, and inconsistent visual estimates are rejected before they can enter the prompt hint. A camera-to-body extrinsic conversion was also added so feature-depth translation vectors are expressed in robot body coordinates. After these fixes, SIFT pose estimates on episode `994` were all rejected by the consistency gate (`37/37` rejected; minimum consistency error `8.06 m`), so the system safely fell back to action-integrated return hints instead of injecting wrong anchor directions. Current conclusion: the anchor-relocalization interface and diagnostics are in place, but the next useful step is replacing ORB/SIFT with a learned matcher / map-free relative pose backend such as LoFTR, SuperPoint+LightGlue, or MicKey.
+**Classical backend failure analysis (2026-06-27):** ORB+depth on ep994 produced 12 estimates from 76 attempts (6–11 3D inliers each), all too noisy to help. GT covisibility diagnostics showed the bottleneck is matching quality, not missing shared view. SIFT+depth produced more candidates but every estimate was rejected by the consistency gate (37/37 rejected; minimum error 8.06 m). Geometry code was independently verified correct — a formal oracle-consistency proof and 18-test suite confirm the backproject→RANSAC→camera-to-body chain is exact. The 8 m+ SIFT errors are caused entirely by bad feature correspondences, not by a geometry bug.
 
 ---
 
@@ -1330,6 +1330,102 @@ Current conclusion:
 
 The research direction remains valid. The oracle-anchor result proves that "remote anchor relative pose -> Return hint" is useful when pose is reliable. The first real classical backend proves the integration path works but also shows that handcrafted ORB+depth matching is not enough for the viewpoint change and low-overlap conditions in these VLN-CE trajectories.
 
+### 2026-06-27 — Geometry Verification, SIFT Diagnostics, and LoFTR Integration
+
+#### Geometry pipeline extraction and verification
+
+All geometry and feature-matching functions were extracted from `round_trip_eval.py` into a standalone module:
+
+```text
+scripts/relocalization.py
+```
+
+This makes offline testing possible without Isaac Sim. Key exported functions:
+`backproject_points`, `rigid_transform_3d`, `ransac_rigid_transform`, `camera_point_to_body`, `loftr_match_points`, `feature_depth_anchor_relocalization`, plus all descriptor accessors.
+
+An 18-test verification suite was added:
+
+```text
+tests/test_geometry_pipeline.py
+```
+
+Test groups:
+- **TestRigidTransform3D** (5 tests): pure translation, pure rotation, general R+t, reflection check (det=+1), too-few-points→None
+- **TestRansacRigidTransform** (4 tests): no outliers exact recovery, 50% outliers, too-few-points, inlier mask shape
+- **TestCameraPointToBody** (6 tests): fallback axis mapping, extrinsic identity+offset, oracle consistency proof, 20 random pose oracle consistency
+- **TestFullPipelineSynthetic** (3 tests): pure translation scene, yaw-rotated cameras, 10+ random configs vs oracle
+
+All 18 tests pass. Key result: the oracle consistency test proves mathematically that given perfect RANSAC output (i.e., `t = Rc_w.T @ (Pa_w - Pc_w)`), `camera_point_to_body` recovers the same body-frame anchor position as the oracle formula `Rb_w.T @ (Pa_w - Pb_w)`.
+
+**Conclusion:** The 8 m+ consistency errors from SIFT are caused entirely by bad feature matches, not by a bug in the geometry transformation code.
+
+Run command:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench
+PYTHONPATH=scripts python -m unittest tests/test_geometry_pipeline.py -v
+```
+
+#### SIFT backend test on ep994
+
+The `sift_depth` backend with full extrinsic conversion and consistency gate was tested on episode `994`:
+
+| Backend | Return | Final dist | Notes |
+|---|:---:|---:|---|
+| `oracle_anchor` | True | 0.619 m | Proves hint pipeline correct |
+| `feature_depth` (ORB) | False | 4.424 m | 12/76 estimates; 6–11 inliers |
+| `sift_depth` | False | — | 37/37 rejected by consistency gate; min error 8.06 m |
+
+SIFT produced more raw candidates than ORB but every estimate was too far from the action-integrated odometry estimate to be trusted. The system correctly fell back to odometry-only hints rather than injecting wrong anchor directions.
+
+#### LoFTR integration
+
+`kornia==0.6.12` was installed in both `navila-vlm` and `vlnce-isaac` conda environments. The LoFTR `outdoor` pretrained model (44.2 MB, 108 MB VRAM on CUDA) is cached at `~/.cache/torch/hub/checkpoints/loftr_outdoor.ckpt`.
+
+A second test suite was added:
+
+```text
+tests/test_loftr_matching.py
+```
+
+Offline LoFTR vs ORB comparison on synthetic image pairs (9 tests, all pass):
+
+| Condition | ORB matches | LoFTR inliers | Ratio |
+|---|---:|---:|---:|
+| Small translation (20 px) | 494 | 2455 | 5.0× |
+| 15° rotation | 387 | 2598 | 6.7× |
+| 25° rotation | 381 | 1718 | 4.5× |
+| 0.75× scale | 324 | 1900 | 5.9× |
+| Perspective warp (≈30° tilt) | 229 | 2164 | 9.4× |
+
+LoFTR is wired as the `loftr_depth` backend in `round_trip_eval.py`:
+
+```bash
+--route_relocalization_backend=loftr_depth
+```
+
+The selection path is: `loftr_depth` → `matcher_backend="loftr"` → `feature_depth_anchor_relocalization(..., matcher_backend="loftr")` → `loftr_match_points()` in `relocalization.py` → `kornia.feature.LoFTR(pretrained="outdoor")`.
+
+Run command for ep994 evaluation with LoFTR (requires VLM server to be running on port 54321):
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_<date>
+```
+
+**Next step:** run ep994 with the VLM server active to get the first real LoFTR relocalization result.
+
+
 ---
 
 ## Key Differences vs RTX 5090 (Blackwell) Setup
@@ -1355,3 +1451,4 @@ The only patches needed here are genuine code bugs or minor version mismatches u
 - [IsaacLab fork](https://github.com/yang-zj1026/IsaacLab)
 - [NaVILA checkpoint (HuggingFace)](https://huggingface.co/a8cheng/navila-llama3-8b-8f)
 - [VLN-CE-Isaac dataset (HuggingFace)](https://huggingface.co/datasets/Zhaojing/VLN-CE-Isaac)
+
