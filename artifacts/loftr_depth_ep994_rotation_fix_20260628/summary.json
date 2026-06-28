@@ -1,0 +1,100 @@
+{
+  "run_name": "loftr_depth_ep994_rotation_fix_20260628",
+  "created_utc": "2026-06-28T14:22:34.258128+00:00",
+  "episode_idx": 994,
+  "episode_id": "1699",
+  "result_suffix": "loftr_depth_ep994_rotation_fix_20260628",
+  "command": "TERM=xterm OMNI_KIT_ACCEPT_EULA=YES conda run --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p scripts/round_trip_eval.py --task=go2_matterport_vision --num_envs=1 --history_length=9 --load_run=2024-09-25_23-22-02 --headless --enable_cameras --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only --episode_idx=994 --route_memory --route_hint_mode=compact --route_relocalization_backend=loftr_depth --result_suffix=loftr_depth_ep994_rotation_fix_20260628",
+  "vlm_server": "8-bit NaVILA server on 127.0.0.1:54321",
+  "outbound_success": true,
+  "return_success": true,
+  "round_trip_success": true,
+  "outbound_stop_distance_to_goal_m": 1.109442114830017,
+  "final_distance_to_start_m": 1.2638964653015137,
+  "success_radius_m": 3.0,
+  "trajectory_record_count": 4652,
+  "stop_events": [
+    {
+      "step": 2225,
+      "phase": "outbound",
+      "output": "I think I should stop because I have finished the instruction.",
+      "position": [
+        -9.08471393585205,
+        11.39423942565918,
+        0.26216062903404236
+      ]
+    },
+    {
+      "step": 4651,
+      "phase": "return",
+      "output": "I think I should stop because I have finished the instruction.",
+      "position": [
+        0.621466338634491,
+        7.727805137634277,
+        0.29302704334259033
+      ]
+    }
+  ],
+  "route_relocalization_backend": "loftr_depth",
+  "route_hint_source": "integrated",
+  "relocalization_attempts": 85,
+  "successful_estimates": 85,
+  "low_confidence_pose": 4,
+  "ransac_failed": 4,
+  "pose_candidates": 672,
+  "pose_candidate_confidence_mean": 0.7089309476348826,
+  "pose_candidate_confidence_min": 0.15005327065785726,
+  "pose_candidate_confidence_max": 1.0,
+  "pose_candidate_inlier_mean": 40.93452380952381,
+  "pose_candidate_inlier_min": 7,
+  "pose_candidate_inlier_max": 148,
+  "anchor_dtheta_count": 86,
+  "anchor_dtheta_nonzero_count": 86,
+  "anchor_dtheta_deg_sample": [
+    6.97,
+    -12.03,
+    176.13,
+    -179.05,
+    -176.67,
+    0.23,
+    -1.55,
+    -178.7,
+    175.3,
+    169.71,
+    -177.8,
+    -178.43
+  ],
+  "anchor_dtheta_deg_min": -179.05,
+  "anchor_dtheta_deg_max": 179.73,
+  "distance_checkpoints_m": [
+    {
+      "step": 2525,
+      "distance_to_start_m": 11.719
+    },
+    {
+      "step": 3025,
+      "distance_to_start_m": 8.436
+    },
+    {
+      "step": 3525,
+      "distance_to_start_m": 5.952
+    },
+    {
+      "step": 4025,
+      "distance_to_start_m": 4.435
+    },
+    {
+      "step": 4525,
+      "distance_to_start_m": 1.703
+    },
+    {
+      "step": 4651,
+      "distance_to_start_m": 1.2638964653015137
+    }
+  ],
+  "files": {
+    "measurement": "artifacts/loftr_depth_ep994_rotation_fix_20260628/measurements/ep994_1699.json",
+    "trajectory_per_step": "artifacts/loftr_depth_ep994_rotation_fix_20260628/trajectories/ep994_output_1699.jsonl",
+    "video": "artifacts/loftr_depth_ep994_rotation_fix_20260628/videos/ep994_output_1699.mp4"
+  }
+}

@@ -4,6 +4,8 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
+**Latest update (2026-06-28) — 3D-3D rotation fix validates ep994 return:** feature-depth/LoFTR relocalization now preserves the full Kabsch/RANSAC rotation and converts it into `anchor_dtheta_rad` instead of treating the backend as translation-only. A fresh 8-bit VLM ep994 rerun with `--route_relocalization_backend=loftr_depth` succeeded end-to-end: outbound success true, return success true, round-trip success true, final distance to start `1.264 m`. The run produced 85 successful relocalization estimates, 672 pose candidates, max 148 3D inliers, and 86/86 nonzero `anchor_dtheta_rad` records. Artifacts, including the per-step trajectory JSONL and video, are in `artifacts/loftr_depth_ep994_rotation_fix_20260628/`.
+
 **Latest update (2026-06-27) — LoFTR matcher integrated:** geometry pipeline verified correct via 18-test suite; LoFTR (`kornia==0.6.12`, `pretrained="outdoor"`) installed in both conda environments and wired as the `loftr_depth` backend. Offline synthetic tests show LoFTR produces 5–9× more inlier matches than ORB under rotation, scale change, and perspective warp. The `--route_relocalization_backend=loftr_depth` flag is ready; ep994 evaluation with the VLM server running is the next step.
 
 **Anchor relocalization pipeline (2026-06-27):** route memory was extended to a map-free relocalization interface. Each outbound anchor stores RGB, depth, camera intrinsics, and route-distance metadata. The Return stage can accept a metric relative pose to any saved anchor and convert it into a prompt hint such as "route anchor A0 is 0.61 m away, 112 deg to your left; estimated remaining route via anchor is 0.61 m." An Isaac oracle-anchor backend verified the full hint pipeline on episode `994`: outbound success true, return success true, round-trip success true, final distance to start `0.619 m`.
@@ -1577,6 +1579,69 @@ artifacts/loftr_depth_ep994_post_anchor_heading_fix_8bit_20260628/
 ├── measurements/ep994_1699.json
 └── trajectories/ep994_output_1699.jsonl
 ```
+
+
+#### Ep994 rerun after 3D-3D rotation/dtheta fix
+
+The previous post-anchor-heading run correctly avoided composing through a fake zero heading, but it also discarded the rotation returned by the 3D-3D Kabsch/RANSAC estimate. The feature-depth/LoFTR backend now converts the full registration rotation into `anchor_dtheta_rad`, marks the anchor heading reliable, and lets the route-memory agent compose the anchor-relative start vector with the measured anchor heading.
+
+Run configuration:
+
+```bash
+python scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_rotation_fix_20260628
+```
+
+Result:
+
+| Episode | VLM | Backend | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Successful estimates | Pose candidates | Max 3D inliers | Nonzero dtheta records |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---:|---:|---:|---:|
+| 994 | 8-bit | `feature_depth_loftr_3d3d` | True | True | True | `1.264 m` | `1.109 m` | 85 | 672 | 148 | 86/86 |
+
+Return distance checkpoints:
+
+```text
+step 2525: 11.719 m
+step 3025:  8.436 m
+step 3525:  5.952 m
+step 4025:  4.435 m
+step 4525:  1.703 m
+step 4651:  1.264 m, Return stop emitted
+```
+
+Diagnostics:
+
+- `anchor_dtheta_rad` is no longer stuck at zero: 86 records were present and all 86 were nonzero.
+- Example dtheta values include `6.97 deg`, `-12.03 deg`, `176.13 deg`, `-179.05 deg`, and `-176.67 deg`.
+- The relocalizer produced 85 successful estimates; the diagnostics contain 672 pose candidates with mean confidence about `0.709`.
+- This supports the diagnosis that the earlier direction failure was caused by dropping the 3D-3D rotation output, not by an ill-conditioned point set.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_rotation_fix_20260628/
+├── summary.json
+├── measurements/ep994_1699.json
+├── trajectories/ep994_output_1699.jsonl
+└── videos/ep994_output_1699.mp4
+```
+
+The trajectory JSONL contains the full per-step record for this run.
 
 
 ---
