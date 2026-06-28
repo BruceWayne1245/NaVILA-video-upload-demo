@@ -1,0 +1,1106 @@
+{
+    "path_length": 6.882325502221647,
+    "distance_to_goal": 8.450406297755265,
+    "success": 0.0,
+    "spl": 0.0,
+    "oracle_navigation_error": 8.446780309307334,
+    "oracle_success": 0.0,
+    "round_trip": {
+        "mode": "phase_prompt",
+        "completed_phase": "outbound",
+        "outbound_success": false,
+        "return_success": false,
+        "round_trip_success": false,
+        "distance_to_start": 5.824161529541016,
+        "distance_to_goal": 7.255458354949951,
+        "round_trip_instruction": "Outbound: Walk into and through the kitchen. Stop next to the long wooden dining table. After reaching the outbound destination, stop and confirm it. Return: Walk straight through the kitchen. Turn slightly right to continue walking straight down the hallway. Turn right and wait near the entrance of the second room on the left. Stop when you reach the original starting location.",
+        "outbound_instruction": "Walk into and through the kitchen. Stop next to the long wooden dining table. This is the outbound phase of a round-trip task. Stop at the described destination before beginning the return.",
+        "return_instruction": "Walk straight through the kitchen. Turn slightly right to continue walking straight down the hallway. Turn right and wait near the entrance of the second room on the left.",
+        "instruction_rewriter_provider": "dataset_reverse_path_neighbor",
+        "instruction_rewriter_model": "episode_index=612;episode_id=1069;matched_waypoints=7;mean_distance_m=0.000",
+        "return_instruction_override": false,
+        "return_instruction_file": null,
+        "oracle_return_pose_enabled": false,
+        "return_pose_before_oracle": null,
+        "return_pose_after_oracle": null,
+        "oracle_return_pose": null,
+        "return_pose_error_before_oracle": null,
+        "return_pose_error_after_oracle": null,
+        "outbound_stop_output": null,
+        "outbound_stop_distance_to_goal": null,
+        "episode_goal_radius": 3.0,
+        "success_radius": 3.0,
+        "success_requires_stop": true,
+        "trajectory_file": "trajectories/output_1164.jsonl",
+        "trajectory_record_count": 2502,
+        "stop_events": [],
+        "phase_events": [
+            {
+                "step": 0,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 75,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 150,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 225,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 300,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 25 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 325,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 400,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 475,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 550,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 625,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 700,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 775,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 850,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 925,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1000,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1075,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1150,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1225,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1300,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1375,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1450,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1525,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1600,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1675,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1750,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1825,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1900,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1975,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2050,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2125,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2200,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2275,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2350,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2425,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2500,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            }
+        ],
+        "route_hint_source": "integrated",
+        "route_relocalization_backend": "loftr_depth",
+        "route_relocalization_diagnostics": {},
+        "route_memory": {
+            "enabled": true,
+            "localizer": "action_integrated_relative_start",
+            "hint_mode": "compact",
+            "fallback_enabled": false,
+            "anchor_spacing_m": 1.0,
+            "min_relocalization_confidence": 0.35,
+            "relocalization_interval_updates": 25,
+            "max_relocalization_consistency_error_m": 5.0,
+            "anchors": [
+                {
+                    "index": 0,
+                    "pose_from_start": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "distance_from_start_m": 0.0,
+                    "route_remaining_to_start_m": 0.0,
+                    "descriptor": null,
+                    "metadata": {
+                        "event": "start",
+                        "world_pose": [
+                            1.426026463508606,
+                            4.857232570648193,
+                            0.3221937119960785,
+                            0.9103925228118896,
+                            -0.01798274554312229,
+                            -0.0035874738823622465,
+                            -0.41333910822868347
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval"
+                    }
+                },
+                {
+                    "index": 1,
+                    "pose_from_start": [
+                        0.7071067811865476,
+                        0.7071067811865496,
+                        0.785398163397449
+                    ],
+                    "distance_from_start_m": 1.0000000000000007,
+                    "route_remaining_to_start_m": 0.0,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 252.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.22080332040786743,
+                            "max": 0.530407190322876
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.7394038438796997,
+                            "max": 7.652702808380127
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8070432543754578,
+                            "max": 4.545073509216309
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.144371896982193,
+                            "max": 0.9891854524612427
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -8.568167686462402e-08,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 1.3620592653751373e-08,
+                            "max": 0.4999999701976776
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            2.1785244941711426,
+                            4.5648298263549805,
+                            0.3025493919849396,
+                            0.9891853928565979,
+                            -0.005177105776965618,
+                            -0.025340553373098373,
+                            -0.1443719118833542
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval"
+                    }
+                },
+                {
+                    "index": 2,
+                    "pose_from_start": [
+                        1.414213562373098,
+                        1.4142135623731,
+                        0.785398163397449
+                    ],
+                    "distance_from_start_m": 2.0000000000000013,
+                    "route_remaining_to_start_m": 0.0,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 251.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.22423847019672394,
+                            "max": 0.5346556901931763
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.75139981508255,
+                            "max": 7.006341934204102
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8129130005836487,
+                            "max": 4.3574604988098145
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.10127617418766022,
+                            "max": 0.9945343136787415
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -8.061761036515236e-08,
+                            "max": 0.9999999403953552
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -2.0256265997886658e-07,
+                            "max": 0.5
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            2.9496617317199707,
+                            4.374184608459473,
+                            0.3084931969642639,
+                            0.9945343136787415,
+                            -0.0008511656196787953,
+                            -0.025374388322234154,
+                            -0.1012762188911438
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval"
+                    }
+                },
+                {
+                    "index": 3,
+                    "pose_from_start": [
+                        2.12839141137151,
+                        2.128391411371512,
+                        0.785398163397449
+                    ],
+                    "distance_from_start_m": 3.00999999999998,
+                    "route_remaining_to_start_m": 0.0,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 22.0,
+                            "max": 246.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5367996692657471
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.6601282358169556,
+                            "max": 6.297158241271973
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8113033771514893,
+                            "max": 4.231481075286865
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.06270042806863785,
+                            "max": 0.9976338744163513
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -2.60770320892334e-08,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -2.153683453798294e-07,
+                            "max": 0.5
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            3.7411482334136963,
+                            4.2419114112854,
+                            0.3064681589603424,
+                            0.9976339936256409,
+                            -0.00031114640296436846,
+                            -0.02819979563355446,
+                            -0.06270042806863785
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval"
+                    }
+                },
+                {
+                    "index": 4,
+                    "pose_from_start": [
+                        2.8425692603699035,
+                        2.8425692603699058,
+                        0.785398163397449
+                    ],
+                    "distance_from_start_m": 4.019999999999959,
+                    "route_remaining_to_start_m": 0.0,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 3.0,
+                            "max": 245.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5391669273376465
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.5263336300849915,
+                            "max": 5.518373966217041
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8263585567474365,
+                            "max": 4.643971920013428
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.025146309286355972,
+                            "max": 0.9996271133422852
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -5.640322342514992e-08,
+                            "max": 1.0000001192092896
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 1.9185245037078857e-07,
+                            "max": 0.5
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            4.569283485412598,
+                            4.1761393547058105,
+                            0.32197558879852295,
+                            0.9996270537376404,
+                            0.002596766222268343,
+                            -0.02514631301164627,
+                            -0.010324245318770409
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval"
+                    }
+                },
+                {
+                    "index": 5,
+                    "pose_from_start": [
+                        3.556747109368297,
+                        3.5567471093682994,
+                        0.785398163397449
+                    ],
+                    "distance_from_start_m": 5.029999999999937,
+                    "route_remaining_to_start_m": 0.0,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 2.0,
+                            "max": 246.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5126210451126099
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.555726945400238,
+                            "max": 4.82219123840332
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8140066266059875,
+                            "max": 5.465999126434326
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.021027080714702606,
+                            "max": 0.9985242486000061
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -5.21540641784668e-08,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -1.6298145055770874e-09,
+                            "max": 0.5000000596046448
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            5.387601375579834,
+                            4.2228851318359375,
+                            0.3102528750896454,
+                            0.9985242486000061,
+                            -0.0003231943119317293,
+                            -0.021027052775025368,
+                            0.05007120221853256
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval"
+                    }
+                },
+                {
+                    "index": 6,
+                    "pose_from_start": [
+                        4.270924958366691,
+                        4.2709249583666935,
+                        0.785398163397449
+                    ],
+                    "distance_from_start_m": 6.039999999999916,
+                    "route_remaining_to_start_m": 0.0,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 2.0,
+                            "max": 245.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5112961530685425
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -0.3276245892047882
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.3534795641899109,
+                            "max": 4.041055202484131
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8217328786849976,
+                            "max": 6.320102214813232
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.012916896492242813,
+                            "max": 0.9986234903335571
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -8.207280188798904e-08,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 1.30385160446167e-07,
+                            "max": 0.4999999701976776
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            6.233166694641113,
+                            4.22420072555542,
+                            0.3193003833293915,
+                            0.9986234903335571,
+                            0.007434999104589224,
+                            -0.012916913256049156,
+                            0.05029013380408287
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval"
+                    }
+                }
+            ],
+            "latest_relocalization": null,
+            "outbound_pose_from_start": [
+                4.419417382415862,
+                4.4194173824158645,
+                -2.3771384412162715
+            ],
+            "return_start_pose_from_start": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "return_pose_from_return_start": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "relative_start_progress": null,
+            "hint_events": [],
+            "relocalization_events": [],
+            "fallback_events": []
+        }
+    }
+}

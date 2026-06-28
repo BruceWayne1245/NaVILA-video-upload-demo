@@ -1,0 +1,548 @@
+[2026-06-28T10:46:39+01:00] starting episode 678 (zsNo4HB9uLZ)
+[3g
+H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H   
+[INFO] Using python from: /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/bin/python
+[Warning] [omni.isaac.kit.simulation_app] Modules: ['omni.kit_app'] were loaded before SimulationApp was started and might not be loaded correctly.
+[Warning] [omni.isaac.kit.simulation_app] Please check to make sure no extra omniverse or pxr modules are imported before the call to SimulationApp(...)
+Loading user config located at: '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni/data/Kit/Isaac-Sim/4.1/user.config.json'
+[Info] [carb] Logging to file: /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni/logs/Kit/Isaac-Sim/4.1/kit_20260628_104640.log
+2026-06-28 09:46:40 [0ms] [Warning] [omni.kit.app.plugin] No crash reporter present, dumps uploading isn't available.
+[0.021s] [ext: omni.kit.async_engine-0.0.0] startup
+[0.061s] [ext: omni.stats-1.0.1] startup
+[0.062s] [ext: omni.client-1.1.0] startup
+[0.076s] [ext: omni.datastore-0.0.0] startup
+[0.076s] [ext: omni.blobkey-1.1.0] startup
+[0.076s] [ext: omni.ujitso.default-1.0.0] startup
+[0.077s] [ext: omni.hsscclient-0.0.0] startup
+[0.077s] [ext: omni.rtx.shadercache.vulkan-1.0.0] startup
+[0.078s] [ext: omni.assets.plugins-0.0.0] startup
+[0.078s] [ext: omni.gpu_foundation-0.0.0] startup
+[0.082s] [ext: carb.windowing.plugins-1.0.0] startup
+2026-06-28 09:46:40 [73ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-28 09:46:40 [73ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.083s] [ext: omni.kit.renderer.init-0.0.0] startup
+2026-06-28 09:46:40 [89ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 570.124.06    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 4090          | Yes: 0 |     | 24564   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2684      | 5493c24e.. |
+|     |                                  |        |     |            | 1         |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-111-generic
+| Processor: Intel(R) Core(TM) i9-14900K | Cores: 24 | Logical: 48
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 128516 | Free Memory: 115742
+| Total Page/Swap (MB): 2047 | Free Page/Swap: 1958
+|---------------------------------------------------------------------------------------------|
+2026-06-28 09:46:41 [503ms] [Warning] [gpu.foundation.plugin] IOMMU is enabled.
+[0.614s] [ext: omni.kit.pipapi-0.0.0] startup
+[0.615s] [ext: omni.kit.pip_archive-0.0.0] startup
+[0.616s] [ext: omni.mtlx-0.1.0] startup
+[0.616s] [ext: omni.usd.config-1.0.4] startup
+[0.617s] [ext: omni.gpucompute.plugins-0.0.0] startup
+[0.618s] [ext: omni.usd.libs-1.0.1] startup
+[0.671s] [ext: omni.kit.telemetry-0.5.0] startup
+[0.689s] [ext: omni.kit.loop-isaac-1.2.0] startup
+[0.690s] [ext: omni.kit.test-0.0.0] startup
+[0.711s] [ext: omni.usd.schema.semantics-0.0.0] startup
+[0.770s] [ext: omni.usd.schema.anim-0.0.0] startup
+[0.781s] [ext: omni.usd.schema.physx-106.0.20] startup
+[0.805s] [ext: omni.usd.schema.omnigraph-1.0.0] startup
+[0.810s] [ext: omni.usd.schema.audio-0.0.0] startup
+[0.812s] [ext: omni.usd.schema.geospatial-0.0.0] startup
+[0.814s] [ext: omni.usd.schema.forcefield-106.0.20] startup
+[0.817s] [ext: omni.usd_resolver-1.0.0] startup
+[0.821s] [ext: usdrt.scenegraph-7.4.8] startup
+[0.848s] [ext: omni.appwindow-1.1.8] startup
+2026-06-28 09:46:41 [839ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-28 09:46:41 [839ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.850s] [ext: omni.kit.actions.core-1.0.0] startup
+[0.851s] [ext: omni.kit.renderer.core-1.0.1] startup
+2026-06-28 09:46:41 [842ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-28 09:46:41 [842ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-06-28 09:46:41 [848ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-28 09:46:41 [848ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.858s] [ext: omni.kit.commands-1.4.9] startup
+[0.860s] [ext: omni.kit.renderer.capture-0.0.0] startup
+[0.861s] [ext: omni.graph.exec-0.9.3] startup
+[0.862s] [ext: omni.kit.renderer.imgui-1.0.1] startup
+2026-06-28 09:46:41 [854ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-28 09:46:41 [854ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-06-28 09:46:41 [855ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-28 09:46:41 [855ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-06-28 09:46:41 [855ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-28 09:46:41 [855ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.903s] [ext: carb.audio-0.1.0] startup
+[0.905s] [ext: omni.ui-2.23.11] startup
+[0.911s] [ext: omni.kit.usd_undo-0.1.8] startup
+[0.911s] [ext: omni.kit.exec.core-0.13.2] startup
+[0.912s] [ext: omni.kit.audiodeviceenum-1.0.1] startup
+[0.913s] [ext: omni.activity.core-1.0.1] startup
+[0.914s] [ext: omni.kit.window.popup_dialog-2.0.24] startup
+[0.916s] [ext: omni.usd.core-1.2.11] startup
+[0.920s] [ext: omni.resourcemonitor-105.0.1] startup
+[0.921s] [ext: omni.timeline-1.0.10] startup
+[0.922s] [ext: omni.kit.widget.nucleus_connector-1.1.8] startup
+[0.923s] [ext: omni.hydra.usdrt_delegate-7.4.7] startup
+[0.940s] [ext: omni.hydra.scene_delegate-0.3.3] startup
+[0.946s] [ext: omni.usd-1.11.2] startup
+[0.973s] [ext: omni.kit.helper.file_utils-0.1.8] startup
+[0.974s] [ext: omni.kit.widget.path_field-2.0.9] startup
+[0.974s] [ext: omni.kit.widget.options_menu-1.1.4] startup
+[0.976s] [ext: omni.kit.widget.context_menu-1.2.1] startup
+[0.976s] [ext: omni.kit.widget.filebrowser-2.10.48] startup
+[0.978s] [ext: omni.kit.widget.browser_bar-2.0.10] startup
+[0.978s] [ext: omni.kit.widget.options_button-1.0.2] startup
+[0.978s] [ext: omni.ui.scene-1.9.3] startup
+[0.981s] [ext: omni.kit.notification_manager-1.0.8] startup
+[0.982s] [ext: omni.kit.clipboard-1.0.3] startup
+[0.982s] [ext: omni.kit.window.filepicker-2.10.34] startup
+[0.987s] [ext: omni.ujitso.processor.texture-1.0.0] startup
+[0.988s] [ext: omni.iray.libs-0.0.0] startup
+[0.991s] [ext: omni.kit.window.file_importer-1.1.11] startup
+[0.992s] [ext: omni.ujitso.client-0.0.0] startup
+[0.993s] [ext: omni.mdl.neuraylib-0.2.5] startup
+[0.993s] [ext: omni.mdl-52.0.1] startup
+[1.002s] [ext: omni.kit.menu.utils-1.5.27] startup
+[1.007s] [ext: omni.kit.usd.layers-2.1.31] startup
+[1.012s] [ext: omni.volume-0.5.0] startup
+[1.013s] [ext: omni.kit.context_menu-1.8.0] startup
+[1.014s] [ext: omni.hydra.rtx-0.2.0] startup
+[1.026s] [ext: omni.kit.material.library-1.4.4] startup
+[1.028s] [ext: omni.hydra.engine.stats-1.0.2] startup
+[1.031s] [ext: omni.kit.hydra_texture-1.2.6] startup
+[1.035s] [ext: omni.kit.viewport.registry-104.0.6] startup
+[1.036s] [ext: omni.kit.raycast.query-1.0.5] startup
+[1.042s] [ext: omni.kit.hotkeys.core-1.3.3] startup
+[1.044s] [ext: omni.kit.widget.viewport-106.0.3] startup
+[1.046s] [ext: omni.inspect-1.0.1] startup
+[1.047s] [ext: omni.kit.viewport.window-106.0.8] startup
+[1.055s] [ext: omni.kit.window.file_exporter-1.0.29] startup
+[1.056s] [ext: omni.kit.widget.filter-1.1.4] startup
+[1.056s] [ext: omni.kit.viewport.utility-1.0.17] startup
+[1.056s] [ext: omni.kit.widget.prompt-1.0.7] startup
+[1.056s] [ext: omni.kit.widget.stage-2.10.26] startup
+[1.061s] [ext: omni.graph.core-2.170.3] startup
+[1.064s] [ext: omni.kit.widget.text_editor-1.0.2] startup
+[1.065s] [ext: omni.physx.foundation-106.0.20] startup
+[1.065s] [ext: omni.kit.widget.searchfield-1.1.6] startup
+[1.066s] [ext: omni.kit.widget.highlight_label-1.0.2] startup
+[1.066s] [ext: omni.kit.widget.settings-1.1.1] startup
+[1.067s] [ext: omni.kit.window.property-1.11.1] startup
+[1.068s] [ext: omni.graph.tools-1.78.0] startup
+[1.077s] [ext: omni.kit.window.preferences-1.5.3] startup
+[1.082s] [ext: omni.kit.property.usd-3.21.28] startup
+[1.086s] [ext: omni.graph-1.135.0] startup
+[1.107s] [ext: omni.graph.image.core-0.3.2] startup
+[1.111s] [ext: omni.graph.ui-1.70.0] startup
+[1.118s] [ext: omni.graph.action_core-1.1.4] startup
+[1.125s] [ext: omni.graph.image.nodes-1.0.2] startup
+[1.126s] [ext: omni.graph.action_nodes-1.23.0] startup
+[1.133s] [ext: omni.graph.nodes-1.143.0] startup
+[1.142s] [ext: omni.graph.action-1.102.1] startup
+[1.143s] [ext: omni.kvdb-106.0.20] startup
+[1.146s] [ext: omni.debugdraw-0.1.3] startup
+[1.150s] [ext: omni.usdphysics-106.0.20] startup
+[1.153s] [ext: omni.localcache-106.0.20] startup
+[1.154s] [ext: omni.convexdecomposition-106.0.20] startup
+[1.159s] [ext: omni.graph.ui_nodes-1.25.1] startup
+[1.164s] [ext: omni.physx.cooking-106.0.20] startup
+[1.174s] [ext: omni.graph.bundle.action-2.0.4] startup
+[1.174s] [ext: omni.kit.stage_template.core-1.1.21] startup
+[1.175s] [ext: omni.physx-106.0.20] startup
+[1.187s] [ext: omni.graph.scriptnode-1.19.1] startup
+[1.189s] [ext: omni.physx.stageupdate-106.0.20] startup
+[1.195s] [ext: omni.kit.primitive.mesh-1.0.16] startup
+[1.212s] [ext: omni.kit.manipulator.transform-104.7.5] startup
+[1.217s] [ext: omni.kit.widget.toolbar-1.6.2] startup
+[1.233s] [ext: omni.usdphysics.ui-106.0.20] startup
+[1.254s] [ext: omni.physx.commands-106.0.20] startup
+[1.258s] [ext: omni.kit.manipulator.tool.snap-1.4.5] startup
+[1.268s] [ext: omni.kit.stage_templates-1.2.3] startup
+[1.271s] [ext: omni.physx.ui-106.0.20] startup
+[1.301s] [ext: omni.kit.window.file-1.3.52] startup
+[1.305s] [ext: omni.kit.property.material-1.9.4] startup
+[1.309s] [ext: omni.physics.tensors-106.0.20] startup
+[1.315s] [ext: omni.physx.demos-106.0.20] startup
+[1.388s] [ext: omni.kit.property.physx-106.0.20] startup
+[1.428s] [ext: omni.physx.tensors-106.0.20] startup
+[1.433s] [ext: omni.physx.vehicle-106.0.20] startup
+[1.443s] [ext: omni.sensors.tiled-0.0.4] startup
+[1.446s] [ext: omni.physx.camera-106.0.20] startup
+[1.453s] [ext: omni.kit.manipulator.selector-1.1.1] startup
+[1.455s] [ext: omni.ui_query-1.1.2] startup
+[1.455s] [ext: omni.fabric.commands-1.1.4] startup
+[1.459s] [ext: omni.kit.viewport.manipulator.transform-106.0.1] startup
+[1.460s] [ext: omni.kit.ui_test-1.2.18] startup
+[1.461s] [ext: omni.kit.widget.graph-1.12.8] startup
+[1.464s] [ext: omni.kit.manipulator.prim.core-107.0.3] startup
+[1.467s] [ext: omni.physx.cct-106.0.20] startup
+[1.474s] [ext: omni.kit.graph.delegate.default-1.2.2] startup
+[1.476s] [ext: omni.kit.manipulator.prim.fabric-106.0.1] startup
+[1.477s] [ext: omni.kit.manipulator.prim.usd-106.0.1] startup
+[1.478s] [ext: omni.kit.graph.editor.core-1.5.3] startup
+[1.480s] [ext: omni.kit.widget.material_preview-1.0.16] startup
+[1.482s] [ext: omni.kit.manipulator.prim-106.0.0] startup
+[1.482s] [ext: omni.kit.graph.usd.commands-1.3.1] startup
+[1.483s] [ext: omni.kit.window.toolbar-1.6.1] startup
+[1.485s] [ext: omni.kit.widget.layers-1.7.9] startup
+[1.494s] [ext: omni.kit.manipulator.selection-104.0.9] startup
+[1.496s] [ext: omni.physx.graph-106.0.20] startup
+[1.505s] [ext: omni.physx.telemetry-106.0.20] startup
+[1.509s] [ext: omni.physx.supportui-106.0.20] startup
+[1.520s] [ext: omni.kit.window.material_graph-1.8.15] startup
+[1.570s] [ext: omni.warp.core-1.2.1] startup
+[1.572s] [ext: omni.syntheticdata-0.6.7] startup
+[1.581s] [ext: omni.isaac.version-1.1.0] startup
+[1.582s] [ext: omni.warp-1.2.1] startup
+[1.587s] [ext: omni.physx.bundle-106.0.20] startup
+[1.588s] [ext: omni.command.usd-1.0.3] startup
+[1.589s] [ext: omni.isaac.nucleus-0.3.0] startup
+[1.591s] [ext: omni.replicator.core-1.11.14] startup
+2026-06-28 09:46:42 [1,696ms] [Warning] [omni.replicator.core.scripts.annotators] Annotator PostProcessDispatch is already registered, overwriting annotator template
+[1.764s] [ext: omni.isaac.core-3.18.1] startup
+[1.860s] [ext: omni.isaac.kit-1.13.0] startup
+[1.860s] [ext: omni.replicator.isaac-1.15.0] startup
+[1.875s] [ext: omni.physx.fabric-106.0.20] startup
+[1.884s] [ext: omni.isaac.cloner-0.8.1] startup
+[1.887s] [ext: omni.kit.viewport.rtx-104.0.1] startup
+[1.888s] [ext: isaaclab.python.headless-1.1.0] startup
+[1.888s] [ext: isaaclab.python.headless.rendering-1.1.0] startup
+[1.892s] Simulation App Starting
+[3.156s] app ready
+[3.369s] Simulation App Startup Complete
+[4.153s] [ext: omni.kit.asset_converter-2.1.11] startup
+2026-06-28 09:46:47 [6,401ms] [Warning] [omni.hydra.scene_delegate.plugin] Calling getBypassRenderSkelMeshProcessing for prim /World/envs/env_0/Robot/FL_calf/visuals.proto_mesh_0_id0 that has not been populated
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55278 doesn't match expected size 90402 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55254 doesn't match expected size 90378 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90378 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90402 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55278 doesn't match expected size 90402 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55254 doesn't match expected size 90378 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_thigh/visuals.prot[INFO][AppLauncher]: Loading experience file: /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/source/extensions/omni.isaac.lab/omni/isaac/lab/app/../../../../../../apps/isaaclab.python.headless.rendering.kit
+Starting kit application with the following args:  ['/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/exts/omni.isaac.kit/omni/isaac/kit/simulation_app.py', '/mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/source/extensions/omni.isaac.lab/omni/isaac/lab/app/../../../../../../apps/isaaclab.python.headless.rendering.kit', '--/app/tokens/exe-path=/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni', '--/persistent/app/viewport/displayOptions=3094', '--/rtx/materialDb/syncLoads=True', '--/rtx/hydra/materialSyncLoads=True', '--/omni.kit.plugin/syncUsdLoads=True', '--/app/renderer/resolution/width=1280', '--/app/renderer/resolution/height=720', '--/app/window/width=1440', '--/app/window/height=900', '--/renderer/multiGpu/enabled=True', '--/app/fastShutdown=True', '--ext-folder', '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/exts', '--ext-folder', '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/apps', '--/renderer/activeGpu=0', '--/physics/cudaDevice=0', '--portable', '--no-window', '--/app/window/hideUi=True']
+Passing the following args to the base kit application:  ['--task=go2_matterport_vision', '--num_envs=1', '--history_length=9', '--load_run=2024-09-25_23-22-02', '--headless', '--enable_cameras', '--round_trip_mode=phase_prompt', '--instruction_rewriter_provider=cache_only', '--episode_idx=678', '--result_suffix=loftr_depth_hard_20260628_ep678', '--route_memory', '--route_hint_mode=compact', '--route_relocalization_backend=loftr_depth']
+Warp 1.2.1 initialized:
+   CUDA Toolkit 11.8, Driver 12.8
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA GeForce RTX 4090" (24 GiB, sm_89, mempool enabled)
+   Kernel cache:
+     /home/teambruce/.cache/warp/1.2.1
+[INFO]: Parsing configuration from: <class 'omni.isaac.vlnce.config.go2.go2_matterport_vision_cfg.Go2MatterportVisionCfg'>
+[INFO]: Parsing configuration from: <class 'omni.isaac.vlnce.config.go2.go2_matterport_vision_cfg.Go2VisionRoughPPORunnerCfg'>
+[INFO] Loading run from directory: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02
+[INFO]: Loading model checkpoint from: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02/model_26499.pt
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+	Physics GPU pipeline  : True
+	Physics GPU simulation: True
+[INFO]: Time taken for scene creation : 1.138626 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 1
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/matterport']
+	Replicate physics     : True
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 0.794253 seconds
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++------------------------------------------------+
+|              Active Command Terms              |
++-------+---------------+------------------------+
+| Index | Name          |          Type          |
++-------+---------------+------------------------+
+|   0   | base_velocity | UniformVelocityCommand |
++-------+---------------+------------------------+
+
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++------------------------------------+
+|  Active Action Terms (shape: 12)   |
++--------+-------------+-------------+
+| Index  | Name        |   Dimension |
++--------+-------------+-------------+
+|   0    | joint_pos   |          12 |
++--------+-------------+-------------+
+
+Module omni.isaac.lab.utils.warp.kernels ca938a1 load on device 'cuda:0' took 0.25 ms
+[INFO] Observation Manager: <ObservationManager> contains 7 groups.
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (504,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_ang_vel                   |     (3,)    |
+|     1     | base_rpy                       |     (3,)    |
+|     2     | velocity_commands              |     (3,)    |
+|     3     | joint_pos                      |    (12,)    |
+|     4     | joint_vel                      |    (12,)    |
+|     5     | actions                        |    (12,)    |
+|     6     | height_map                     |    (459,)   |
++-----------+--------------------------------+-------------+
++---------------------------------------------------------+
+| Active Observation Terms in Group: 'proprio' (shape: (45,)) |
++-----------+---------------------------------+-----------+
+|   Index   | Name                            |   Shape   |
++-----------+---------------------------------+-----------+
+|     0     | base_ang_vel                    |    (3,)   |
+|     1     | base_rpy                        |    (3,)   |
+|     2     | velocity_commands               |    (3,)   |
+|     3     | joint_pos                       |   (12,)   |
+|     4     | joint_vel                       |   (12,)   |
+|     5     | actions                         |   (12,)   |
++-----------+---------------------------------+-----------+
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (699,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_lin_vel                   |     (3,)    |
+|     1     | base_ang_vel                   |     (3,)    |
+|     2     | base_rpy                       |     (3,)    |
+|     3     | velocity_commands              |     (3,)    |
+|     4     | joint_pos                      |    (12,)    |
+|     5     | joint_vel                      |    (12,)    |
+|     6     | actions                        |    (12,)    |
+|     7     | height_scan                    |    (651,)   |
++-----------+--------------------------------+-------------+
++----------------------------------------------------------------------+
+| Active Observation Terms in Group: 'camera_obs' (shape: (512, 512, 4)) |
++------------+------------------------------+--------------------------+
+|   Index    | Name                         |          Shape           |
++------------+------------------------------+--------------------------+
+|     0      | rgb_measurement              |      (512, 512, 4)       |
++------------+------------------------------+--------------------------+
++------------------------------------------------------------------------+
+| Active Observation Terms in Group: 'viz_camera_obs' (shape: (512, 512, 4)) |
++------------+-------------------------------+---------------------------+
+|   Index    | Name                          |           Shape           |
++------------+-------------------------------+---------------------------+
+|     0      | rgb_measurement               |       (512, 512, 4)       |
++------------+-------------------------------+---------------------------+
++---------------------------------------------------------------------+
+| Active Observation Terms in Group: 'depth_obs' (shape: (1, 512, 512)) |
++-----------+-------------------------------+-------------------------+
+|   Index   | Name                          |          Shape          |
++-----------+-------------------------------+-------------------------+
+|     0     | depth_measurement             |      (1, 512, 512)      |
++-----------+-------------------------------+-------------------------+
++---------------------------------------------------+
+| Active Observation Terms in Group: 'route_memory_obs' |
++------------+-----------------------+--------------+
+|   Index    | Name                  |    Shape     |
++------------+-----------------------+--------------+
+|     0      | height_map            |    (459,)    |
+|     1      | height_scan           |    (651,)    |
++------------+-----------------------+--------------+
+
+[INFO] Event Manager:  <EventManager> contains 1 active terms.
++-------------------------------------+
+| Active Event Terms in Mode: 'reset' |
++--------+----------------------------+
+| Index  | Name                       |
++--------+----------------------------+
+|   0    | reset_scene_to_default     |
+|   1    | reset_base                 |
++--------+----------------------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 3 active terms.
++------------------------------------+
+|      Active Termination Terms      |
++-------+-----------------+----------+
+| Index | Name            | Time Out |
++-------+-----------------+----------+
+|   0   | time_out        |   True   |
+|   1   | base_contact    |  False   |
+|   2   | bad_orientation |  False   |
++-------+-----------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 1 active terms.
++--------------------------------------+
+|         Active Reward Terms          |
++-------+---------------------+--------+
+| Index | Name                | Weight |
++-------+---------------------+--------+
+|   0   | termination_penalty | -200.0 |
++-------+---------------------+--------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.
++----------------------+
+| Active Curriculum Terms |
++-----------+----------+
+|   Index   | Name     |
++-----------+----------+
++-----------+----------+
+
+[INFO]: Completed setting up the environment...
+ActorCritic.__init__ got unexpected arguments, which will be ignored: ['history_length']
+Actor MLP: Sequential(
+  (0): Linear(in_features=909, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=12, bias=True)
+)
+Critic MLP: Sequential(
+  (0): Linear(in_features=699, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=1, bias=True)
+)
+[INFO]: Loading model checkpoint from: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02/model_26499.pt
+Warmup step 0/100...
+Warmup step 99/100...
+Not enough images received, padding.
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+Not enough images received, padding.
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+Not enough images received, padding.
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 25 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+o_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90402 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90378 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-06-28 09:46:47 [6,402ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-06-28 09:46:47 [6,403ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_4': buffer size 30390 doesn't match expected size 233784 in faceVarying primvars
+2026-06-28 09:46:47 [6,403ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_2': buffer size 6015 doesn't match expected size 233784 in faceVarying primvars
+2026-06-28 09:46:47 [6,403ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_3': buffer size 11886 doesn't match expected size 233784 in faceVarying primvars
+2026-06-28 09:46:47 [6,403ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 6960 doesn't match expected size 233784 in faceVarying primvars
+2026-06-28 09:46:47 [6,403ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 178533 doesn't match expected size 233784 in faceVarying primvars
+2026-06-28 09:48:27 [107,055ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-28 09:48:27 [107,055ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[107.180s] Simulation App Shutting Down
+Warning: Possible version incompatibility. Attempting to load omni::fabric::IPath with version v0.2 against v0.1.
+Warning: Possible version incompatibility. Attempting to load omni::fabric::IPath with version v0.2 against v0.1.
+/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/tensordict/_pytree.py:218: UserWarning: torch.utils._pytree._register_pytree_node is deprecated. Please use torch.utils._pytree.register_pytree_node instead.
+  register_pytree_node(
+/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/tensordict/_pytree.py:237: UserWarning: torch.utils._pytree._register_pytree_node is deprecated. Please use torch.utils._pytree.register_pytree_node instead.
+  register_pytree_node(
+[2026-06-28T10:48:28+01:00] finished episode 678 exit_code=0

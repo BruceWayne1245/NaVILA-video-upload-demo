@@ -1423,7 +1423,102 @@ cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && OMNI_KIT_ACCEPT_EU
   --result_suffix=loftr_depth_ep994_<date>
 ```
 
-**Next step:** run ep994 with the VLM server active to get the first real LoFTR relocalization result.
+#### First LoFTR closed-loop result on ep994
+
+The first real `loftr_depth` closed-loop run was completed on episode `994` with a fresh VLM server:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_20260628_codex
+```
+
+Result:
+
+| Episode | Backend | Outbound | Return | Round trip | Final distance to start | Accepted relocalization lines | Mean confidence |
+|---:|---|:---:|:---:|:---:|---:|---:|---:|
+| 994 | `feature_depth_loftr_3d3d` | True | True | True | `1.072 m` | 503 | 0.918 |
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_single_success_20260628/
+├── measurements/ep994_1699.json
+└── trajectories/ep994_output_1699.jsonl
+```
+
+Interpretation: this run confirms that the non-oracle LoFTR+depth relocalization path can drive the route-memory hint pipeline to a successful return. The robot emitted the required Return-phase stop inside the 3.0 m start radius.
+
+#### LoFTR hard-subset batch from the previous 30-episode baseline
+
+The previous 30-episode phase-prompt baseline was filtered for episodes with:
+
+```text
+baseline outbound_success = true
+baseline return_success = false
+```
+
+This selected 11 hard episodes:
+
+```text
+4, 5, 134, 187, 367, 368, 408, 678, 680, 994, 1040
+```
+
+They were evaluated with the same route-memory and LoFTR backend:
+
+```bash
+bash scripts/run_loftr_depth_hard_batch_20260628.sh
+```
+
+Aggregate result:
+
+| Set | Episodes | Outbound success | Return success | Round-trip success |
+|---|---:|---:|---:|---:|
+| LoFTR hard subset | 11 | 8/11 | 3/11 | 3/11 |
+| Conditional on outbound success in this run | 8 | 8/8 | 3/8 | 3/8 |
+
+Per-episode result:
+
+| Episode | Outbound | Return | Round trip | Final distance to start | Accepted relocalization lines | Mean confidence |
+|---:|:---:|:---:|:---:|---:|---:|---:|
+| 4 | True | False | False | `7.577 m` | 0 | — |
+| 5 | True | False | False | `7.589 m` | 294 | 0.883 |
+| 134 | False | False | False | `7.886 m` | 0 | — |
+| 187 | True | False | False | `14.208 m` | 1460 | 0.814 |
+| 367 | True | True | True | `1.606 m` | 1553 | 0.998 |
+| 368 | True | False | False | `7.743 m` | 4878 | 0.898 |
+| 408 | False | False | False | `2.125 m` | 0 | — |
+| 678 | False | False | False | `5.824 m` | 0 | — |
+| 680 | True | True | True | `1.656 m` | 3 | 0.666 |
+| 994 | True | False | False | `4.265 m` | 0 | — |
+| 1040 | True | True | True | `1.124 m` | 0 | — |
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_hard_batch_20260628/
+├── summary.json
+├── summary.tsv
+├── logs/
+├── measurements/
+└── trajectories/
+```
+
+Important reproducibility note:
+
+- A fresh-server single run of ep994 succeeded with 503 accepted LoFTR relocalization trajectory records.
+- The batch run of ep994 used the same latest code and the same core CLI parameters, but it failed and had 0 accepted LoFTR relocalization records.
+
+This means the ep994 batch failure should not be interpreted as direct evidence of a code regression. It is more likely caused by non-determinism in VLM output, trajectory branching, Isaac runtime state, or continuous-batch execution effects. Future evaluation should report fresh-server repeated trials separately from continuous-batch trials.
 
 
 ---
@@ -1451,4 +1546,3 @@ The only patches needed here are genuine code bugs or minor version mismatches u
 - [IsaacLab fork](https://github.com/yang-zj1026/IsaacLab)
 - [NaVILA checkpoint (HuggingFace)](https://huggingface.co/a8cheng/navila-llama3-8b-8f)
 - [VLN-CE-Isaac dataset (HuggingFace)](https://huggingface.co/datasets/Zhaojing/VLN-CE-Isaac)
-
