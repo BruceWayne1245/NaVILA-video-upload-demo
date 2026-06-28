@@ -4,7 +4,7 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
-**Latest update (2026-06-28) — uncertainty-gated hints + lateral-exclusion odometry + blackout noise inflation:** three targeted fixes to the arc-length particle filter pipeline, motivated by post-hoc diagnosis of `seqpf_sfix`. (1) **Hint gating** (`filter_std_m` field added to `RelativeStartProgress`): when particle filter std exceeds `max(2.5, 20% × route_length)` — 3.2 m for a 16 m route — `_filter_lost()` returns true and the hint switches from a precise distance claim to `"position uncertain (σ≈X m, filter lost lock); continue toward the outbound start using the visual instruction — do NOT stop until you visually confirm you are back at the starting location."` This directly prevents premature VLM stop from a "0 m arrived" hint while the robot is still 4–5 m away. Retroactive replay on seqpf_sfix shows 35/37 hint events would be gated (only the first two — pure action-integration and first anchor match — would pass as high-confidence). (2) **Lateral-motion exclusion**: `update_return_motion()` replaces `math.hypot(dx, dy)` with `abs(dx)` for both particle filter `predict()` and `_sequence_current_s_m` decrement; lateral velocity commands during turns no longer inflate arc-length odometry. (3) **Blackout noise inflation**: `predict()` gains `extra_process_noise_m` parameter; when `_distance_since_sequence_observation_m > 3 m`, extra noise grows at 0.015 m per additional meter, so the filter spreads faster during observation gaps and std crosses the gating threshold sooner. All 57 tests pass. Ep994 rerun with these fixes is next (`hint_gate_20260628`).
+**Latest update (2026-06-28) — uncertainty-gated hints + lateral-exclusion odometry + blackout noise inflation:** three targeted fixes to the arc-length particle filter pipeline, motivated by post-hoc diagnosis of `seqpf_sfix`. (1) **Hint gating** (`filter_std_m` field added to `RelativeStartProgress`): when particle filter std exceeds `max(2.5, 20% × route_length)` — 3.2 m for a 16 m route — `_filter_lost()` returns true and the hint switches from a precise distance claim to `"position uncertain (σ≈X m, filter lost lock); continue toward the outbound start using the visual instruction — do NOT stop until you visually confirm you are back at the starting location."` This directly prevents premature VLM stop from a "0 m arrived" hint while the robot is still 4–5 m away. Retroactive replay on seqpf_sfix shows 35/37 hint events would be gated (only the first two — pure action-integration and first anchor match — would pass as high-confidence). (2) **Lateral-motion exclusion**: `update_return_motion()` replaces `math.hypot(dx, dy)` with `abs(dx)` for both particle filter `predict()` and `_sequence_current_s_m` decrement; lateral velocity commands during turns no longer inflate arc-length odometry. (3) **Blackout noise inflation**: `predict()` gains `extra_process_noise_m` parameter; when `_distance_since_sequence_observation_m > 3 m`, extra noise grows at 0.015 m per additional meter, so the filter spreads faster during observation gaps and std crosses the gating threshold sooner. All 57 tests pass. Ep994 rerun `loftr_depth_ep994_hint_gate_20260628` ran and **return failed**: outbound success true, return success false, final distance to start `4.403 m`. Gating activated at step 2626 (dist 10.8 m, std 3.68 m), leaving the VLM with 21 consecutive generic "position uncertain, continue via visual instruction" hints and no specific distance/direction signal for the final 10 m. The VLM stopped at step 3926 based on visual judgment alone. Root cause: hint gating removes navigational narrative that keeps the VLM moving — seqpf_sfix succeeded precisely because the VLM correctly ignored specific-but-wrong "0 m arrived" hints; replacing those with generic warnings removed the implicit "keep moving" signal. Fix direction: preserve directional/distance information even when filter is uncertain, and only suppress the explicit arrival/stop claim. Artifacts in `artifacts/loftr_depth_ep994_hint_gate_20260628/`.
 
 **Latest update (2026-06-28) — SeqSLAM particle filter (seqpf_sfix):** arc-length position is now tracked by a 256-particle filter (`ArcLengthParticleFilter`) updated via LoFTR relocalization observations scored with a SeqSLAM-style sequence-consistency metric. Ep994 rerun `loftr_depth_ep994_seqpf_sfix_20260628` succeeded: outbound success true, return success true, round-trip success true, final distance to start `1.264 m`. The particle filter captured 8 LoFTR observations spanning anchors 14→8 (route positions 14.1 m → 7.8 m from start), then lost track. From step 3626 onward, hints incorrectly reported 0 m remaining while the true simulator distance was 4–5 m; the VLM did not stop prematurely and navigated correctly using visual/instruction cues. Key diagnosis: the particle filter provides accurate early hints but loses observations after anchor 8 and collapses to zero, so late-return guidance currently comes from the VLN instruction rather than the relocalization hint. Measurement and per-step trajectory are in `artifacts/loftr_depth_ep994_seqpf_sfix_20260628/`.
 
@@ -1823,6 +1823,77 @@ artifacts/loftr_depth_ep994_seqpf_sfix_20260628/
 
 The trajectory JSONL contains the full 4652-step per-step record for this run (4652 records: 2225 outbound + 300 confirm + 2127 return).
 
+---
+
+### Run: `loftr_depth_ep994_hint_gate_20260628`
+
+**Date:** 2026-06-28  
+**Suffix:** `loftr_depth_ep994_hint_gate_20260628`  
+**Config:** LoFTR backend, SeqSLAM particle filter, 8-bit VLM, uncertainty-gated hints (improvements 1–3)
+
+| Metric | Value |
+|---|---|
+| outbound_success | true |
+| return_success | **false** |
+| round_trip_success | **false** |
+| distance_to_start_m | **4.403 m** |
+| outbound_stop_distance_to_goal_m | 1.040 m |
+| total_steps | 3927 |
+| hint_events | 26 (5 normal, 21 gated) |
+| relocalization_successful | 12 |
+| sequence_observations | 8 |
+| particle_filter_std_at_stop | ~3.88 m |
+
+Hint events:
+
+```
+step 2376: dist=13.82m  std=N/A   → normal  (action-integration only)
+step 2426: dist=13.77m  std=1.29m → normal  (LoFTR anchor 12)
+step 2451: dist=14.04m  std=1.57m → normal
+step 2476: dist=13.13m  std=1.17m → normal
+step 2551: dist=12.62m  std=2.91m → normal  (last observation — anchor 8)
+step 2626: dist=10.80m  std=3.68m → GATED ← threshold 3.2m crossed
+step 2701-3926: 21× GATED         → "position uncertain (σ≈4.0m, filter lost lock); ... do NOT stop until visually confirmed"
+```
+
+VLM stop at step 3926, distance to start = **4.403 m** (outside 3.0 m threshold → failure).
+
+Diagnosis:
+
+Hint gating activated at dist 10.8 m — leaving the VLM with no specific distance or direction guidance for the remaining 10+ m of return. The VLM received 21 consecutive generic "position uncertain, continue via visual instruction" messages. Without a concrete anchor-distance narrative, the VLM applied a visual stop check and terminated at 4.4 m, judging it had reached the start.
+
+Comparison with `seqpf_sfix` (which succeeded at 1.264 m):
+
+| | seqpf_sfix (success) | hint_gate (failure) |
+|---|---|---|
+| Hint from step 2626 onward | "A0 is 0.00 m away" (specific, wrong) | "position uncertain, use visual instruction" (generic, correct) |
+| VLM behaviour | Ignored wrong arrival claim, kept moving for 600 more steps | No navigational narrative; stopped at 4.4 m on visual cue |
+| Return steps | 2127 | ~1550 |
+
+Key lesson: the VLM is robust to *specific-but-wrong* distance hints — it correctly down-weighted the erroneous "0 m arrived" claim in seqpf_sfix via its visual system. Replacing specific hints with generic "keep going" warnings removed the implicit navigational narrative without improving VLM robustness. The hint gating as implemented is harmful.
+
+Fix direction: preserve specific directional and distance information in gated hints; suppress only the explicit "you have arrived / stop now" claim. For example, a gated hint should still report anchor bearing and approximate distance while marking the estimate as uncertain, rather than delegating entirely to visual judgment.
+
+Particle filter final state:
+
+```text
+sequence_observations: 8 (anchors 12→8, same coverage as seqpf_sfix)
+filter_std_at_stop:    ~3.88 m
+mode_remaining_m:      ~0.0 m (filter collapsed — same failure mode as seqpf_sfix)
+```
+
+The filter collapse pattern is identical to seqpf_sfix: 8 observations in the first half of the route (14–8 m from start), then no observations and rapid std inflation due to blackout noise. The gating correctly detected filter loss-of-lock but the resulting hint change made things worse.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_hint_gate_20260628/
+├── summary.json
+├── measurements/ep994_1699.json
+└── trajectories/ep994_output_1699.jsonl
+```
+
+The trajectory JSONL contains 3927 per-step records (2075 outbound + 0 confirm-phase + 1852 return — shorter than seqpf_sfix because VLM stopped earlier).
 
 ---
 
