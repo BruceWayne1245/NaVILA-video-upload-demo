@@ -1520,6 +1520,64 @@ Important reproducibility note:
 
 This means the ep994 batch failure should not be interpreted as direct evidence of a code regression. It is more likely caused by non-determinism in VLM output, trajectory branching, Isaac runtime state, or continuous-batch execution effects. Future evaluation should report fresh-server repeated trials separately from continuous-batch trials.
 
+#### Ep994 rerun after anchor-heading reliability fix
+
+After the anchor-heading composition bug was identified, the LoFTR/feature-depth relocalizer was treated as translation-only:
+
+- `anchor_heading_reliable=false` for `feature_depth_loftr_3d3d`.
+- LoFTR still supplies the matched anchor vector and via-anchor remaining route distance.
+- The start vector is no longer composed through a fake `anchor_dtheta_rad=0`; it falls back to the action-integrated return pose when anchor heading is not reliable.
+- `current_pose_from_start` is now populated in anchor-relocalization progress records for diagnostics instead of staying as `[]`.
+
+The first attempt to rerun ep994 with the default W16A16 VLM was invalid: the VLM process successfully listened on `127.0.0.1:54321`, but it hit CUDA OOM during the first generation after Isaac loaded. The valid rerun used the same benchmark command with an 8-bit VLM server:
+
+```bash
+python scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+```
+
+Benchmark command:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_fix_8bit_20260628
+```
+
+Result:
+
+| Episode | VLM | Backend | Outbound | Return | Round trip | Final true distance to start | Accepted relocalization events | Per-step anchor-relocalization records | Mean confidence |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---:|---:|
+| 994 | 8-bit | `feature_depth_loftr_3d3d` | True | False | False | `4.363 m` | 73 | 1803 | 0.975 |
+
+Diagnostics:
+
+- VLM was confirmed running for the valid rerun; no VLM OOM occurred in the 8-bit run.
+- `route_relocalization_backend=loftr_depth`.
+- `anchor_heading_reliable=false` appeared in 139 measurement records, confirming the translation-only path was active.
+- The VLM stopped at a true simulator distance of `4.363 m`, outside the 3.0 m return-success radius.
+- The final route-memory start vector estimated about `2.947 m` from action-integrated return pose, while simulator ground truth was `4.363 m`; this points to action-integrated return-pose drift after the fake-anchor-heading bug was removed.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_post_anchor_heading_fix_8bit_20260628/
+├── logs/ep994.log
+├── measurements/ep994_1699.json
+└── trajectories/ep994_output_1699.jsonl
+```
+
 
 ---
 
