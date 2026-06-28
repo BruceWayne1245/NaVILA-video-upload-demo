@@ -4,6 +4,8 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
+**Latest update (2026-06-28) — SeqSLAM particle filter (seqpf_sfix):** arc-length position is now tracked by a 256-particle filter (`ArcLengthParticleFilter`) updated via LoFTR relocalization observations scored with a SeqSLAM-style sequence-consistency metric. Ep994 rerun `loftr_depth_ep994_seqpf_sfix_20260628` succeeded: outbound success true, return success true, round-trip success true, final distance to start `1.264 m`. The particle filter captured 8 LoFTR observations spanning anchors 14→8 (route positions 14.1 m → 7.8 m from start), then lost track. From step 3626 onward, hints incorrectly reported 0 m remaining while the true simulator distance was 4–5 m; the VLM did not stop prematurely and navigated correctly using visual/instruction cues. Key diagnosis: the particle filter provides accurate early hints but loses observations after anchor 8 and collapses to zero, so late-return guidance currently comes from the VLN instruction rather than the relocalization hint. Measurement and per-step trajectory are in `artifacts/loftr_depth_ep994_seqpf_sfix_20260628/`.
+
 **Latest update (2026-06-28) — monotonic anchor progress v2:** route-memory target-anchor selection now applies a monotonic policy before the consistency gate, rejects anchor-index regressions away from start, and advances targets after passing an anchor even when the robot did not enter a tight 0.8 m radius. Ep994 rerun `loftr_depth_ep994_monotonic_anchor_v2_20260628` succeeded: outbound success true, return success true, round-trip success true, final distance to start `1.148 m`. Target anchors were monotonic (`None -> 14 -> 13 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3`) with zero monotonic violations. The remaining issue is scalar progress: late route-memory distance remains conservative because it still uses `distance_to_target_anchor + target_anchor.route_remaining` instead of full anchor-chain path projection. Source snapshots, tests, measurement, per-step trajectory, and video are in `artifacts/loftr_depth_ep994_monotonic_anchor_v2_20260628/` and `code/`.
 
 **Latest update (2026-06-28) — 3D-3D rotation fix validates ep994 return:** feature-depth/LoFTR relocalization now preserves the full Kabsch/RANSAC rotation and converts it into `anchor_dtheta_rad` instead of treating the backend as translation-only. A fresh 8-bit VLM ep994 rerun with `--route_relocalization_backend=loftr_depth` succeeded end-to-end: outbound success true, return success true, round-trip success true, final distance to start `1.264 m`. The run produced 85 successful relocalization estimates, 672 pose candidates, max 148 3D inliers, and 86/86 nonzero `anchor_dtheta_rad` records. Artifacts, including the per-step trajectory JSONL and video, are in `artifacts/loftr_depth_ep994_rotation_fix_20260628/`.
@@ -1726,6 +1728,98 @@ artifacts/loftr_depth_ep994_monotonic_anchor_v2_20260628/
 ```
 
 The trajectory JSONL contains the full per-step record for this run.
+
+
+#### Ep994 rerun with SeqSLAM particle filter (seqpf_sfix)
+
+This update replaces the single-frame monotonic anchor selection with a probabilistic arc-length tracker. An `ArcLengthParticleFilter` (256 particles) maintains a distribution over the robot's position along the 16 m return route. At each LoFTR relocalization interval the filter receives an observation produced by `seqslam_pose_projection`: the accepted anchor is chosen by ranking candidates against the running history of observations (sequence-consistency score = sum of individual match scores), then the observation arc-length is fed into the particle filter as a Gaussian likelihood update.
+
+`sfix` refers to a stop-emission fix applied alongside the particle filter: the hint format now correctly saturates at 0 m remaining (anchor 0, "at your current position") rather than allowing negative or wrap-around values.
+
+Run configuration:
+
+```bash
+python scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_seqpf_sfix_20260628
+```
+
+Result:
+
+| Episode | VLM | Backend | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Successful estimates | Total candidates |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---:|---:|
+| 994 | 8-bit | `feature_depth_loftr_3d3d` | True | True | True | `1.264 m` | `1.109 m` | 85 | 680 |
+
+Target-anchor sequence (particle filter driven):
+
+```text
+None -> 13 -> 9 -> 7 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 0
+```
+
+All 10 anchor transitions occurred with decreasing distance-to-start estimates (monotonic). LoFTR observations contributed to 8 unique sequence entries spanning anchors 14 → 8.
+
+Return distance checkpoints (true Isaac simulator distance vs. particle filter claimed distance):
+
+```text
+step 2526: true dist ~13.5 m | hint (action-integrated): 13.54 m     ← accurate
+step 2576: true dist ~11.5 m | hint (anchor A13):        13.76 m arc  ← arc, not Euclidean; plausible
+step 2726: true dist ~10.0 m | hint (anchor A7):          7.84 m      ← ~2 m underestimate
+step 2951: true dist  ~8.6 m | hint (anchor A5):          5.59 m      ← ~3 m underestimate
+step 3201: true dist  ~7.5 m | hint (anchor A3):          3.34 m      ← ~4 m underestimate
+step 3551: true dist   5.8 m | hint (anchor A0):          0.34 m      ← 5.5 m ERROR — filter lost track
+step 3626: true dist   5.5 m | hint (anchor A0):          0.00 m      ← saturated at 0, robot still ~5.5 m away
+step 4400: true dist   2.5 m | hint (anchor A0):          0.00 m      ← still saturated
+step 4576: true dist   1.4 m | hint (anchor A0):          0.00 m      ← still saturated
+step 4651: true dist   1.3 m | VLM emits stop (return success)
+```
+
+Particle filter final state:
+
+```text
+particle_count:    256
+total_length_m:   16.00
+mean_remaining_m:  6.72  (high — bimodal distribution)
+mode_remaining_m:  1.19  (mode is accurate: 1.19 m vs true 1.26 m)
+std_remaining_m:   4.10  (very high — filter is uncertain)
+confidence:        0.49
+```
+
+Diagnosis:
+
+The particle filter made 8 successful LoFTR observations while the robot traversed anchors 14 → 8 (route positions 14.1 m → 7.8 m). After passing the anchor-8 region no further observations were accepted, likely because the robot's viewpoint moved outside the field-of-view overlap with outbound anchor images. Without new observations the filter propagated on motion-model alone, accumulated drift, and reported anchor-0 arrival (≤ 0.34 m remaining) from step 3551 onward — 1100 steps and ~5 m of true travel before the robot actually stopped.
+
+From step 3626 to 4651 every VLM call received the hint "route anchor A0 is 0.00 m away, at your current position." Despite this the VLM did **not** emit a premature stop; it continued navigating until the simulator true distance was ~1.26 m. This means:
+
+1. The VLM correctly down-weighted or ignored the erroneous terminal hint.
+2. Return success on this episode is attributable to the VLN return instruction and visual navigation, not to the relocalization hint.
+3. The particle filter provides accurate guidance during the first half of Return (~14 m → 8 m from start) but fails in the second half where LoFTR co-visibility drops.
+
+Next step: increase anchor density or use wider-baseline matching in the second half of the route so the filter stays calibrated closer to the start.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_seqpf_sfix_20260628/
+├── summary.json
+├── measurements/ep994_1699.json
+└── trajectories/ep994_output_1699.jsonl
+```
+
+The trajectory JSONL contains the full 4652-step per-step record for this run (4652 records: 2225 outbound + 300 confirm + 2127 return).
 
 
 ---

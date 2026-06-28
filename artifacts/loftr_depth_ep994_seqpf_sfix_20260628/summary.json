@@ -1,0 +1,33 @@
+{
+  "run_suffix": "loftr_depth_ep994_seqpf_sfix_20260628",
+  "episode_idx": 994,
+  "episode_id": 1699,
+  "date": "2026-06-28",
+  "vlm": "8-bit (navila-llama3-8b-8f)",
+  "relocalization_backend": "feature_depth_loftr_3d3d",
+  "round_trip_mode": "phase_prompt",
+  "new_mechanisms": ["ArcLengthParticleFilter (256 particles)", "seqslam_pose_projection for anchor selection"],
+  "outbound_success": true,
+  "return_success": true,
+  "round_trip_success": true,
+  "distance_to_start_m": 1.2638964653015137,
+  "outbound_stop_distance_to_goal_m": 1.109442114830017,
+  "trajectory_record_count": 4652,
+  "return_steps": 2127,
+  "relocalization_attempts": 85,
+  "relocalization_successful": 85,
+  "candidate_anchors": 680,
+  "ransac_failed": 3,
+  "hint_events": 37,
+  "particle_filter_final": {
+    "particle_count": 256,
+    "total_length_m": 16.0,
+    "mean_remaining_m": 6.722,
+    "mode_remaining_m": 1.192,
+    "std_remaining_m": 4.101,
+    "confidence": 0.494
+  },
+  "anchor_switch_sequence": [null, 13, 9, 7, 6, 5, 4, 3, 2, 1, 0],
+  "sequence_observations": 8,
+  "note": "Particle filter lost reliable observations after anchor 8 (8m from start). Hints claimed 0m remaining from step 3626 onward while true distance was 4-5m. VLM correctly ignored erroneous hints and navigated to start via visual instruction."
+}
