@@ -4,6 +4,8 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
+**Latest update (2026-06-28) — monotonic anchor progress v2:** route-memory target-anchor selection now applies a monotonic policy before the consistency gate, rejects anchor-index regressions away from start, and advances targets after passing an anchor even when the robot did not enter a tight 0.8 m radius. Ep994 rerun `loftr_depth_ep994_monotonic_anchor_v2_20260628` succeeded: outbound success true, return success true, round-trip success true, final distance to start `1.148 m`. Target anchors were monotonic (`None -> 14 -> 13 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3`) with zero monotonic violations. The remaining issue is scalar progress: late route-memory distance remains conservative because it still uses `distance_to_target_anchor + target_anchor.route_remaining` instead of full anchor-chain path projection. Source snapshots, tests, measurement, per-step trajectory, and video are in `artifacts/loftr_depth_ep994_monotonic_anchor_v2_20260628/` and `code/`.
+
 **Latest update (2026-06-28) — 3D-3D rotation fix validates ep994 return:** feature-depth/LoFTR relocalization now preserves the full Kabsch/RANSAC rotation and converts it into `anchor_dtheta_rad` instead of treating the backend as translation-only. A fresh 8-bit VLM ep994 rerun with `--route_relocalization_backend=loftr_depth` succeeded end-to-end: outbound success true, return success true, round-trip success true, final distance to start `1.264 m`. The run produced 85 successful relocalization estimates, 672 pose candidates, max 148 3D inliers, and 86/86 nonzero `anchor_dtheta_rad` records. Artifacts, including the per-step trajectory JSONL and video, are in `artifacts/loftr_depth_ep994_rotation_fix_20260628/`.
 
 **Latest update (2026-06-27) — LoFTR matcher integrated:** geometry pipeline verified correct via 18-test suite; LoFTR (`kornia==0.6.12`, `pretrained="outdoor"`) installed in both conda environments and wired as the `loftr_depth` backend. Offline synthetic tests show LoFTR produces 5–9× more inlier matches than ORB under rotation, scale change, and perspective warp. The `--route_relocalization_backend=loftr_depth` flag is ready; ep994 evaluation with the VLM server running is the next step.
@@ -1635,6 +1637,88 @@ Artifacts:
 
 ```text
 artifacts/loftr_depth_ep994_rotation_fix_20260628/
+├── summary.json
+├── measurements/ep994_1699.json
+├── trajectories/ep994_output_1699.jsonl
+└── videos/ep994_output_1699.mp4
+```
+
+The trajectory JSONL contains the full per-step record for this run.
+
+
+#### Ep994 rerun after monotonic anchor progress v2
+
+This update addresses the anchor selection / sequence monotonicity problem exposed after the 3D-3D rotation fix. The previous monotonic-anchor attempt stopped anchor regressions but could remain too conservative after a target anchor was passed. The v2 change keeps the monotonic policy, applies it before the consistency gate, and allows target advancement when the robot clearly moves away after approaching a target anchor, even if it never entered the tight `0.8 m` pass radius.
+
+Implemented code snapshot:
+
+```text
+code/route_memory_agent.py
+code/relocalization.py
+code/tests/test_route_memory_agent.py
+code/tests/test_geometry_pipeline.py
+```
+
+Validation:
+
+```text
+tests/test_route_memory_agent.py: 17/17 OK
+tests/test_geometry_pipeline.py: 20/20 OK
+py_compile route_memory_agent.py relocalization.py round_trip_eval.py: OK
+```
+
+Run configuration:
+
+```bash
+python scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_monotonic_anchor_v2_20260628
+```
+
+Result:
+
+| Episode | VLM | Backend | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Successful estimates | Monotonic violations |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---:|---:|
+| 994 | 8-bit | `feature_depth_loftr_3d3d` | True | True | True | `1.148 m` | `0.581 m` | 92 | 0 |
+
+Target-anchor sequence:
+
+```text
+None -> 14 -> 13 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3
+```
+
+Return distance checkpoints:
+
+```text
+step 3075: true distance to start 9.576 m
+step 3575: true distance to start 6.715 m
+step 4075: true distance to start 4.805 m
+step 4575: true distance to start 2.457 m
+step 4876: true distance to start 1.148 m, Return stop emitted
+```
+
+Important remaining issue:
+
+The target-anchor sequence is now monotonic and ep994 succeeds, but scalar route-memory progress remains conservative late in the run. Near the end the target is still A3 and route-memory distance is about `7.09 m`, while the simulator true distance is `1.15 m`. This happens because the scalar estimate is still `distance_to_target_anchor + target_anchor.route_remaining`. The next fix should replace that scalar with anchor-chain path projection plus monotonic clamping, so passing A3/A2/A1 is represented as along-route progress rather than increasing distance to the old target.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_monotonic_anchor_v2_20260628/
 ├── summary.json
 ├── measurements/ep994_1699.json
 ├── trajectories/ep994_output_1699.jsonl
