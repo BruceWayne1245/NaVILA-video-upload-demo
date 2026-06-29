@@ -1,0 +1,18 @@
+Batch started at 2026-06-29T15:46:22+01:00
+Each episode uses a fresh 8-bit VLM server and a fresh Isaac evaluation process.
+Each episode uses a unique VLM port: PORT_BASE(54321) + episode_idx.
+Running only episodes: 4
+Route hint config: --route_memory --route_hint_mode=compact --route_hint_source=oracle --route_relocalization_backend=none
+[2026-06-29T15:46:22+01:00] starting episode 4 (x8F5xyUWy9e), port=54325, suffix=direct_oracle_global_lookahead_ep4_20260629_ep4
+[2026-06-29T15:53:10+01:00] finished episode 4, exit_code=0
+Skipping episode 5; ONLY_EPISODES=4
+Skipping episode 134; ONLY_EPISODES=4
+Skipping episode 187; ONLY_EPISODES=4
+Skipping episode 367; ONLY_EPISODES=4
+Skipping episode 368; ONLY_EPISODES=4
+Skipping episode 408; ONLY_EPISODES=4
+Skipping episode 678; ONLY_EPISODES=4
+Skipping episode 680; ONLY_EPISODES=4
+Skipping episode 994; ONLY_EPISODES=4
+Skipping episode 1040; ONLY_EPISODES=4
+Batch finished at 2026-06-29T15:53:10+01:00

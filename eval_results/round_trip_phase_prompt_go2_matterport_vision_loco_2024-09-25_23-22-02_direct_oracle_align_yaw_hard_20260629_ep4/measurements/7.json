@@ -1,0 +1,3782 @@
+{
+    "path_length": 18.461034655105323,
+    "distance_to_goal": 10.053316819366648,
+    "success": 0.0,
+    "spl": 0.0,
+    "oracle_navigation_error": 1.321576572622764,
+    "oracle_success": 1.0,
+    "round_trip": {
+        "mode": "phase_prompt",
+        "completed_phase": "return",
+        "outbound_success": true,
+        "return_success": true,
+        "round_trip_success": true,
+        "distance_to_start": 0.3780766427516937,
+        "distance_to_goal": 9.894415855407715,
+        "round_trip_instruction": "Outbound: Walk across the room and wait at the far end of the bar. After reaching the outbound destination, stop and confirm it. Return: Go through the room past the counter and the pool. Stop at the other end before the beaded doorway. Stop when you reach the original starting location.",
+        "outbound_instruction": "Walk across the room and wait at the far end of the bar. This is the outbound phase of a round-trip task. Stop at the described destination before beginning the return.",
+        "return_instruction": "Go through the room past the counter and the pool. Stop at the other end before the beaded doorway.",
+        "instruction_rewriter_provider": "dataset_reverse_path_neighbor",
+        "instruction_rewriter_model": "episode_index=354;episode_id=583;matched_waypoints=5;mean_distance_m=0.000",
+        "return_instruction_override": false,
+        "return_instruction_file": null,
+        "oracle_return_pose_enabled": false,
+        "oracle_align_return_yaw_to_anchor_segment": true,
+        "return_yaw_alignment": {
+            "yaw_rad": -1.6740567476059292,
+            "yaw_deg": -95.91638630321702,
+            "segment_anchor_indices": [
+                10,
+                11
+            ],
+            "distance_to_segment_m": 0.0,
+            "before_yaw_rad": 1.9933591625550577,
+            "before_yaw_deg": 114.21106706813701,
+            "after_yaw_rad": -1.67405679338903,
+            "after_yaw_deg": -95.91638892639547,
+            "yaw_delta_rad": 2.6157693970185996,
+            "yaw_delta_deg": 149.87254662864598,
+            "pose_after_alignment": [
+                0.9012812376022339,
+                2.911463975906372,
+                0.29850950837135315,
+                0.6696726679801941,
+                0.0,
+                0.0,
+                -0.742656409740448
+            ]
+        },
+        "return_pose_before_oracle": [
+            0.9012812376022339,
+            2.911463975906372,
+            0.29850950837135315,
+            0.543493390083313,
+            -0.020780203863978386,
+            0.05246315523982048,
+            0.8375146389007568
+        ],
+        "return_pose_after_oracle": [
+            0.9012812376022339,
+            2.911463975906372,
+            0.29850950837135315,
+            0.6696726679801941,
+            0.0,
+            0.0,
+            -0.742656409740448
+        ],
+        "oracle_return_pose": [
+            0.8591700196266174,
+            4.339749813079834,
+            0.29850950837135315,
+            0.6976919174194336,
+            0.0,
+            0.0,
+            -0.7163979411125183
+        ],
+        "return_pose_error_before_oracle": {
+            "xy_error_m": 1.4289065599441528,
+            "z_error_m": 0.0,
+            "yaw_error_rad": -2.6925747342531827,
+            "yaw_error_deg": -154.2731682962666
+        },
+        "return_pose_error_after_oracle": {
+            "xy_error_m": 1.4289065599441528,
+            "z_error_m": 0.0,
+            "yaw_error_rad": -0.07680538301768404,
+            "yaw_error_deg": -4.400624290799062
+        },
+        "outbound_stop_output": "I think I should stop because I have finished the instruction.",
+        "outbound_stop_distance_to_goal": 1.532191276550293,
+        "episode_goal_radius": 3.0,
+        "success_radius": 3.0,
+        "success_requires_stop": true,
+        "trajectory_file": "trajectories/output_7.jsonl",
+        "trajectory_record_count": 2852,
+        "stop_events": [
+            {
+                "step": 1300,
+                "phase": "outbound",
+                "output": "I think I should stop because I have finished the instruction.",
+                "position": [
+                    0.871859610080719,
+                    2.8076109886169434,
+                    0.3015863001346588
+                ]
+            },
+            {
+                "step": 2851,
+                "phase": "return",
+                "output": "I think I should stop because I have finished the instruction.",
+                "position": [
+                    -1.0077855587005615,
+                    -5.367974758148193,
+                    0.30882638692855835
+                ]
+            }
+        ],
+        "phase_events": [
+            {
+                "step": 0,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 25,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 50,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 125,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 200,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 275,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 300,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 325,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 350,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 425,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 500,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 575,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 650,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 725,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 800,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 875,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 900,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 925,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1000,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1075,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 1100,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn left 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 1125,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1200,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1275,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 1300,
+                "phase": "outbound",
+                "event": "vlm_command",
+                "output": "I think I should stop because I have finished the instruction.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.0
+            },
+            {
+                "step": 1300,
+                "phase": "confirm",
+                "event": "outbound_stop_to_confirm",
+                "distance_to_goal": 1.532191276550293,
+                "success": true
+            },
+            {
+                "step": 1600,
+                "phase": "return",
+                "event": "confirm_complete_to_return",
+                "instruction": "Go through the room past the counter and the pool. Stop at the other end before the beaded doorway.",
+                "oracle_return_pose_enabled": false,
+                "oracle_align_return_yaw_to_anchor_segment": true,
+                "return_yaw_alignment": {
+                    "yaw_rad": -1.6740567476059292,
+                    "yaw_deg": -95.91638630321702,
+                    "segment_anchor_indices": [
+                        10,
+                        11
+                    ],
+                    "distance_to_segment_m": 0.0,
+                    "before_yaw_rad": 1.9933591625550577,
+                    "before_yaw_deg": 114.21106706813701,
+                    "after_yaw_rad": -1.67405679338903,
+                    "after_yaw_deg": -95.91638892639547,
+                    "yaw_delta_rad": 2.6157693970185996,
+                    "yaw_delta_deg": 149.87254662864598,
+                    "pose_after_alignment": [
+                        0.9012812376022339,
+                        2.911463975906372,
+                        0.29850950837135315,
+                        0.6696726679801941,
+                        0.0,
+                        0.0,
+                        -0.742656409740448
+                    ]
+                },
+                "pose_before_oracle": [
+                    0.9012812376022339,
+                    2.911463975906372,
+                    0.29850950837135315,
+                    0.543493390083313,
+                    -0.020780203863978386,
+                    0.05246315523982048,
+                    0.8375146389007568
+                ],
+                "pose_after_oracle": [
+                    0.9012812376022339,
+                    2.911463975906372,
+                    0.29850950837135315,
+                    0.6696726679801941,
+                    0.0,
+                    0.0,
+                    -0.742656409740448
+                ],
+                "pose_error_before_oracle": {
+                    "xy_error_m": 1.4289065599441528,
+                    "z_error_m": 0.0,
+                    "yaw_error_rad": -2.6925747342531827,
+                    "yaw_error_deg": -154.2731682962666
+                },
+                "pose_error_after_oracle": {
+                    "xy_error_m": 1.4289065599441528,
+                    "z_error_m": 0.0,
+                    "yaw_error_rad": -0.07680538301768404,
+                    "yaw_error_deg": -4.400624290799062
+                }
+            },
+            {
+                "step": 1601,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A9 is 1.44 m away, ahead; estimated remaining route via anchor is 10.51 m; next-anchor vector dx=1.43 m, dy=0.11 m.]",
+                "progress": {
+                    "target_dx_m": 1.4314411430852207,
+                    "target_dy_m": 0.11009490726480314,
+                    "distance_to_start_m": 10.50566870646481,
+                    "bearing_to_start_deg": 4.398070689139482,
+                    "current_pose_from_start": [
+                        1.8459632396697998,
+                        8.660318374633789,
+                        -1.6775569609860534
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 9,
+                    "anchor_dx_m": 1.4314411430852207,
+                    "anchor_dy_m": 0.11009490726480314,
+                    "distance_to_anchor_m": 1.4356687064649591,
+                    "bearing_to_anchor_deg": 4.398070689139482,
+                    "anchor_route_remaining_m": 9.069999999999851,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 10.499934461614265,
+                    "oracle_route_target_s_m": 9.499934461614265,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 1601,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 45 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1676,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A9 is 1.46 m away, 14 deg to your left; estimated remaining route via anchor is 10.53 m; next-anchor vector dx=1.42 m, dy=0.35 m.]",
+                "progress": {
+                    "target_dx_m": 1.419123247932144,
+                    "target_dy_m": 0.35403839951221544,
+                    "distance_to_start_m": 10.532618877613103,
+                    "bearing_to_start_deg": 14.00802897402011,
+                    "current_pose_from_start": [
+                        1.871441125869751,
+                        8.686307907104492,
+                        -1.8621617112530495
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 9,
+                    "anchor_dx_m": 1.419123247932144,
+                    "anchor_dy_m": 0.35403839951221544,
+                    "distance_to_anchor_m": 1.4626188776132518,
+                    "bearing_to_anchor_deg": 14.00802897402011,
+                    "anchor_route_remaining_m": 9.069999999999851,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 10.49999999999982,
+                    "oracle_route_target_s_m": 9.49999999999982,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 1676,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1751,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A9 is 0.90 m away, ahead; estimated remaining route via anchor is 9.97 m; next-anchor vector dx=0.89 m, dy=0.11 m.]",
+                "progress": {
+                    "target_dx_m": 0.8886422340476754,
+                    "target_dy_m": 0.11302175357329015,
+                    "distance_to_start_m": 9.965800723885485,
+                    "bearing_to_start_deg": 7.2482350188691465,
+                    "current_pose_from_start": [
+                        1.7749364376068115,
+                        8.120659828186035,
+                        -1.6660807931348107
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 9,
+                    "anchor_dx_m": 0.8886422340476754,
+                    "anchor_dy_m": 0.11302175357329015,
+                    "distance_to_anchor_m": 0.8958007238856335,
+                    "bearing_to_anchor_deg": 7.2482350188691465,
+                    "anchor_route_remaining_m": 9.069999999999851,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 10.095533469523042,
+                    "oracle_route_target_s_m": 9.095533469523042,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 1751,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1826,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A8 is 1.11 m away, 19 deg to your right; estimated remaining route via anchor is 9.17 m; next-anchor vector dx=1.05 m, dy=-0.37 m.]",
+                "progress": {
+                    "target_dx_m": 1.0486717201632245,
+                    "target_dy_m": -0.37042031820220556,
+                    "distance_to_start_m": 9.172170665323824,
+                    "bearing_to_start_deg": -19.454651977020074,
+                    "current_pose_from_start": [
+                        1.7896504402160645,
+                        7.4734296798706055,
+                        -1.5315497347334273
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 8,
+                    "anchor_dx_m": 1.0486717201632245,
+                    "anchor_dy_m": -0.37042031820220556,
+                    "distance_to_anchor_m": 1.112170665323951,
+                    "bearing_to_anchor_deg": -19.454651977020074,
+                    "anchor_route_remaining_m": 8.059999999999873,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 9.357249962569151,
+                    "oracle_route_target_s_m": 8.357249962569151,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 1826,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1901,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A7 is 1.39 m away, 29 deg to your right; estimated remaining route via anchor is 8.44 m; next-anchor vector dx=1.22 m, dy=-0.67 m.]",
+                "progress": {
+                    "target_dx_m": 1.2207922828571354,
+                    "target_dy_m": -0.6698606289935591,
+                    "distance_to_start_m": 8.442496700232674,
+                    "bearing_to_start_deg": -28.75400593273308,
+                    "current_pose_from_start": [
+                        1.8101963996887207,
+                        6.877825736999512,
+                        -1.4948228380489972
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 7,
+                    "anchor_dx_m": 1.2207922828571354,
+                    "anchor_dy_m": -0.6698606289935591,
+                    "distance_to_anchor_m": 1.3924967002327806,
+                    "bearing_to_anchor_deg": -28.75400593273308,
+                    "anchor_route_remaining_m": 7.049999999999894,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 8.70694340950566,
+                    "oracle_route_target_s_m": 7.70694340950566,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 1901,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 1976,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A7 is 0.94 m away, 54 deg to your right; estimated remaining route via anchor is 7.99 m; next-anchor vector dx=0.55 m, dy=-0.76 m.]",
+                "progress": {
+                    "target_dx_m": 0.5534718810423371,
+                    "target_dy_m": -0.7568692254032269,
+                    "distance_to_start_m": 7.987647133769856,
+                    "bearing_to_start_deg": -53.82330654443491,
+                    "current_pose_from_start": [
+                        1.8775949478149414,
+                        6.292470932006836,
+                        -1.386562474214172
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 7,
+                    "anchor_dx_m": 0.5534718810423371,
+                    "anchor_dy_m": -0.7568692254032269,
+                    "distance_to_anchor_m": 0.9376471337699612,
+                    "bearing_to_anchor_deg": -53.82330654443491,
+                    "anchor_route_remaining_m": 7.049999999999894,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 8.119747731095435,
+                    "oracle_route_target_s_m": 7.119747731095435,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 1976,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2051,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A6 is 1.23 m away, 62 deg to your right; estimated remaining route via anchor is 7.27 m; next-anchor vector dx=0.58 m, dy=-1.08 m.]",
+                "progress": {
+                    "target_dx_m": 0.5846823916596635,
+                    "target_dy_m": -1.0837696813278441,
+                    "distance_to_start_m": 7.271426092496871,
+                    "bearing_to_start_deg": -61.65360332612459,
+                    "current_pose_from_start": [
+                        1.9928529262542725,
+                        5.6682586669921875,
+                        -1.3198889143014496
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 6,
+                    "anchor_dx_m": 0.5846823916596635,
+                    "anchor_dy_m": -1.0837696813278441,
+                    "distance_to_anchor_m": 1.2314260924969558,
+                    "bearing_to_anchor_deg": -61.65360332612459,
+                    "anchor_route_remaining_m": 6.039999999999916,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 7.3676957020039175,
+                    "oracle_route_target_s_m": 6.3676957020039175,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2051,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 25 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 2076,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A6 is 1.14 m away, 71 deg to your right; estimated remaining route via anchor is 7.18 m; next-anchor vector dx=0.37 m, dy=-1.08 m.]",
+                "progress": {
+                    "target_dx_m": 0.3696131335604693,
+                    "target_dy_m": -1.079196992769001,
+                    "distance_to_start_m": 7.180736611888061,
+                    "bearing_to_start_deg": -71.09423040087286,
+                    "current_pose_from_start": [
+                        2.0328710079193115,
+                        5.47221565246582,
+                        -1.305742680730787
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 6,
+                    "anchor_dx_m": 0.3696131335604693,
+                    "anchor_dy_m": -1.079196992769001,
+                    "distance_to_anchor_m": 1.140736611888145,
+                    "bearing_to_anchor_deg": -71.09423040087286,
+                    "anchor_route_remaining_m": 6.039999999999916,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 7.1519305705315706,
+                    "oracle_route_target_s_m": 6.1519305705315706,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2076,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 2101,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A5 is 1.78 m away, 46 deg to your right; estimated remaining route via anchor is 6.81 m; next-anchor vector dx=1.25 m, dy=-1.27 m.]",
+                "progress": {
+                    "target_dx_m": 1.247586175072427,
+                    "target_dy_m": -1.2708006995074212,
+                    "distance_to_start_m": 6.810844092586484,
+                    "bearing_to_start_deg": -45.52813831559567,
+                    "current_pose_from_start": [
+                        2.0534374713897705,
+                        5.413857460021973,
+                        -1.4679960712507707
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 5,
+                    "anchor_dx_m": 1.247586175072427,
+                    "anchor_dy_m": -1.2708006995074212,
+                    "distance_to_anchor_m": 1.7808440925865463,
+                    "bearing_to_anchor_deg": -45.52813831559567,
+                    "anchor_route_remaining_m": 5.029999999999937,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 6.998213958394967,
+                    "oracle_route_target_s_m": 5.998213958394967,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2101,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2176,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A5 is 1.45 m away, 64 deg to your right; estimated remaining route via anchor is 6.48 m; next-anchor vector dx=0.64 m, dy=-1.30 m.]",
+                "progress": {
+                    "target_dx_m": 0.6436191752894604,
+                    "target_dy_m": -1.2970269962367573,
+                    "distance_to_start_m": 6.477938075943529,
+                    "bearing_to_start_deg": -63.60817395882816,
+                    "current_pose_from_start": [
+                        2.107532262802124,
+                        4.867096424102783,
+                        -1.4254838572603634
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 5,
+                    "anchor_dx_m": 0.6436191752894604,
+                    "anchor_dy_m": -1.2970269962367573,
+                    "distance_to_anchor_m": 1.4479380759435918,
+                    "bearing_to_anchor_deg": -63.60817395882816,
+                    "anchor_route_remaining_m": 5.029999999999937,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 6.324721822392336,
+                    "oracle_route_target_s_m": 5.324721822392336,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2176,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 2201,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A5 is 1.42 m away, 56 deg to your right; estimated remaining route via anchor is 6.45 m; next-anchor vector dx=0.80 m, dy=-1.18 m.]",
+                "progress": {
+                    "target_dx_m": 0.8019197035360871,
+                    "target_dy_m": -1.1759124930642426,
+                    "distance_to_start_m": 6.453321960156517,
+                    "bearing_to_start_deg": -55.70776203129068,
+                    "current_pose_from_start": [
+                        2.1216211318969727,
+                        4.801151275634766,
+                        -1.6071067360419726
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 5,
+                    "anchor_dx_m": 0.8019197035360871,
+                    "anchor_dy_m": -1.1759124930642426,
+                    "distance_to_anchor_m": 1.4233219601565796,
+                    "bearing_to_anchor_deg": -55.70776203129068,
+                    "anchor_route_remaining_m": 5.029999999999937,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 6.245285385508935,
+                    "oracle_route_target_s_m": 5.245285385508935,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2201,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 2226,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A5 is 1.41 m away, 46 deg to your right; estimated remaining route via anchor is 6.44 m; next-anchor vector dx=0.97 m, dy=-1.02 m.]",
+                "progress": {
+                    "target_dx_m": 0.9748671123046362,
+                    "target_dy_m": -1.017987837696258,
+                    "distance_to_start_m": 6.439491087006408,
+                    "bearing_to_start_deg": -46.23955338966085,
+                    "current_pose_from_start": [
+                        2.1223466396331787,
+                        4.773682117462158,
+                        -1.7891225893029834
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 5,
+                    "anchor_dx_m": 0.9748671123046362,
+                    "anchor_dy_m": -1.017987837696258,
+                    "distance_to_anchor_m": 1.409491087006471,
+                    "bearing_to_anchor_deg": -46.23955338966085,
+                    "anchor_route_remaining_m": 5.029999999999937,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 6.210976352896173,
+                    "oracle_route_target_s_m": 5.210976352896173,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2226,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2301,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A4 is 1.58 m away, 39 deg to your right; estimated remaining route via anchor is 5.60 m; next-anchor vector dx=1.22 m, dy=-1.00 m.]",
+                "progress": {
+                    "target_dx_m": 1.2223269633501672,
+                    "target_dy_m": -0.9998711367923787,
+                    "distance_to_start_m": 5.599185073233405,
+                    "bearing_to_start_deg": -39.283381872034546,
+                    "current_pose_from_start": [
+                        1.9425256252288818,
+                        4.228525161743164,
+                        -1.8026902097622521
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 4,
+                    "anchor_dx_m": 1.2223269633501672,
+                    "anchor_dy_m": -0.9998711367923787,
+                    "distance_to_anchor_m": 1.5791850732334463,
+                    "bearing_to_anchor_deg": -39.283381872034546,
+                    "anchor_route_remaining_m": 4.019999999999959,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 5.5276744380876845,
+                    "oracle_route_target_s_m": 4.5276744380876845,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2301,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is turn right 15 degree.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    -0.5235987755982988
+                ],
+                "duration_seconds": 0.5
+            },
+            {
+                "step": 2326,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A4 is 1.52 m away, 31 deg to your right; estimated remaining route via anchor is 5.54 m; next-anchor vector dx=1.30 m, dy=-0.77 m.]",
+                "progress": {
+                    "target_dx_m": 1.3046624903786974,
+                    "target_dy_m": -0.7739620135626042,
+                    "distance_to_start_m": 5.536957946760193,
+                    "bearing_to_start_deg": -30.677594755617786,
+                    "current_pose_from_start": [
+                        1.9206316471099854,
+                        4.153590202331543,
+                        -1.9833488939044335
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 4,
+                    "anchor_dx_m": 1.3046624903786974,
+                    "anchor_dy_m": -0.7739620135626042,
+                    "distance_to_anchor_m": 1.516957946760234,
+                    "bearing_to_anchor_deg": -30.677594755617786,
+                    "anchor_route_remaining_m": 4.019999999999959,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 5.430410817635035,
+                    "oracle_route_target_s_m": 4.430410817635035,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2326,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2401,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A3 is 1.68 m away, 23 deg to your right; estimated remaining route via anchor is 4.69 m; next-anchor vector dx=1.55 m, dy=-0.65 m.]",
+                "progress": {
+                    "target_dx_m": 1.5525094620525124,
+                    "target_dy_m": -0.646948998262938,
+                    "distance_to_start_m": 4.691912196315828,
+                    "bearing_to_start_deg": -22.622067879260694,
+                    "current_pose_from_start": [
+                        1.6038106679916382,
+                        3.6514363288879395,
+                        -1.9967009463883632
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 3,
+                    "anchor_dx_m": 1.5525094620525124,
+                    "anchor_dy_m": -0.646948998262938,
+                    "distance_to_anchor_m": 1.681912196315848,
+                    "bearing_to_anchor_deg": -22.622067879260694,
+                    "anchor_route_remaining_m": 3.00999999999998,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 4.804380167801164,
+                    "oracle_route_target_s_m": 3.804380167801164,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2401,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2476,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A3 is 1.05 m away, 19 deg to your right; estimated remaining route via anchor is 4.06 m; next-anchor vector dx=0.99 m, dy=-0.34 m.]",
+                "progress": {
+                    "target_dx_m": 0.9934853346110926,
+                    "target_dy_m": -0.3383487247585577,
+                    "distance_to_start_m": 4.059520352176657,
+                    "bearing_to_start_deg": -18.807169498012655,
+                    "current_pose_from_start": [
+                        1.164306640625,
+                        3.194624423980713,
+                        -2.0962777525109964
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 3,
+                    "anchor_dx_m": 0.9934853346110926,
+                    "anchor_dy_m": -0.3383487247585577,
+                    "distance_to_anchor_m": 1.0495203521766774,
+                    "bearing_to_anchor_deg": -18.807169498012655,
+                    "anchor_route_remaining_m": 3.00999999999998,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 4.10001164157139,
+                    "oracle_route_target_s_m": 3.10001164157139,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2476,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2551,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A2 is 1.27 m away, ahead; estimated remaining route via anchor is 3.27 m; next-anchor vector dx=1.26 m, dy=-0.14 m.]",
+                "progress": {
+                    "target_dx_m": 1.2603444857795294,
+                    "target_dy_m": -0.13808953300978177,
+                    "distance_to_start_m": 3.2678868017144627,
+                    "bearing_to_start_deg": -6.252666666465335,
+                    "current_pose_from_start": [
+                        0.7873565554618835,
+                        2.702023983001709,
+                        -2.049039315240496
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 2,
+                    "anchor_dx_m": 1.2603444857795294,
+                    "anchor_dy_m": -0.13808953300978177,
+                    "distance_to_anchor_m": 1.2678868017144613,
+                    "bearing_to_anchor_deg": -6.252666666465335,
+                    "anchor_route_remaining_m": 2.0000000000000013,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 3.425832786129601,
+                    "oracle_route_target_s_m": 2.425832786129601,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2551,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2626,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A1 is 1.39 m away, ahead; estimated remaining route via anchor is 2.39 m; next-anchor vector dx=1.39 m, dy=0.09 m.]",
+                "progress": {
+                    "target_dx_m": 1.3868785816468123,
+                    "target_dy_m": 0.09203949662336336,
+                    "distance_to_start_m": 2.3899293036587714,
+                    "bearing_to_start_deg": 3.7968379317913357,
+                    "current_pose_from_start": [
+                        0.4892500638961792,
+                        2.1544623374938965,
+                        -1.9874955688738516
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 1,
+                    "anchor_dx_m": 1.3868785816468123,
+                    "anchor_dy_m": 0.09203949662336336,
+                    "distance_to_anchor_m": 1.389929303658771,
+                    "bearing_to_anchor_deg": 3.7968379317913357,
+                    "anchor_route_remaining_m": 1.0000000000000007,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 2.6807087129257487,
+                    "oracle_route_target_s_m": 1.6807087129257487,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2626,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2701,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A0 is 1.59 m away, 11 deg to your left; estimated remaining route via anchor is 1.59 m; next-anchor vector dx=1.56 m, dy=0.31 m.]",
+                "progress": {
+                    "target_dx_m": 1.5600512919545462,
+                    "target_dy_m": 0.31430195476696565,
+                    "distance_to_start_m": 1.591397421230594,
+                    "bearing_to_start_deg": 11.390839182858924,
+                    "current_pose_from_start": [
+                        0.24640315771102905,
+                        1.5776863098144531,
+                        -1.9289964680611043
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 0,
+                    "anchor_dx_m": 1.5600512919545462,
+                    "anchor_dy_m": 0.31430195476696565,
+                    "distance_to_anchor_m": 1.591397421230594,
+                    "bearing_to_anchor_deg": 11.390839182858924,
+                    "anchor_route_remaining_m": 0.0,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 1.9325767110923475,
+                    "oracle_route_target_s_m": 0.9325767110923475,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2701,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2776,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A0 is 0.97 m away, 11 deg to your left; estimated remaining route via anchor is 0.97 m; next-anchor vector dx=0.96 m, dy=0.19 m.]",
+                "progress": {
+                    "target_dx_m": 0.956723557464559,
+                    "target_dy_m": 0.18662879244864222,
+                    "distance_to_start_m": 0.9747565191259198,
+                    "bearing_to_start_deg": 11.038114741932866,
+                    "current_pose_from_start": [
+                        0.06470543146133423,
+                        0.9786372184753418,
+                        -1.8362341571866305
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 0,
+                    "anchor_dx_m": 0.956723557464559,
+                    "anchor_dy_m": 0.18662879244864222,
+                    "distance_to_anchor_m": 0.9747565191259198,
+                    "bearing_to_anchor_deg": 11.038114741932866,
+                    "anchor_route_remaining_m": 0.0,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 1.1671420178447294,
+                    "oracle_route_target_s_m": 0.16714201784472937,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2776,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "The next action is move forward 75 cm.",
+                "parseable": true,
+                "command": [
+                    0.5,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 1.5
+            },
+            {
+                "step": 2851,
+                "phase": "return",
+                "event": "route_memory_hint",
+                "hint": "[System Hint: route anchor A0 is 0.38 m away, 16 deg to your left; estimated remaining route via anchor is 0.38 m; next-anchor vector dx=0.36 m, dy=0.10 m.]",
+                "progress": {
+                    "target_dx_m": 0.3648426974871714,
+                    "target_dy_m": 0.10169749474163492,
+                    "distance_to_start_m": 0.3787513357685231,
+                    "bearing_to_start_deg": 15.57546120143256,
+                    "current_pose_from_start": [
+                        -0.0628785490989685,
+                        0.38094520568847656,
+                        -1.6923784804264885
+                    ],
+                    "return_pose_from_return_start": [],
+                    "return_start_pose_from_start": [],
+                    "source": "direct_oracle_route_anchor",
+                    "target_anchor_index": 0,
+                    "anchor_dx_m": 0.3648426974871714,
+                    "anchor_dy_m": 0.10169749474163492,
+                    "distance_to_anchor_m": 0.3787513357685231,
+                    "bearing_to_anchor_deg": 15.57546120143256,
+                    "anchor_route_remaining_m": 0.0,
+                    "anchor_heading_reliable": true,
+                    "relocalization_confidence": 1.0,
+                    "relocalization_backend": "oracle_direct_route_anchor",
+                    "filter_std_m": null,
+                    "oracle_route_current_s_m": 0.4428004013615276,
+                    "oracle_route_target_s_m": 0.0,
+                    "oracle_route_lookahead_m": 1.0
+                },
+                "source": "oracle"
+            },
+            {
+                "step": 2851,
+                "phase": "return",
+                "event": "vlm_command",
+                "output": "I think I should stop because I have finished the instruction.",
+                "parseable": true,
+                "command": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "duration_seconds": 0.0
+            },
+            {
+                "step": 2851,
+                "phase": "return",
+                "event": "return_stop",
+                "distance_to_start": 0.3860996663570404,
+                "success": true
+            }
+        ],
+        "route_hint_source": "oracle",
+        "route_relocalization_backend": "none",
+        "route_relocalization_diagnostics": {},
+        "route_memory": {
+            "enabled": true,
+            "localizer": "action_integrated_relative_start",
+            "hint_mode": "compact",
+            "fallback_enabled": false,
+            "anchor_spacing_m": 1.0,
+            "min_relocalization_confidence": 0.35,
+            "relocalization_interval_updates": 1,
+            "max_relocalization_consistency_error_m": 5.0,
+            "anchors": [
+                {
+                    "index": 0,
+                    "pose_from_start": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "distance_from_start_m": 0.0,
+                    "route_remaining_to_start_m": 0.0,
+                    "descriptor": null,
+                    "metadata": {
+                        "event": "start",
+                        "world_pose": [
+                            -0.9510879516601562,
+                            -5.742458343505859,
+                            0.2858123779296875,
+                            0.7004979252815247,
+                            0.02156689204275608,
+                            0.009289342910051346,
+                            0.713267982006073
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 10.49999999999982
+                    }
+                },
+                {
+                    "index": 1,
+                    "pose_from_start": [
+                        0.8660254037844398,
+                        -0.5000000000000003,
+                        -0.5235987755982991
+                    ],
+                    "distance_from_start_m": 1.0000000000000007,
+                    "route_remaining_to_start_m": 1.0000000000000007,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 251.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5224779844284058
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -0.1748417317867279
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.12939351797103882,
+                            "max": 14.904211044311523
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 236.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.4845917820930481,
+                            "max": 5.0
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -4.81984281539917,
+                            "max": 0.8069504499435425
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.017702821642160416,
+                            "max": 0.7380651831626892
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -8.568167686462402e-08,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 1.816079020500183e-08,
+                            "max": 0.5
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -5.0188775062561035,
+                            "max": 0.7989799380302429
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.6744204759597778,
+                            "max": 0.7380651831626892
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0,
+                            "max": 1.0
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.1000000387430191,
+                            "max": 0.4999999701976776
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            -0.9328245520591736,
+                            -4.899913311004639,
+                            0.3033820688724518,
+                            0.7380651235580444,
+                            0.010172289796173573,
+                            -0.017702773213386536,
+                            0.6744204163551331
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 9.49999999999982
+                    }
+                },
+                {
+                    "index": 2,
+                    "pose_from_start": [
+                        1.7320508075688825,
+                        -1.0000000000000007,
+                        -0.5235987755982991
+                    ],
+                    "distance_from_start_m": 2.0000000000000013,
+                    "route_remaining_to_start_m": 2.0000000000000013,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 252.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5354787707328796
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -0.18783581256866455
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.644328773021698,
+                            "max": 13.769701957702637
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 1.0,
+                            "max": 229.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.2560057044029236,
+                            "max": 5.0
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -4.025975704193115,
+                            "max": 0.7924026250839233
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.024270731955766678,
+                            "max": 0.7075001001358032
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.2293457984924316e-07,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -9.313225746154785e-10,
+                            "max": 0.4999999701976776
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -4.225752353668213,
+                            "max": 0.7829630970954895
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.70623779296875,
+                            "max": 0.7075001001358032
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -0.9999999403953552,
+                            "max": 0.9999999403953552
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.09999977052211761,
+                            "max": 0.4999999701976776
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            -0.8601827621459961,
+                            -4.1022844314575195,
+                            0.288354754447937,
+                            0.707500159740448,
+                            0.009100809693336487,
+                            -0.024270659312605858,
+                            0.7062376737594604
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 8.499999999999819
+                    }
+                },
+                {
+                    "index": 3,
+                    "pose_from_start": [
+                        2.1452596327928966,
+                        -1.8591036279796922,
+                        -1.3089969389957483
+                    ],
+                    "distance_from_start_m": 3.00999999999998,
+                    "route_remaining_to_start_m": 3.00999999999998,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 252.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.4957318902015686
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -0.19936445355415344
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.4754811227321625,
+                            "max": 13.358363151550293
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 2.0,
+                            "max": 247.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.6994161605834961,
+                            "max": 5.0
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -3.1532764434814453,
+                            "max": 0.7990811467170715
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.009289109148085117,
+                            "max": 0.8505984544754028
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.7622369341552258e-07,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 1.862645149230957e-09,
+                            "max": 0.4999999701976776
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -3.3321616649627686,
+                            "max": 0.7974485754966736
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.5256836414337158,
+                            "max": 0.8505984544754028
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0,
+                            "max": 1.0
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.09999995678663254,
+                            "max": 0.5
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            -0.5716615319252014,
+                            -3.244016647338867,
+                            0.29840394854545593,
+                            0.8505985140800476,
+                            -0.0072662620805203915,
+                            -0.009289092384278774,
+                            0.525683581829071
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 7.48999999999984
+                    }
+                },
+                {
+                    "index": 4,
+                    "pose_from_start": [
+                        2.40666686834642,
+                        -2.834688712531654,
+                        -1.3089969389957483
+                    ],
+                    "distance_from_start_m": 4.019999999999959,
+                    "route_remaining_to_start_m": 4.019999999999959,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 252.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5035145878791809
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -0.35592323541641235
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.7348031401634216,
+                            "max": 12.654894828796387
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 2.0,
+                            "max": 242.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.29967963695526123,
+                            "max": 5.460822582244873
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -2.397517442703247,
+                            "max": 0.7914044260978699
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.012152120471000671,
+                            "max": 0.8147429823875427
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.999142114073038e-07,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 4.6798959374427795e-08,
+                            "max": 0.5
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -2.5864009857177734,
+                            "max": 0.7861056923866272
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.5796660780906677,
+                            "max": 0.8147429823875427
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0,
+                            "max": 1.0
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.09999992698431015,
+                            "max": 0.4999999701976776
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            -0.2564052939414978,
+                            -2.4802122116088867,
+                            0.2889360785484314,
+                            0.814743161201477,
+                            0.0057722763158380985,
+                            -0.012152121402323246,
+                            0.5796660780906677
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 6.479999999999862
+                    }
+                },
+                {
+                    "index": 5,
+                    "pose_from_start": [
+                        2.6680741038999436,
+                        -3.810273797083616,
+                        -1.3089969389957483
+                    ],
+                    "distance_from_start_m": 5.029999999999937,
+                    "route_remaining_to_start_m": 5.029999999999937,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 252.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.221099853515625,
+                            "max": 0.5117474794387817
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.7403894662857056,
+                            "max": 11.740175247192383
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 248.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.5439772605895996,
+                            "max": 6.518800735473633
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -1.6267156600952148,
+                            "max": 0.7876836061477661
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.019152721390128136,
+                            "max": 0.7829703688621521
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -7.718335837125778e-08,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 2.468004822731018e-08,
+                            "max": 0.5
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -1.8213762044906616,
+                            "max": 0.7798851728439331
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.6217219233512878,
+                            "max": 0.7829703688621521
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0,
+                            "max": 0.9999999403953552
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.09999999403953552,
+                            "max": 0.5
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            -0.02753482386469841,
+                            -1.7064710855484009,
+                            0.28420358896255493,
+                            0.7829704284667969,
+                            0.0072381021454930305,
+                            -0.01915271393954754,
+                            0.6217219829559326
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 5.469999999999883
+                    }
+                },
+                {
+                    "index": 6,
+                    "pose_from_start": [
+                        2.929481339453467,
+                        -4.785858881635542,
+                        -1.3089969389957483
+                    ],
+                    "distance_from_start_m": 6.039999999999916,
+                    "route_remaining_to_start_m": 6.039999999999916,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 251.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5243650674819946
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.5676701664924622,
+                            "max": 10.791312217712402
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 253.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.6876406669616699,
+                            "max": 7.748958587646484
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.8358508944511414,
+                            "max": 0.7951655983924866
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.01876571960747242,
+                            "max": 0.7603720426559448
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.5541445463895798e-07,
+                            "max": 1.0000001192092896
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 1.1175870895385742e-08,
+                            "max": 0.5
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -1.0332319736480713,
+                            "max": 0.7873263955116272
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.649164617061615,
+                            "max": 0.7603720426559448
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0,
+                            "max": 1.0
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.10000003129243851,
+                            "max": 0.5
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            0.14327841997146606,
+                            -0.9161173701286316,
+                            0.29166555404663086,
+                            0.7603721618652344,
+                            0.008209149353206158,
+                            -0.018765710294246674,
+                            0.649164617061615
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 4.459999999999905
+                    }
+                },
+                {
+                    "index": 7,
+                    "pose_from_start": [
+                        3.1908885750069906,
+                        -5.761443966187459,
+                        -1.3089969389957483
+                    ],
+                    "distance_from_start_m": 7.049999999999894,
+                    "route_remaining_to_start_m": 7.049999999999894,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 251.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5219332575798035
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.5674161314964294,
+                            "max": 9.929255485534668
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 252.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.6888806819915771,
+                            "max": 8.807549476623535
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.06134527921676636,
+                            "max": 0.7967739105224609
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.021432578563690186,
+                            "max": 0.7309352159500122
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.6525154933333397e-07,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -2.7939677238464355e-09,
+                            "max": 0.5
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.2606717050075531,
+                            "max": 0.787826657295227
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.6820394396781921,
+                            "max": 0.7309352159500122
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0,
+                            "max": 0.9999999403953552
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.10000000894069672,
+                            "max": 0.4999999701976776
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            0.2900197207927704,
+                            -0.1392078846693039,
+                            0.29285621643066406,
+                            0.7309353351593018,
+                            0.009826838038861752,
+                            -0.021432526409626007,
+                            0.6820393800735474
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 3.4499999999999265
+                    }
+                },
+                {
+                    "index": 8,
+                    "pose_from_start": [
+                        3.162418480045691,
+                        -6.737029050739376,
+                        -1.832595714594048
+                    ],
+                    "distance_from_start_m": 8.059999999999873,
+                    "route_remaining_to_start_m": 8.059999999999873,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 251.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5136420130729675
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.23689259588718414,
+                            "max": 9.212773323059082
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 253.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.5334956049919128,
+                            "max": 8.606797218322754
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.5380001068115234,
+                            "max": 0.8080788254737854
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.020392047241330147,
+                            "max": 0.8319230675697327
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -5.093170329928398e-08,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -3.91155481338501e-08,
+                            "max": 0.5000000596046448
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.4611608386039734,
+                            "max": 0.8009768128395081
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.5545142889022827,
+                            "max": 0.8319230675697327
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0,
+                            "max": 1.0
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.09999997913837433,
+                            "max": 0.5
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            0.5157546401023865,
+                            0.6621114611625671,
+                            0.3049456775188446,
+                            0.8319230079650879,
+                            0.0014254443813115358,
+                            -0.02039203606545925,
+                            0.5545142889022827
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 2.439999999999948
+                    }
+                },
+                {
+                    "index": 9,
+                    "pose_from_start": [
+                        2.9372459108064755,
+                        -7.712614135291293,
+                        -1.3089969389957483
+                    ],
+                    "distance_from_start_m": 9.069999999999851,
+                    "route_remaining_to_start_m": 9.069999999999851,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 243.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.4535050392150879
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.25591012835502625,
+                            "max": 8.155576705932617
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 1.0,
+                            "max": 252.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.1160765290260315,
+                            "max": 10.705209732055664
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8111872673034668,
+                            "max": 1.586868166923523
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.012321365997195244,
+                            "max": 0.7412384748458862
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.3224780559539795e-07,
+                            "max": 1.0000001192092896
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 2.3283064365386963e-08,
+                            "max": 0.5
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8158329725265503,
+                            "max": 1.387902855873108
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.671118438243866,
+                            "max": 0.7412384748458862
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0000001192092896,
+                            "max": 1.0
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.1000000461935997,
+                            "max": 0.4999999701976776
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            0.8579928278923035,
+                            1.476375937461853,
+                            0.3136756122112274,
+                            0.671118438243866,
+                            -0.01232130452990532,
+                            0.0036972889211028814,
+                            0.7412384748458862
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 1.4299999999999695
+                    }
+                },
+                {
+                    "index": 10,
+                    "pose_from_start": [
+                        3.198653146359999,
+                        -8.688199219843273,
+                        -1.3089969389957483
+                    ],
+                    "distance_from_start_m": 10.07999999999983,
+                    "route_remaining_to_start_m": 10.07999999999983,
+                    "descriptor": {
+                        "rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 250.0
+                        },
+                        "height_map": {
+                            "shape": [
+                                459
+                            ],
+                            "min": 0.0,
+                            "max": 0.5738145709037781
+                        },
+                        "height_scan": {
+                            "shape": [
+                                651
+                            ],
+                            "min": -1.0,
+                            "max": -1.0
+                        },
+                        "depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.3156704902648926,
+                            "max": 7.30125617980957
+                        },
+                        "rear_rgb": {
+                            "shape": [
+                                512,
+                                512,
+                                3
+                            ],
+                            "min": 1.0,
+                            "max": 252.0
+                        },
+                        "rear_depth_obs": {
+                            "shape": [
+                                512,
+                                512
+                            ],
+                            "min": 0.24792581796646118,
+                            "max": 11.487469673156738
+                        },
+                        "camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.8207560181617737,
+                            "max": 2.4197003841400146
+                        },
+                        "camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.02090543694794178,
+                            "max": 0.737881600856781
+                        },
+                        "camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -8.240749593824148e-08,
+                            "max": 1.0
+                        },
+                        "camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 5.9371814131736755e-09,
+                            "max": 0.5
+                        },
+                        "rear_camera_intrinsics": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": 0.0,
+                            "max": 256.0
+                        },
+                        "rear_camera_position_w": {
+                            "shape": [
+                                3
+                            ],
+                            "min": 0.809128999710083,
+                            "max": 2.220848321914673
+                        },
+                        "rear_camera_quat_wxyz": {
+                            "shape": [
+                                4
+                            ],
+                            "min": -0.6743012070655823,
+                            "max": 0.737881600856781
+                        },
+                        "rear_camera_rotation_body": {
+                            "shape": [
+                                3,
+                                3
+                            ],
+                            "min": -1.0,
+                            "max": 1.0
+                        },
+                        "rear_camera_position_body": {
+                            "shape": [
+                                3
+                            ],
+                            "min": -0.09999995678663254,
+                            "max": 0.4999999701976776
+                        }
+                    },
+                    "metadata": {
+                        "world_pose": [
+                            0.8430331349372864,
+                            2.3493809700012207,
+                            0.31579118967056274,
+                            0.6743010878562927,
+                            0.020289048552513123,
+                            -0.02090539038181305,
+                            0.737881600856781
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        "route_distance_from_anchor_to_return_start_m": 0.41999999999999105
+                    }
+                },
+                {
+                    "index": 11,
+                    "pose_from_start": [
+                        3.3073571453030484,
+                        -9.093888066884702,
+                        1.5707963267948981
+                    ],
+                    "distance_from_start_m": 10.49999999999982,
+                    "route_remaining_to_start_m": 10.49999999999982,
+                    "descriptor": null,
+                    "metadata": {
+                        "event": "outbound_final",
+                        "route_distance_from_anchor_to_return_start_m": 0.0,
+                        "world_pose": [
+                            0.9012812376022339,
+                            2.911463975906372,
+                            0.29850950837135315,
+                            0.543493390083313,
+                            -0.020780203863978386,
+                            0.05246315523982048,
+                            0.8375146389007568
+                        ],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval"
+                    }
+                }
+            ],
+            "latest_relocalization": null,
+            "outbound_pose_from_start": [
+                3.3073571453030484,
+                -9.093888066884702,
+                1.5707963267948981
+            ],
+            "return_start_pose_from_start": [
+                3.3073571453030484,
+                -9.093888066884702,
+                1.5707963267948981
+            ],
+            "return_pose_from_return_start": [
+                1.844627137957828,
+                -9.299056765602002,
+                -1.832595714594048
+            ],
+            "relative_start_progress": {
+                "target_dx_m": -14.053107564756827,
+                "target_dy_m": 3.739468342171152,
+                "distance_to_start_m": 14.542126932079977,
+                "bearing_to_start_deg": 165.09914126178688,
+                "current_pose_from_start": [
+                    12.606413910905047,
+                    -7.2492609289268595,
+                    -0.2617993877991498
+                ],
+                "return_pose_from_return_start": [
+                    1.844627137957828,
+                    -9.299056765602002,
+                    -1.832595714594048
+                ],
+                "return_start_pose_from_start": [
+                    3.3073571453030484,
+                    -9.093888066884702,
+                    1.5707963267948981
+                ],
+                "source": "action_integrated_relative_start",
+                "target_anchor_index": null,
+                "anchor_dx_m": null,
+                "anchor_dy_m": null,
+                "distance_to_anchor_m": null,
+                "bearing_to_anchor_deg": null,
+                "anchor_route_remaining_m": null,
+                "anchor_heading_reliable": null,
+                "relocalization_confidence": null,
+                "relocalization_backend": null,
+                "filter_std_m": null,
+                "oracle_route_current_s_m": null,
+                "oracle_route_target_s_m": null,
+                "oracle_route_lookahead_m": null
+            },
+            "arc_length_filter": {
+                "total_length_m": 10.49999999999982,
+                "particle_count": 256,
+                "mean_remaining_m": 3.724965267432745,
+                "mode_remaining_m": 0.8647058823529264,
+                "std_remaining_m": 2.506831103698693,
+                "confidence": 0.5115133267164711
+            },
+            "arc_length_observation": null,
+            "sequence_observation": null,
+            "sequence_current_s_m": null,
+            "sequence_observation_history": [],
+            "hint_events": [
+                {
+                    "step": 1601,
+                    "hint": "[System Hint: route anchor A9 is 1.44 m away, ahead; estimated remaining route via anchor is 10.51 m; next-anchor vector dx=1.43 m, dy=0.11 m.]",
+                    "progress": {
+                        "target_dx_m": 1.4314411430852207,
+                        "target_dy_m": 0.11009490726480314,
+                        "distance_to_start_m": 10.50566870646481,
+                        "bearing_to_start_deg": 4.398070689139482,
+                        "current_pose_from_start": [
+                            1.8459632396697998,
+                            8.660318374633789,
+                            -1.6775569609860534
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 9,
+                        "anchor_dx_m": 1.4314411430852207,
+                        "anchor_dy_m": 0.11009490726480314,
+                        "distance_to_anchor_m": 1.4356687064649591,
+                        "bearing_to_anchor_deg": 4.398070689139482,
+                        "anchor_route_remaining_m": 9.069999999999851,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 10.499934461614265,
+                        "oracle_route_target_s_m": 9.499934461614265,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 1676,
+                    "hint": "[System Hint: route anchor A9 is 1.46 m away, 14 deg to your left; estimated remaining route via anchor is 10.53 m; next-anchor vector dx=1.42 m, dy=0.35 m.]",
+                    "progress": {
+                        "target_dx_m": 1.419123247932144,
+                        "target_dy_m": 0.35403839951221544,
+                        "distance_to_start_m": 10.532618877613103,
+                        "bearing_to_start_deg": 14.00802897402011,
+                        "current_pose_from_start": [
+                            1.871441125869751,
+                            8.686307907104492,
+                            -1.8621617112530495
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 9,
+                        "anchor_dx_m": 1.419123247932144,
+                        "anchor_dy_m": 0.35403839951221544,
+                        "distance_to_anchor_m": 1.4626188776132518,
+                        "bearing_to_anchor_deg": 14.00802897402011,
+                        "anchor_route_remaining_m": 9.069999999999851,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 10.49999999999982,
+                        "oracle_route_target_s_m": 9.49999999999982,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 1751,
+                    "hint": "[System Hint: route anchor A9 is 0.90 m away, ahead; estimated remaining route via anchor is 9.97 m; next-anchor vector dx=0.89 m, dy=0.11 m.]",
+                    "progress": {
+                        "target_dx_m": 0.8886422340476754,
+                        "target_dy_m": 0.11302175357329015,
+                        "distance_to_start_m": 9.965800723885485,
+                        "bearing_to_start_deg": 7.2482350188691465,
+                        "current_pose_from_start": [
+                            1.7749364376068115,
+                            8.120659828186035,
+                            -1.6660807931348107
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 9,
+                        "anchor_dx_m": 0.8886422340476754,
+                        "anchor_dy_m": 0.11302175357329015,
+                        "distance_to_anchor_m": 0.8958007238856335,
+                        "bearing_to_anchor_deg": 7.2482350188691465,
+                        "anchor_route_remaining_m": 9.069999999999851,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 10.095533469523042,
+                        "oracle_route_target_s_m": 9.095533469523042,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 1826,
+                    "hint": "[System Hint: route anchor A8 is 1.11 m away, 19 deg to your right; estimated remaining route via anchor is 9.17 m; next-anchor vector dx=1.05 m, dy=-0.37 m.]",
+                    "progress": {
+                        "target_dx_m": 1.0486717201632245,
+                        "target_dy_m": -0.37042031820220556,
+                        "distance_to_start_m": 9.172170665323824,
+                        "bearing_to_start_deg": -19.454651977020074,
+                        "current_pose_from_start": [
+                            1.7896504402160645,
+                            7.4734296798706055,
+                            -1.5315497347334273
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 8,
+                        "anchor_dx_m": 1.0486717201632245,
+                        "anchor_dy_m": -0.37042031820220556,
+                        "distance_to_anchor_m": 1.112170665323951,
+                        "bearing_to_anchor_deg": -19.454651977020074,
+                        "anchor_route_remaining_m": 8.059999999999873,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 9.357249962569151,
+                        "oracle_route_target_s_m": 8.357249962569151,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 1901,
+                    "hint": "[System Hint: route anchor A7 is 1.39 m away, 29 deg to your right; estimated remaining route via anchor is 8.44 m; next-anchor vector dx=1.22 m, dy=-0.67 m.]",
+                    "progress": {
+                        "target_dx_m": 1.2207922828571354,
+                        "target_dy_m": -0.6698606289935591,
+                        "distance_to_start_m": 8.442496700232674,
+                        "bearing_to_start_deg": -28.75400593273308,
+                        "current_pose_from_start": [
+                            1.8101963996887207,
+                            6.877825736999512,
+                            -1.4948228380489972
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 7,
+                        "anchor_dx_m": 1.2207922828571354,
+                        "anchor_dy_m": -0.6698606289935591,
+                        "distance_to_anchor_m": 1.3924967002327806,
+                        "bearing_to_anchor_deg": -28.75400593273308,
+                        "anchor_route_remaining_m": 7.049999999999894,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 8.70694340950566,
+                        "oracle_route_target_s_m": 7.70694340950566,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 1976,
+                    "hint": "[System Hint: route anchor A7 is 0.94 m away, 54 deg to your right; estimated remaining route via anchor is 7.99 m; next-anchor vector dx=0.55 m, dy=-0.76 m.]",
+                    "progress": {
+                        "target_dx_m": 0.5534718810423371,
+                        "target_dy_m": -0.7568692254032269,
+                        "distance_to_start_m": 7.987647133769856,
+                        "bearing_to_start_deg": -53.82330654443491,
+                        "current_pose_from_start": [
+                            1.8775949478149414,
+                            6.292470932006836,
+                            -1.386562474214172
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 7,
+                        "anchor_dx_m": 0.5534718810423371,
+                        "anchor_dy_m": -0.7568692254032269,
+                        "distance_to_anchor_m": 0.9376471337699612,
+                        "bearing_to_anchor_deg": -53.82330654443491,
+                        "anchor_route_remaining_m": 7.049999999999894,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 8.119747731095435,
+                        "oracle_route_target_s_m": 7.119747731095435,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2051,
+                    "hint": "[System Hint: route anchor A6 is 1.23 m away, 62 deg to your right; estimated remaining route via anchor is 7.27 m; next-anchor vector dx=0.58 m, dy=-1.08 m.]",
+                    "progress": {
+                        "target_dx_m": 0.5846823916596635,
+                        "target_dy_m": -1.0837696813278441,
+                        "distance_to_start_m": 7.271426092496871,
+                        "bearing_to_start_deg": -61.65360332612459,
+                        "current_pose_from_start": [
+                            1.9928529262542725,
+                            5.6682586669921875,
+                            -1.3198889143014496
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 6,
+                        "anchor_dx_m": 0.5846823916596635,
+                        "anchor_dy_m": -1.0837696813278441,
+                        "distance_to_anchor_m": 1.2314260924969558,
+                        "bearing_to_anchor_deg": -61.65360332612459,
+                        "anchor_route_remaining_m": 6.039999999999916,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 7.3676957020039175,
+                        "oracle_route_target_s_m": 6.3676957020039175,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2076,
+                    "hint": "[System Hint: route anchor A6 is 1.14 m away, 71 deg to your right; estimated remaining route via anchor is 7.18 m; next-anchor vector dx=0.37 m, dy=-1.08 m.]",
+                    "progress": {
+                        "target_dx_m": 0.3696131335604693,
+                        "target_dy_m": -1.079196992769001,
+                        "distance_to_start_m": 7.180736611888061,
+                        "bearing_to_start_deg": -71.09423040087286,
+                        "current_pose_from_start": [
+                            2.0328710079193115,
+                            5.47221565246582,
+                            -1.305742680730787
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 6,
+                        "anchor_dx_m": 0.3696131335604693,
+                        "anchor_dy_m": -1.079196992769001,
+                        "distance_to_anchor_m": 1.140736611888145,
+                        "bearing_to_anchor_deg": -71.09423040087286,
+                        "anchor_route_remaining_m": 6.039999999999916,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 7.1519305705315706,
+                        "oracle_route_target_s_m": 6.1519305705315706,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2101,
+                    "hint": "[System Hint: route anchor A5 is 1.78 m away, 46 deg to your right; estimated remaining route via anchor is 6.81 m; next-anchor vector dx=1.25 m, dy=-1.27 m.]",
+                    "progress": {
+                        "target_dx_m": 1.247586175072427,
+                        "target_dy_m": -1.2708006995074212,
+                        "distance_to_start_m": 6.810844092586484,
+                        "bearing_to_start_deg": -45.52813831559567,
+                        "current_pose_from_start": [
+                            2.0534374713897705,
+                            5.413857460021973,
+                            -1.4679960712507707
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 5,
+                        "anchor_dx_m": 1.247586175072427,
+                        "anchor_dy_m": -1.2708006995074212,
+                        "distance_to_anchor_m": 1.7808440925865463,
+                        "bearing_to_anchor_deg": -45.52813831559567,
+                        "anchor_route_remaining_m": 5.029999999999937,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 6.998213958394967,
+                        "oracle_route_target_s_m": 5.998213958394967,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2176,
+                    "hint": "[System Hint: route anchor A5 is 1.45 m away, 64 deg to your right; estimated remaining route via anchor is 6.48 m; next-anchor vector dx=0.64 m, dy=-1.30 m.]",
+                    "progress": {
+                        "target_dx_m": 0.6436191752894604,
+                        "target_dy_m": -1.2970269962367573,
+                        "distance_to_start_m": 6.477938075943529,
+                        "bearing_to_start_deg": -63.60817395882816,
+                        "current_pose_from_start": [
+                            2.107532262802124,
+                            4.867096424102783,
+                            -1.4254838572603634
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 5,
+                        "anchor_dx_m": 0.6436191752894604,
+                        "anchor_dy_m": -1.2970269962367573,
+                        "distance_to_anchor_m": 1.4479380759435918,
+                        "bearing_to_anchor_deg": -63.60817395882816,
+                        "anchor_route_remaining_m": 5.029999999999937,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 6.324721822392336,
+                        "oracle_route_target_s_m": 5.324721822392336,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2201,
+                    "hint": "[System Hint: route anchor A5 is 1.42 m away, 56 deg to your right; estimated remaining route via anchor is 6.45 m; next-anchor vector dx=0.80 m, dy=-1.18 m.]",
+                    "progress": {
+                        "target_dx_m": 0.8019197035360871,
+                        "target_dy_m": -1.1759124930642426,
+                        "distance_to_start_m": 6.453321960156517,
+                        "bearing_to_start_deg": -55.70776203129068,
+                        "current_pose_from_start": [
+                            2.1216211318969727,
+                            4.801151275634766,
+                            -1.6071067360419726
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 5,
+                        "anchor_dx_m": 0.8019197035360871,
+                        "anchor_dy_m": -1.1759124930642426,
+                        "distance_to_anchor_m": 1.4233219601565796,
+                        "bearing_to_anchor_deg": -55.70776203129068,
+                        "anchor_route_remaining_m": 5.029999999999937,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 6.245285385508935,
+                        "oracle_route_target_s_m": 5.245285385508935,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2226,
+                    "hint": "[System Hint: route anchor A5 is 1.41 m away, 46 deg to your right; estimated remaining route via anchor is 6.44 m; next-anchor vector dx=0.97 m, dy=-1.02 m.]",
+                    "progress": {
+                        "target_dx_m": 0.9748671123046362,
+                        "target_dy_m": -1.017987837696258,
+                        "distance_to_start_m": 6.439491087006408,
+                        "bearing_to_start_deg": -46.23955338966085,
+                        "current_pose_from_start": [
+                            2.1223466396331787,
+                            4.773682117462158,
+                            -1.7891225893029834
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 5,
+                        "anchor_dx_m": 0.9748671123046362,
+                        "anchor_dy_m": -1.017987837696258,
+                        "distance_to_anchor_m": 1.409491087006471,
+                        "bearing_to_anchor_deg": -46.23955338966085,
+                        "anchor_route_remaining_m": 5.029999999999937,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 6.210976352896173,
+                        "oracle_route_target_s_m": 5.210976352896173,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2301,
+                    "hint": "[System Hint: route anchor A4 is 1.58 m away, 39 deg to your right; estimated remaining route via anchor is 5.60 m; next-anchor vector dx=1.22 m, dy=-1.00 m.]",
+                    "progress": {
+                        "target_dx_m": 1.2223269633501672,
+                        "target_dy_m": -0.9998711367923787,
+                        "distance_to_start_m": 5.599185073233405,
+                        "bearing_to_start_deg": -39.283381872034546,
+                        "current_pose_from_start": [
+                            1.9425256252288818,
+                            4.228525161743164,
+                            -1.8026902097622521
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 4,
+                        "anchor_dx_m": 1.2223269633501672,
+                        "anchor_dy_m": -0.9998711367923787,
+                        "distance_to_anchor_m": 1.5791850732334463,
+                        "bearing_to_anchor_deg": -39.283381872034546,
+                        "anchor_route_remaining_m": 4.019999999999959,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 5.5276744380876845,
+                        "oracle_route_target_s_m": 4.5276744380876845,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2326,
+                    "hint": "[System Hint: route anchor A4 is 1.52 m away, 31 deg to your right; estimated remaining route via anchor is 5.54 m; next-anchor vector dx=1.30 m, dy=-0.77 m.]",
+                    "progress": {
+                        "target_dx_m": 1.3046624903786974,
+                        "target_dy_m": -0.7739620135626042,
+                        "distance_to_start_m": 5.536957946760193,
+                        "bearing_to_start_deg": -30.677594755617786,
+                        "current_pose_from_start": [
+                            1.9206316471099854,
+                            4.153590202331543,
+                            -1.9833488939044335
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 4,
+                        "anchor_dx_m": 1.3046624903786974,
+                        "anchor_dy_m": -0.7739620135626042,
+                        "distance_to_anchor_m": 1.516957946760234,
+                        "bearing_to_anchor_deg": -30.677594755617786,
+                        "anchor_route_remaining_m": 4.019999999999959,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 5.430410817635035,
+                        "oracle_route_target_s_m": 4.430410817635035,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2401,
+                    "hint": "[System Hint: route anchor A3 is 1.68 m away, 23 deg to your right; estimated remaining route via anchor is 4.69 m; next-anchor vector dx=1.55 m, dy=-0.65 m.]",
+                    "progress": {
+                        "target_dx_m": 1.5525094620525124,
+                        "target_dy_m": -0.646948998262938,
+                        "distance_to_start_m": 4.691912196315828,
+                        "bearing_to_start_deg": -22.622067879260694,
+                        "current_pose_from_start": [
+                            1.6038106679916382,
+                            3.6514363288879395,
+                            -1.9967009463883632
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 3,
+                        "anchor_dx_m": 1.5525094620525124,
+                        "anchor_dy_m": -0.646948998262938,
+                        "distance_to_anchor_m": 1.681912196315848,
+                        "bearing_to_anchor_deg": -22.622067879260694,
+                        "anchor_route_remaining_m": 3.00999999999998,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 4.804380167801164,
+                        "oracle_route_target_s_m": 3.804380167801164,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2476,
+                    "hint": "[System Hint: route anchor A3 is 1.05 m away, 19 deg to your right; estimated remaining route via anchor is 4.06 m; next-anchor vector dx=0.99 m, dy=-0.34 m.]",
+                    "progress": {
+                        "target_dx_m": 0.9934853346110926,
+                        "target_dy_m": -0.3383487247585577,
+                        "distance_to_start_m": 4.059520352176657,
+                        "bearing_to_start_deg": -18.807169498012655,
+                        "current_pose_from_start": [
+                            1.164306640625,
+                            3.194624423980713,
+                            -2.0962777525109964
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 3,
+                        "anchor_dx_m": 0.9934853346110926,
+                        "anchor_dy_m": -0.3383487247585577,
+                        "distance_to_anchor_m": 1.0495203521766774,
+                        "bearing_to_anchor_deg": -18.807169498012655,
+                        "anchor_route_remaining_m": 3.00999999999998,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 4.10001164157139,
+                        "oracle_route_target_s_m": 3.10001164157139,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2551,
+                    "hint": "[System Hint: route anchor A2 is 1.27 m away, ahead; estimated remaining route via anchor is 3.27 m; next-anchor vector dx=1.26 m, dy=-0.14 m.]",
+                    "progress": {
+                        "target_dx_m": 1.2603444857795294,
+                        "target_dy_m": -0.13808953300978177,
+                        "distance_to_start_m": 3.2678868017144627,
+                        "bearing_to_start_deg": -6.252666666465335,
+                        "current_pose_from_start": [
+                            0.7873565554618835,
+                            2.702023983001709,
+                            -2.049039315240496
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 2,
+                        "anchor_dx_m": 1.2603444857795294,
+                        "anchor_dy_m": -0.13808953300978177,
+                        "distance_to_anchor_m": 1.2678868017144613,
+                        "bearing_to_anchor_deg": -6.252666666465335,
+                        "anchor_route_remaining_m": 2.0000000000000013,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 3.425832786129601,
+                        "oracle_route_target_s_m": 2.425832786129601,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2626,
+                    "hint": "[System Hint: route anchor A1 is 1.39 m away, ahead; estimated remaining route via anchor is 2.39 m; next-anchor vector dx=1.39 m, dy=0.09 m.]",
+                    "progress": {
+                        "target_dx_m": 1.3868785816468123,
+                        "target_dy_m": 0.09203949662336336,
+                        "distance_to_start_m": 2.3899293036587714,
+                        "bearing_to_start_deg": 3.7968379317913357,
+                        "current_pose_from_start": [
+                            0.4892500638961792,
+                            2.1544623374938965,
+                            -1.9874955688738516
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 1,
+                        "anchor_dx_m": 1.3868785816468123,
+                        "anchor_dy_m": 0.09203949662336336,
+                        "distance_to_anchor_m": 1.389929303658771,
+                        "bearing_to_anchor_deg": 3.7968379317913357,
+                        "anchor_route_remaining_m": 1.0000000000000007,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 2.6807087129257487,
+                        "oracle_route_target_s_m": 1.6807087129257487,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2701,
+                    "hint": "[System Hint: route anchor A0 is 1.59 m away, 11 deg to your left; estimated remaining route via anchor is 1.59 m; next-anchor vector dx=1.56 m, dy=0.31 m.]",
+                    "progress": {
+                        "target_dx_m": 1.5600512919545462,
+                        "target_dy_m": 0.31430195476696565,
+                        "distance_to_start_m": 1.591397421230594,
+                        "bearing_to_start_deg": 11.390839182858924,
+                        "current_pose_from_start": [
+                            0.24640315771102905,
+                            1.5776863098144531,
+                            -1.9289964680611043
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 0,
+                        "anchor_dx_m": 1.5600512919545462,
+                        "anchor_dy_m": 0.31430195476696565,
+                        "distance_to_anchor_m": 1.591397421230594,
+                        "bearing_to_anchor_deg": 11.390839182858924,
+                        "anchor_route_remaining_m": 0.0,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 1.9325767110923475,
+                        "oracle_route_target_s_m": 0.9325767110923475,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2776,
+                    "hint": "[System Hint: route anchor A0 is 0.97 m away, 11 deg to your left; estimated remaining route via anchor is 0.97 m; next-anchor vector dx=0.96 m, dy=0.19 m.]",
+                    "progress": {
+                        "target_dx_m": 0.956723557464559,
+                        "target_dy_m": 0.18662879244864222,
+                        "distance_to_start_m": 0.9747565191259198,
+                        "bearing_to_start_deg": 11.038114741932866,
+                        "current_pose_from_start": [
+                            0.06470543146133423,
+                            0.9786372184753418,
+                            -1.8362341571866305
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 0,
+                        "anchor_dx_m": 0.956723557464559,
+                        "anchor_dy_m": 0.18662879244864222,
+                        "distance_to_anchor_m": 0.9747565191259198,
+                        "bearing_to_anchor_deg": 11.038114741932866,
+                        "anchor_route_remaining_m": 0.0,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 1.1671420178447294,
+                        "oracle_route_target_s_m": 0.16714201784472937,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                },
+                {
+                    "step": 2851,
+                    "hint": "[System Hint: route anchor A0 is 0.38 m away, 16 deg to your left; estimated remaining route via anchor is 0.38 m; next-anchor vector dx=0.36 m, dy=0.10 m.]",
+                    "progress": {
+                        "target_dx_m": 0.3648426974871714,
+                        "target_dy_m": 0.10169749474163492,
+                        "distance_to_start_m": 0.3787513357685231,
+                        "bearing_to_start_deg": 15.57546120143256,
+                        "current_pose_from_start": [
+                            -0.0628785490989685,
+                            0.38094520568847656,
+                            -1.6923784804264885
+                        ],
+                        "return_pose_from_return_start": [],
+                        "return_start_pose_from_start": [],
+                        "source": "direct_oracle_route_anchor",
+                        "target_anchor_index": 0,
+                        "anchor_dx_m": 0.3648426974871714,
+                        "anchor_dy_m": 0.10169749474163492,
+                        "distance_to_anchor_m": 0.3787513357685231,
+                        "bearing_to_anchor_deg": 15.57546120143256,
+                        "anchor_route_remaining_m": 0.0,
+                        "anchor_heading_reliable": true,
+                        "relocalization_confidence": 1.0,
+                        "relocalization_backend": "oracle_direct_route_anchor",
+                        "filter_std_m": null,
+                        "oracle_route_current_s_m": 0.4428004013615276,
+                        "oracle_route_target_s_m": 0.0,
+                        "oracle_route_lookahead_m": 1.0
+                    },
+                    "source": "oracle"
+                }
+            ],
+            "relocalization_events": [],
+            "fallback_events": []
+        }
+    }
+}

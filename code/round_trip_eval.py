@@ -27,6 +27,28 @@ from omni.isaac.lab.app import AppLauncher
 
 # local imports
 import cli_args  # isort: skip
+from instruction_rewriter import InstructionRewriteError, InstructionRewriter
+from route_memory_agent import AnchorRelocalization, RelativeStartProgress, RouteMemoryAgent
+from relocalization import (
+    backproject_points as _backproject_points,
+    camera_point_to_body as _camera_point_to_body,
+    create_feature_detector as _create_feature_detector,
+    descriptor_camera_pose as _descriptor_camera_pose,
+    descriptor_camera_to_body as _descriptor_camera_to_body,
+    descriptor_depth as _descriptor_depth,
+    descriptor_intrinsics as _descriptor_intrinsics,
+    descriptor_rgb_gray as _descriptor_rgb_gray,
+    feature_depth_anchor_relocalization,
+    feature_matcher_config as _feature_matcher_config,
+    gt_covisibility,
+    loftr_match_points as _loftr_match_points,
+    matched_uv_points as _matched_uv_points,
+    quat_wxyz_to_matrix as _quat_wxyz_to_matrix,
+    ransac_rigid_transform as _ransac_rigid_transform,
+    rigid_transform_3d as _rigid_transform_3d,
+    _append_covisibility_record,
+    _diagnostic_inc,
+)
 
 # isaaclab argparse arguments
 parser = argparse.ArgumentParser(description="Run a single-episode outbound-confirm-return VLN benchmark.")
@@ -57,8 +79,102 @@ parser.add_argument(
     ),
 )
 parser.add_argument("--confirm_turn_seconds", type=float, default=6.0)
-parser.add_argument("--return_success_radius", type=float, default=2.0)
+parser.add_argument(
+    "--success_radius",
+    type=float,
+    default=None,
+    help="Success radius for outbound and return. Defaults to episode['goals'][0]['radius'].",
+)
+parser.add_argument(
+    "--return_success_radius",
+    type=float,
+    default=None,
+    help="Deprecated alias for --success_radius.",
+)
 parser.add_argument("--max_return_seconds", type=float, default=100.0)
+parser.add_argument(
+    "--instruction_rewriter_provider",
+    choices=("legacy", "cache_only", "ollama", "openai_compatible"),
+    default="legacy",
+    help=(
+        "legacy preserves the original abstract return prompt. Other modes use a generated, "
+        "explicit reverse instruction. Use cache_only for reproducible benchmark runs."
+    ),
+)
+parser.add_argument("--instruction_rewriter_model", default="reviewed")
+parser.add_argument(
+    "--instruction_rewriter_cache",
+    default=os.path.join(os.path.dirname(__file__), "generated", "reversed_instructions.json"),
+)
+parser.add_argument("--instruction_llm_endpoint", default=None)
+parser.add_argument("--instruction_llm_api_key_env", default="OPENAI_API_KEY")
+parser.add_argument("--instruction_llm_timeout", type=float, default=120.0)
+parser.add_argument(
+    "--return_instruction_override",
+    default="",
+    help="Human-authored return instruction used instead of the generated return instruction.",
+)
+parser.add_argument(
+    "--return_instruction_file",
+    default="",
+    help="Path to a UTF-8 text file containing a human-authored return instruction.",
+)
+parser.add_argument(
+    "--oracle_return_pose",
+    action="store_true",
+    default=False,
+    help="At the start of return, place the robot at the expert goal facing the reversed reference path.",
+)
+parser.add_argument(
+    "--oracle_align_return_yaw_to_anchor_segment",
+    action="store_true",
+    default=False,
+    help="At the start of return, keep position fixed but align yaw to the nearest outbound anchor segment reversed.",
+)
+parser.add_argument(
+    "--result_suffix",
+    default="",
+    help="Optional suffix for the result directory, used to preserve prior runs.",
+)
+parser.add_argument(
+    "--route_memory",
+    action="store_true",
+    default=False,
+    help="Enable return-stage relative-start hints during round-trip evaluation.",
+)
+parser.add_argument(
+    "--route_hint_mode",
+    choices=("none", "compact", "verbose"),
+    default="compact",
+    help="Prompt-hint verbosity for route memory.",
+)
+parser.add_argument(
+    "--route_hint_source",
+    choices=("integrated", "isaac", "oracle"),
+    default="integrated",
+    help="Source for return-stage route hints. 'oracle' injects exact simulator bearing to the next reverse-route anchor.",
+)
+parser.add_argument("--route_anchor_spacing_m", type=float, default=1.0, help=argparse.SUPPRESS)
+parser.add_argument("--route_min_relocalization_confidence", type=float, default=0.35, help=argparse.SUPPRESS)
+parser.add_argument(
+    "--route_relocalization_backend",
+    choices=("none", "oracle_anchor", "feature_depth", "sift_depth", "loftr_depth"),
+    default="none",
+    help=argparse.SUPPRESS,
+)
+parser.add_argument("--route_relocalization_window", type=int, default=8, help=argparse.SUPPRESS)
+parser.add_argument("--route_relocalization_interval_updates", type=int, default=25, help=argparse.SUPPRESS)
+parser.add_argument("--route_fallback", action="store_true", default=False, help=argparse.SUPPRESS)
+parser.add_argument(
+    "--vio_bridge",
+    action="store_true",
+    default=False,
+    help="Enable VIO bridge: suppress visual particle-filter updates in the corridor dead zone "
+         "(filter std > vio_bridge_std_m) away from path feature anchors (corners/doorways).",
+)
+parser.add_argument("--vio_bridge_std_m", type=float, default=2.5, help=argparse.SUPPRESS)
+parser.add_argument("--route_fallback_window", type=int, default=4, help=argparse.SUPPRESS)
+parser.add_argument("--route_fallback_duration_seconds", type=float, default=0.5, help=argparse.SUPPRESS)
 
 
 # r2r argparse arguments
@@ -253,6 +369,604 @@ def get_robot_position(env):
     return env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy().copy()
 
 
+def get_robot_pose(env):
+    root_pose = env.unwrapped.scene["robot"].data.root_state_w[0, :7]
+    return root_pose.detach().cpu().numpy().copy()
+
+
+def get_oracle_return_pose(env, episode):
+    reference_path = np.asarray(episode["reference_path"], dtype=np.float32)
+    if len(reference_path) < 2:
+        raise RuntimeError("Oracle return pose requires at least two reference path points.")
+
+    current_pose = get_robot_pose(env)
+    goal = reference_path[-1]
+    previous = reference_path[-2]
+    reverse_direction = previous[:2] - goal[:2]
+    yaw = math.atan2(float(reverse_direction[1]), float(reverse_direction[0]))
+
+    pose = current_pose.copy()
+    pose[:2] = goal[:2]
+    pose[2] = goal[2] + max(float(current_pose[2] - goal[2]), 0.25)
+    pose[3:] = np.array(
+        [math.cos(yaw / 2.0), 0.0, 0.0, math.sin(yaw / 2.0)],
+        dtype=np.float32,
+    )
+    return pose
+
+
+def oracle_anchor_segment_return_yaw(env, route_agent):
+    route_anchors = [
+        anchor for anchor in route_agent.anchors
+        if anchor.metadata.get("world_pose") is not None
+    ]
+    if len(route_anchors) < 2:
+        return None
+
+    pose_xy = np.asarray(get_robot_position(env)[:2], dtype=np.float32)
+    best_distance2 = None
+    best_segment = None
+    for a, b in zip(route_anchors[:-1], route_anchors[1:]):
+        a_xy = np.asarray(a.metadata["world_pose"][:2], dtype=np.float32)
+        b_xy = np.asarray(b.metadata["world_pose"][:2], dtype=np.float32)
+        segment = b_xy - a_xy
+        denom = float(np.dot(segment, segment))
+        if denom <= 1e-9:
+            continue
+        t = float(np.clip(np.dot(pose_xy - a_xy, segment) / denom, 0.0, 1.0))
+        projected = a_xy + t * segment
+        distance2 = float(np.dot(pose_xy - projected, pose_xy - projected))
+        if best_distance2 is None or distance2 < best_distance2:
+            best_distance2 = distance2
+            best_segment = (a, b)
+
+    if best_segment is None:
+        return None
+    a, b = best_segment
+    a_xy = np.asarray(a.metadata["world_pose"][:2], dtype=np.float32)
+    b_xy = np.asarray(b.metadata["world_pose"][:2], dtype=np.float32)
+    # Outbound segment direction is A_low -> A_high. Return direction is reversed.
+    reverse_direction = a_xy - b_xy
+    if float(np.dot(reverse_direction, reverse_direction)) <= 1e-9:
+        return None
+    yaw = math.atan2(float(reverse_direction[1]), float(reverse_direction[0]))
+    return {
+        "yaw_rad": float(yaw),
+        "yaw_deg": float(math.degrees(yaw)),
+        "segment_anchor_indices": [int(a.index), int(b.index)],
+        "distance_to_segment_m": float(math.sqrt(max(0.0, best_distance2 or 0.0))),
+    }
+
+
+def align_return_yaw_to_anchor_segment(env, route_agent):
+    alignment = oracle_anchor_segment_return_yaw(env, route_agent)
+    if alignment is None:
+        return None
+    pose = get_robot_pose(env)
+    before_yaw = pose_yaw(pose)
+    yaw = alignment["yaw_rad"]
+    aligned_pose = pose.copy()
+    aligned_pose[3:] = np.asarray(
+        [math.cos(yaw / 2.0), 0.0, 0.0, math.sin(yaw / 2.0)],
+        dtype=np.float32,
+    )
+    reset_navigation_memory(env, aligned_pose)
+    after_pose = get_robot_pose(env)
+    alignment.update({
+        "before_yaw_rad": float(before_yaw),
+        "before_yaw_deg": float(math.degrees(before_yaw)),
+        "after_yaw_rad": float(pose_yaw(after_pose)),
+        "after_yaw_deg": float(math.degrees(pose_yaw(after_pose))),
+        "yaw_delta_rad": float(signed_angle_diff(yaw, before_yaw)),
+        "yaw_delta_deg": float(math.degrees(signed_angle_diff(yaw, before_yaw))),
+        "pose_after_alignment": [float(x) for x in after_pose],
+    })
+    return alignment
+
+
+def pose_yaw(pose):
+    quat = pose[3:]
+    _, _, yaw = quat2eulers(float(quat[0]), float(quat[1]), float(quat[2]), float(quat[3]))
+    return yaw
+
+
+def signed_angle_diff(a, b):
+    return math.atan2(math.sin(a - b), math.cos(a - b))
+
+
+def pose_delta_body(previous_pose, current_pose):
+    previous_pose = np.asarray(previous_pose, dtype=np.float32)
+    current_pose = np.asarray(current_pose, dtype=np.float32)
+    previous_yaw = pose_yaw(previous_pose)
+    current_yaw = pose_yaw(current_pose)
+    delta_world = current_pose[:2] - previous_pose[:2]
+    cos_yaw = math.cos(previous_yaw)
+    sin_yaw = math.sin(previous_yaw)
+    return [
+        float(cos_yaw * delta_world[0] + sin_yaw * delta_world[1]),
+        float(-sin_yaw * delta_world[0] + cos_yaw * delta_world[1]),
+        float(signed_angle_diff(current_yaw, previous_yaw)),
+    ]
+
+
+def isaac_relative_start_progress(env, start_pos):
+    pose = get_robot_pose(env)
+    position = get_robot_position(env)
+    yaw = pose_yaw(pose)
+    dx_world = float(start_pos[0] - position[0])
+    dy_world = float(start_pos[1] - position[1])
+    cos_yaw = math.cos(yaw)
+    sin_yaw = math.sin(yaw)
+    target_dx = float(cos_yaw * dx_world + sin_yaw * dy_world)
+    target_dy = float(-sin_yaw * dx_world + cos_yaw * dy_world)
+    distance = float(math.hypot(target_dx, target_dy))
+    bearing = float(math.degrees(math.atan2(target_dy, target_dx))) if distance > 1e-6 else 0.0
+    current_pose_from_start = [
+        float(position[0] - start_pos[0]),
+        float(position[1] - start_pos[1]),
+        float(yaw),
+    ]
+    return RelativeStartProgress(
+        target_dx_m=target_dx,
+        target_dy_m=target_dy,
+        distance_to_start_m=distance,
+        bearing_to_start_deg=bearing,
+        current_pose_from_start=current_pose_from_start,
+        return_pose_from_return_start=[],
+        return_start_pose_from_start=[],
+    )
+
+
+def direct_oracle_start_progress(env, start_pos):
+    progress = isaac_relative_start_progress(env, start_pos)
+    progress.source = "direct_oracle_start"
+    progress.relocalization_backend = "oracle_direct"
+    progress.relocalization_confidence = 1.0
+    progress.filter_std_m = None
+    return progress
+
+
+def _body_frame_vector_to_world_point(env, start_pos, target_xy):
+    pose = get_robot_pose(env)
+    position = get_robot_position(env)
+    yaw = pose_yaw(pose)
+    dx_world = float(target_xy[0] - position[0])
+    dy_world = float(target_xy[1] - position[1])
+    cos_yaw = math.cos(yaw)
+    sin_yaw = math.sin(yaw)
+    target_dx = float(cos_yaw * dx_world + sin_yaw * dy_world)
+    target_dy = float(-sin_yaw * dx_world + cos_yaw * dy_world)
+    distance = float(math.hypot(target_dx, target_dy))
+    bearing = float(math.degrees(math.atan2(target_dy, target_dx))) if distance > 1e-6 else 0.0
+    current_pose_from_start = [
+        float(position[0] - start_pos[0]),
+        float(position[1] - start_pos[1]),
+        float(yaw),
+    ]
+    return target_dx, target_dy, distance, bearing, current_pose_from_start
+
+
+def _project_current_position_to_oracle_route(env, anchors):
+    pose_xy = np.asarray(get_robot_position(env)[:2], dtype=np.float32)
+    route_anchors = [
+        anchor for anchor in anchors
+        if anchor.metadata.get("world_pose") is not None
+    ]
+    if not route_anchors:
+        return None
+    if len(route_anchors) == 1:
+        return float(route_anchors[0].distance_from_start_m)
+
+    best_distance2 = None
+    best_route_s = float(route_anchors[-1].distance_from_start_m)
+    for a, b in zip(route_anchors[:-1], route_anchors[1:]):
+        a_xy = np.asarray(a.metadata["world_pose"][:2], dtype=np.float32)
+        b_xy = np.asarray(b.metadata["world_pose"][:2], dtype=np.float32)
+        segment = b_xy - a_xy
+        denom = float(np.dot(segment, segment))
+        if denom <= 1e-9:
+            t = 0.0
+        else:
+            t = float(np.clip(np.dot(pose_xy - a_xy, segment) / denom, 0.0, 1.0))
+        projected = a_xy + t * segment
+        distance2 = float(np.dot(pose_xy - projected, pose_xy - projected))
+        route_s = float(
+            a.distance_from_start_m
+            + t * (b.distance_from_start_m - a.distance_from_start_m)
+        )
+        if best_distance2 is None or distance2 < best_distance2:
+            best_distance2 = distance2
+            best_route_s = route_s
+    return best_route_s
+
+
+def direct_oracle_route_anchor_progress(env, start_pos, route_agent):
+    if route_agent is None or not route_agent.anchors:
+        return direct_oracle_start_progress(env, start_pos)
+
+    current_s = _project_current_position_to_oracle_route(env, route_agent.anchors)
+    if current_s is None:
+        return direct_oracle_start_progress(env, start_pos)
+
+    # Return follows the outbound route in reverse. Use the simulator/global
+    # route position to pick an anchor ahead along that reverse route, not the
+    # nearest/sideways anchor that can make the VLM spin in place.
+    target_lookahead_m = max(1.0, float(getattr(route_agent, "anchor_spacing_m", 1.0)))
+    target_s = max(0.0, current_s - target_lookahead_m)
+    eligible = [
+        anchor for anchor in route_agent.anchors
+        if anchor.metadata.get("world_pose") is not None
+        and anchor.distance_from_start_m <= target_s + 1e-6
+    ]
+    if eligible:
+        target_anchor = max(eligible, key=lambda anchor: anchor.distance_from_start_m)
+    else:
+        target_anchor = next(
+            (
+                anchor for anchor in route_agent.anchors
+                if anchor.metadata.get("world_pose") is not None
+            ),
+            None,
+        )
+    if target_anchor is None:
+        return direct_oracle_start_progress(env, start_pos)
+
+    target_xy = np.asarray(target_anchor.metadata["world_pose"][:2], dtype=np.float32)
+    target_dx, target_dy, anchor_distance, anchor_bearing, current_pose_from_start = (
+        _body_frame_vector_to_world_point(env, start_pos, target_xy)
+    )
+    anchor_remaining = float(target_anchor.route_remaining_to_start_m)
+    return RelativeStartProgress(
+        target_dx_m=target_dx,
+        target_dy_m=target_dy,
+        distance_to_start_m=float(anchor_distance + anchor_remaining),
+        bearing_to_start_deg=anchor_bearing,
+        current_pose_from_start=current_pose_from_start,
+        return_pose_from_return_start=[],
+        return_start_pose_from_start=[],
+        source="direct_oracle_route_anchor",
+        target_anchor_index=int(target_anchor.index),
+        anchor_dx_m=target_dx,
+        anchor_dy_m=target_dy,
+        distance_to_anchor_m=anchor_distance,
+        bearing_to_anchor_deg=anchor_bearing,
+        anchor_route_remaining_m=anchor_remaining,
+        anchor_heading_reliable=True,
+        relocalization_confidence=1.0,
+        relocalization_backend="oracle_direct_route_anchor",
+        filter_std_m=None,
+        oracle_route_current_s_m=float(current_s),
+        oracle_route_target_s_m=float(target_s),
+        oracle_route_lookahead_m=float(target_lookahead_m),
+    )
+
+
+def route_progress_override(source, env, start_pos, route_agent=None):
+    if source == "isaac":
+        return isaac_relative_start_progress(env, start_pos)
+    if source == "oracle":
+        return direct_oracle_route_anchor_progress(env, start_pos, route_agent)
+    return None
+
+
+def oracle_anchor_relocalization(env, route_agent):
+    current_pose = get_robot_pose(env)
+    current_yaw = pose_yaw(current_pose)
+    best_anchor = None
+    best_distance = None
+    best_pose = None
+    for anchor in route_agent.anchors:
+        world_pose = anchor.metadata.get("world_pose")
+        if world_pose is None:
+            continue
+        anchor_pose = np.asarray(world_pose, dtype=np.float32)
+        distance = float(np.linalg.norm(anchor_pose[:2] - current_pose[:2]))
+        if best_distance is None or distance < best_distance:
+            best_anchor = anchor
+            best_distance = distance
+            best_pose = anchor_pose
+    if best_anchor is None or best_pose is None:
+        return None
+
+    dx_world = float(best_pose[0] - current_pose[0])
+    dy_world = float(best_pose[1] - current_pose[1])
+    cos_yaw = math.cos(current_yaw)
+    sin_yaw = math.sin(current_yaw)
+    anchor_dx = float(cos_yaw * dx_world + sin_yaw * dy_world)
+    anchor_dy = float(-sin_yaw * dx_world + cos_yaw * dy_world)
+    anchor_dtheta = float(signed_angle_diff(pose_yaw(best_pose), current_yaw))
+    return AnchorRelocalization(
+        anchor_index=int(best_anchor.index),
+        anchor_dx_m=anchor_dx,
+        anchor_dy_m=anchor_dy,
+        anchor_dtheta_rad=anchor_dtheta,
+        confidence=1.0,
+        backend="oracle_anchor",
+    )
+
+
+
+
+def summarize_pose_error(pose, reference_pose):
+    if pose is None or reference_pose is None:
+        return None
+    pose = np.asarray(pose, dtype=np.float32)
+    reference_pose = np.asarray(reference_pose, dtype=np.float32)
+    return {
+        "xy_error_m": float(np.linalg.norm(pose[:2] - reference_pose[:2])),
+        "z_error_m": float(abs(float(pose[2]) - float(reference_pose[2]))),
+        "yaw_error_rad": float(signed_angle_diff(pose_yaw(pose), pose_yaw(reference_pose))),
+        "yaw_error_deg": float(math.degrees(signed_angle_diff(pose_yaw(pose), pose_yaw(reference_pose)))),
+    }
+
+
+def get_robot_velocity(env):
+    return env.unwrapped.scene["robot"].data.root_vel_w[0].detach().cpu().numpy().copy()
+
+
+def nearest_path_point(position_xy, path_xy):
+    if len(path_xy) == 0:
+        return {"index": None, "distance_m": None}
+    deltas = path_xy - np.asarray(position_xy, dtype=np.float32)[None, :]
+    distances = np.linalg.norm(deltas, axis=1)
+    index = int(np.argmin(distances))
+    return {
+        "index": index,
+        "distance_m": float(distances[index]),
+    }
+
+
+def make_trajectory_record(
+    step,
+    phase,
+    env,
+    command,
+    stream_output,
+    start_pos,
+    goal_pos,
+    reference_path_xy,
+    return_path_xy,
+    last_vlm_step,
+    route_memory_progress=None,
+):
+    pose = get_robot_pose(env)
+    position = get_robot_position(env)
+    velocity = get_robot_velocity(env)
+    yaw = pose_yaw(pose)
+    return {
+        "step": int(step),
+        "phase": phase,
+        "position": [float(x) for x in position],
+        "quaternion_wxyz": [float(x) for x in pose[3:]],
+        "yaw_rad": float(yaw),
+        "yaw_deg": float(math.degrees(yaw)),
+        "root_velocity": [float(x) for x in velocity],
+        "speed_mps": float(np.linalg.norm(velocity[:2])),
+        "command": [float(x) for x in command],
+        "last_vlm_step": int(last_vlm_step) if last_vlm_step is not None else None,
+        "last_vlm_output": stream_output,
+        "distance_to_start_m": float(np.linalg.norm(position[:2] - start_pos[:2])),
+        "distance_to_outbound_goal_m": float(np.linalg.norm(position[:2] - goal_pos[:2])),
+        "nearest_reference_path": nearest_path_point(position[:2], reference_path_xy),
+        "nearest_return_path": nearest_path_point(position[:2], return_path_xy),
+        "route_memory": route_memory_progress,
+    }
+
+
+def _to_numpy_descriptor(value):
+    if hasattr(value, "detach"):
+        value = value.detach().cpu().numpy()
+    if isinstance(value, np.ndarray) and value.shape[0] == 1:
+        value = value[0]
+    if isinstance(value, np.ndarray):
+        return value.copy()
+    return value
+
+
+def denormalize_depth_obs(value, near_clip=0.3, far_clip=5.0):
+    depth = _to_numpy_descriptor(value)
+    if isinstance(depth, np.ndarray):
+        depth = np.asarray(depth, dtype=np.float32)
+        depth = np.squeeze(depth)
+        if depth.size > 0 and np.nanmin(depth) >= -0.55 and np.nanmax(depth) <= 0.55:
+            depth = (depth + 0.5) * (far_clip - near_clip) + near_clip
+    return depth
+
+
+def camera_intrinsics_from_env(env, width=512, height=512):
+    try:
+        sensor = env.unwrapped.scene.sensors["rgbd_camera"]
+        matrix = sensor.data.intrinsic_matrices.detach().cpu().numpy()[0]
+        return matrix.astype(np.float32).copy()
+    except Exception:
+        focal = 0.5 * float(width) / math.tan(math.radians(90.0) / 2.0)
+        return np.asarray(
+            [[focal, 0.0, width / 2.0], [0.0, focal, height / 2.0], [0.0, 0.0, 1.0]],
+            dtype=np.float32,
+        )
+
+
+def camera_pose_from_env(env):
+    try:
+        sensor = env.unwrapped.scene.sensors["rgbd_camera"]
+        position = sensor.data.pos_w.detach().cpu().numpy()[0]
+        quat = sensor.data.quat_w_world.detach().cpu().numpy()[0]
+        return {
+            "position_w": position.astype(np.float32).copy(),
+            "quat_wxyz": quat.astype(np.float32).copy(),
+        }
+    except Exception:
+        return None
+
+
+def camera_extrinsic_body_from_env(env):
+    try:
+        camera_pose = camera_pose_from_env(env)
+        if camera_pose is None:
+            return None
+        robot_pose = get_robot_pose(env)
+        robot_position = np.asarray(robot_pose[:3], dtype=np.float32)
+        robot_quat = np.asarray(robot_pose[3:7], dtype=np.float32)
+        robot_rotation = _quat_wxyz_to_matrix(robot_quat)
+        camera_rotation = _quat_wxyz_to_matrix(camera_pose["quat_wxyz"])
+        rotation_body_camera = robot_rotation.T @ camera_rotation
+        position_body = robot_rotation.T @ (camera_pose["position_w"] - robot_position)
+        return {
+            "rotation_body_camera": rotation_body_camera.astype(np.float32).copy(),
+            "position_body": position_body.astype(np.float32).copy(),
+        }
+    except Exception:
+        return None
+
+
+def rear_camera_intrinsics_from_env(env, width=512, height=512):
+    try:
+        sensor = env.unwrapped.scene.sensors["rear_rgbd_camera"]
+        matrix = sensor.data.intrinsic_matrices.detach().cpu().numpy()[0]
+        return matrix.astype(np.float32).copy()
+    except Exception:
+        return camera_intrinsics_from_env(env, width, height)
+
+
+def rear_camera_pose_from_env(env):
+    try:
+        sensor = env.unwrapped.scene.sensors["rear_rgbd_camera"]
+        position = sensor.data.pos_w.detach().cpu().numpy()[0]
+        quat = sensor.data.quat_w_world.detach().cpu().numpy()[0]
+        return {
+            "position_w": position.astype(np.float32).copy(),
+            "quat_wxyz": quat.astype(np.float32).copy(),
+        }
+    except Exception:
+        return None
+
+
+def rear_camera_extrinsic_body_from_env(env):
+    try:
+        rear_pose = rear_camera_pose_from_env(env)
+        if rear_pose is None:
+            return None
+        robot_pose = get_robot_pose(env)
+        robot_position = np.asarray(robot_pose[:3], dtype=np.float32)
+        robot_quat = np.asarray(robot_pose[3:7], dtype=np.float32)
+        robot_rotation = _quat_wxyz_to_matrix(robot_quat)
+        rear_rotation = _quat_wxyz_to_matrix(rear_pose["quat_wxyz"])
+        rotation_body_rear = robot_rotation.T @ rear_rotation
+        position_body_rear = robot_rotation.T @ (rear_pose["position_w"] - robot_position)
+        return {
+            "rotation_body_camera": rotation_body_rear.astype(np.float32).copy(),
+            "position_body": position_body_rear.astype(np.float32).copy(),
+        }
+    except Exception:
+        return None
+
+
+def route_memory_descriptor_from_infos(infos, env=None):
+    observations = infos.get("observations", {}) if isinstance(infos, dict) else {}
+    descriptor = {}
+    rgb_obs = observations.get("camera_obs")
+    if isinstance(rgb_obs, dict):
+        rgb_obs = rgb_obs.get("rgb_measurement")
+    if rgb_obs is not None:
+        rgb = _to_numpy_descriptor(rgb_obs)
+        if isinstance(rgb, np.ndarray):
+            rgb = np.asarray(rgb)
+            if rgb.ndim == 3:
+                descriptor["rgb"] = rgb[:, :, :3].copy()
+
+    route_obs = observations.get("route_memory_obs")
+    if isinstance(route_obs, dict):
+        for key, value in route_obs.items():
+            descriptor[key] = _to_numpy_descriptor(value)
+    elif route_obs is not None:
+        descriptor["route_memory_obs"] = _to_numpy_descriptor(route_obs)
+
+    depth_obs = observations.get("depth_obs")
+    if isinstance(depth_obs, dict):
+        for key, value in depth_obs.items():
+            descriptor[f"depth_{key}"] = denormalize_depth_obs(value)
+    elif depth_obs is not None:
+        descriptor["depth_obs"] = denormalize_depth_obs(depth_obs)
+
+    # Rear camera RGB
+    rear_rgb_obs = observations.get("rear_camera_obs")
+    if isinstance(rear_rgb_obs, dict):
+        rear_rgb_obs = rear_rgb_obs.get("rgb_measurement")
+    if rear_rgb_obs is not None:
+        rear_rgb = _to_numpy_descriptor(rear_rgb_obs)
+        if isinstance(rear_rgb, np.ndarray) and rear_rgb.ndim == 3:
+            descriptor["rear_rgb"] = rear_rgb[:, :, :3].copy()
+
+    # Rear camera depth
+    rear_depth_obs = observations.get("rear_depth_obs")
+    if isinstance(rear_depth_obs, dict):
+        for key, value in rear_depth_obs.items():
+            descriptor[f"rear_depth_{key}"] = denormalize_depth_obs(value)
+    elif rear_depth_obs is not None:
+        descriptor["rear_depth_obs"] = denormalize_depth_obs(rear_depth_obs)
+
+    if env is not None:
+        descriptor["camera_intrinsics"] = camera_intrinsics_from_env(env)
+        camera_pose = camera_pose_from_env(env)
+        if camera_pose is not None:
+            descriptor["camera_position_w"] = camera_pose["position_w"]
+            descriptor["camera_quat_wxyz"] = camera_pose["quat_wxyz"]
+        camera_extrinsic = camera_extrinsic_body_from_env(env)
+        if camera_extrinsic is not None:
+            descriptor["camera_rotation_body"] = camera_extrinsic["rotation_body_camera"]
+            descriptor["camera_position_body"] = camera_extrinsic["position_body"]
+
+        descriptor["rear_camera_intrinsics"] = rear_camera_intrinsics_from_env(env)
+        rear_pose = rear_camera_pose_from_env(env)
+        if rear_pose is not None:
+            descriptor["rear_camera_position_w"] = rear_pose["position_w"]
+            descriptor["rear_camera_quat_wxyz"] = rear_pose["quat_wxyz"]
+        rear_extrinsic = rear_camera_extrinsic_body_from_env(env)
+        if rear_extrinsic is not None:
+            descriptor["rear_camera_rotation_body"] = rear_extrinsic["rotation_body_camera"]
+            descriptor["rear_camera_position_body"] = rear_extrinsic["position_body"]
+
+    return descriptor or None
+
+
+def refresh_low_level_observation(env):
+    with torch.inference_mode(False):
+        if isinstance(env.env, RslRlVecEnvHistoryWrapper):
+            if hasattr(env.env.unwrapped, "observation_manager"):
+                obs_dict = env.env.unwrapped.observation_manager.compute()
+            else:
+                obs_dict = env.env.unwrapped._get_observations()
+            proprio_obs, obs = obs_dict["proprio"], obs_dict["policy"]
+            env.env.proprio_obs_buf.zero_()
+            zero_history = env.env.proprio_obs_buf.view(env.env.num_envs, -1)
+            env.low_level_obs = torch.cat([obs, zero_history], dim=1).detach().clone()
+        else:
+            env.low_level_obs, _ = env.env.get_observations()
+            env.low_level_obs = env.low_level_obs.detach().clone()
+    env.low_level_action = None
+
+
+def set_robot_pose(env, pose):
+    robot = env.unwrapped.scene["robot"]
+    pose_tensor = torch.as_tensor(pose, dtype=robot.data.root_state_w.dtype, device=robot.device).unsqueeze(0)
+    velocity = torch.zeros((1, 6), dtype=robot.data.root_state_w.dtype, device=robot.device)
+    robot.write_root_pose_to_sim(pose_tensor)
+    robot.write_root_velocity_to_sim(velocity)
+    if hasattr(env.unwrapped.sim, "write_data_to_sim"):
+        env.unwrapped.sim.write_data_to_sim()
+
+    if isinstance(env.env, RslRlVecEnvHistoryWrapper):
+        env.env.proprio_obs_buf.zero_()
+
+
+def reset_navigation_memory(env, pose):
+    set_robot_pose(env, pose)
+    env.prev_pos = torch.as_tensor(pose[:3], dtype=env.unwrapped.scene["robot"].data.root_state_w.dtype, device=env.unwrapped.device)
+    env.same_pos_count = 0
+    env.set_stop_called(False)
+    refresh_low_level_observation(env)
+
+
 def parse_vlm_command(text):
     text = "" if text is None else str(text)
     lower_text = text.lower()
@@ -290,6 +1004,40 @@ def get_query_instruction(episode, phase, round_trip_instruction):
     if args_cli.round_trip_mode == "static_long_instruction":
         return round_trip_instruction
     return build_phase_instruction(episode, phase)
+
+
+def build_episode_instructions(episode, dataset_path):
+    if args_cli.instruction_rewriter_provider == "legacy":
+        return {
+            "round_trip": build_round_trip_instruction(episode),
+            "outbound": build_phase_instruction(episode, "outbound"),
+            "return": build_phase_instruction(episode, "return"),
+            "source": "legacy",
+            "model": "",
+        }
+
+    original_instruction = InstructionData(**episode["instruction"]).instruction_text.strip()
+    rewriter = InstructionRewriter(
+        provider=args_cli.instruction_rewriter_provider,
+        model=args_cli.instruction_rewriter_model,
+        cache_path=args_cli.instruction_rewriter_cache,
+        endpoint=args_cli.instruction_llm_endpoint,
+        api_key=os.getenv(args_cli.instruction_llm_api_key_env),
+        timeout=args_cli.instruction_llm_timeout,
+        dataset_path=dataset_path,
+        episode_index=args_cli.episode_idx,
+    )
+    try:
+        instructions = rewriter.rewrite(original_instruction)
+    except InstructionRewriteError as exc:
+        raise RuntimeError(f"Unable to prepare round-trip instruction: {exc}") from exc
+    return {
+        "round_trip": instructions.round_trip_instruction,
+        "outbound": instructions.outbound_instruction,
+        "return": instructions.return_instruction,
+        "source": instructions.provider,
+        "model": instructions.model,
+    }
 
 
 def main():
@@ -363,10 +1111,22 @@ def main():
     init_frame = rgb_obs[0, :, :, :3].cpu().numpy()
     # init_frame = cv2.rotate(init_frame, cv2.ROTATE_90_CLOCKWISE)
     instruction = InstructionData(**episode["instruction"])
-    round_trip_instruction = build_round_trip_instruction(episode)
-    outbound_instruction = build_phase_instruction(episode, "outbound")
-    return_instruction = build_phase_instruction(episode, "return")
-    current_instruction_text = get_query_instruction(episode, "outbound", round_trip_instruction)
+    episode_instructions = build_episode_instructions(episode, r2r_data_path)
+    round_trip_instruction = episode_instructions["round_trip"]
+    outbound_instruction = episode_instructions["outbound"]
+    return_instruction = episode_instructions["return"]
+    if args_cli.return_instruction_file:
+        with open(args_cli.return_instruction_file, "r", encoding="utf-8") as instruction_file:
+            return_instruction = instruction_file.read().strip()
+        if not return_instruction:
+            raise RuntimeError("Return instruction file is empty.")
+    elif args_cli.return_instruction_override.strip():
+        return_instruction = args_cli.return_instruction_override.strip()
+    current_instruction_text = (
+        round_trip_instruction
+        if args_cli.round_trip_mode == "static_long_instruction"
+        else outbound_instruction
+    )
     image_observations = []
     image_observations.append(Image.fromarray(init_frame))
 
@@ -380,13 +1140,65 @@ def main():
     target_steps = 0
     same_pos_count = 0
     prev_pos = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
-    max_episode_steps = 100 * 0.5 / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation)
-    max_return_steps = args_cli.max_return_seconds / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation)
-    confirm_turn_steps = int(args_cli.confirm_turn_seconds / (env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation))
+    control_dt = env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation
+    max_episode_steps = 100 * 0.5 / control_dt
+    max_return_steps = args_cli.max_return_seconds / control_dt
+    confirm_turn_steps = int(args_cli.confirm_turn_seconds / control_dt)
     start_pos = np.array(episode["start_position"], dtype=np.float32)
     goal_pos = np.array(episode["reference_path"][-1], dtype=np.float32)
+    episode_goal_radius = float(episode["goals"][0]["radius"])
+    success_radius = (
+        float(args_cli.success_radius)
+        if args_cli.success_radius is not None
+        else (
+            float(args_cli.return_success_radius)
+            if args_cli.return_success_radius is not None
+            else episode_goal_radius
+        )
+    )
+    reference_path_xy = np.asarray([[p[0], p[1]] for p in episode["reference_path"]], dtype=np.float32)
+    return_path_xy = np.asarray([[p[0], p[1]] for p in reversed(episode["reference_path"])], dtype=np.float32)
+    stream_output = ""
+    vlm_vel_commands = [0.0, 0.0, 0.0]
+    route_relocalizer = None
+    route_relocalization_diagnostics = {}
+    feature_relocalization_backends = {
+        "feature_depth": "orb",
+        "sift_depth": "sift",
+        "loftr_depth": "loftr",
+    }
+    if args_cli.route_relocalization_backend in feature_relocalization_backends:
+        matcher_backend = feature_relocalization_backends[args_cli.route_relocalization_backend]
+        route_relocalizer = lambda descriptor, anchors: feature_depth_anchor_relocalization(
+            descriptor,
+            anchors,
+            max_candidates=args_cli.route_relocalization_window,
+            diagnostics=route_relocalization_diagnostics,
+            matcher_backend=matcher_backend,
+            return_candidates=True,
+        )
+    route_agent = RouteMemoryAgent(
+        enabled=args_cli.route_memory,
+        hint_mode=args_cli.route_hint_mode,
+        anchor_spacing_m=args_cli.route_anchor_spacing_m,
+        min_relocalization_confidence=args_cli.route_min_relocalization_confidence,
+        relocalization_interval_updates=(
+            args_cli.route_relocalization_interval_updates
+            if args_cli.route_relocalization_backend in feature_relocalization_backends
+            else 1
+        ),
+        relocalizer=route_relocalizer,
+    )
+    route_agent.vio_bridge_enabled = bool(getattr(args_cli, "vio_bridge", False))
+    route_agent.vio_bridge_std_threshold_m = float(getattr(args_cli, "vio_bridge_std_m", 2.5))
+    if args_cli.route_memory:
+        route_agent.update_latest_anchor_metadata({
+            "world_pose": [float(x) for x in get_robot_pose(env)],
+            "world_pose_source": "isaac_oracle_for_relocalization_eval",
+        })
     phase_events = []
     stop_events = []
+    trajectory_records = []
     phase = "outbound"
     return_start_step = None
     outbound_stop_output = None
@@ -394,8 +1206,14 @@ def main():
     outbound_stop_distance_to_goal = None
     outbound_success = False
     return_success = False
-    stream_output = ""
-    vlm_vel_commands = [0.0, 0.0, 0.0]
+    return_pose_before_oracle = None
+    return_pose_after_oracle = None
+    oracle_return_pose = None
+    return_yaw_alignment = None
+    return_pose_error_before_oracle = None
+    return_pose_error_after_oracle = None
+    last_vlm_step = None
+    force_capture_next_image = False
     # visualizer = define_markers()
     # simulate environment
     while simulation_app.is_running():
@@ -403,16 +1221,41 @@ def main():
         with torch.inference_mode():
             if num_steps == target_steps:
                 if phase in ("outbound", "return"):
+                    query_instruction_text = current_instruction_text
+                    route_hint_event = None
+                    if phase == "return" and args_cli.route_memory:
+                        progress_override = route_progress_override(
+                            args_cli.route_hint_source,
+                            env,
+                            start_pos,
+                            route_agent,
+                        )
+                        query_instruction_text, route_hint_event = route_agent.inject_hint(
+                            current_instruction_text,
+                            num_steps,
+                            progress_override=progress_override,
+                        )
+                        if route_hint_event is not None:
+                            route_hint_event["source"] = args_cli.route_hint_source
+                            phase_events.append({
+                                "step": int(num_steps),
+                                "phase": phase,
+                                "event": "route_memory_hint",
+                                **route_hint_event,
+                            })
                     stream_output = sample_images_and_send_to_vlm(
                         image_observations,
                         args_cli.vlm_host,
                         args_cli.vlm_port,
-                        current_instruction_text,
+                        query_instruction_text,
                     )
                     vlm_vel_commands, time_to_go, is_parseable = parse_vlm_command(stream_output)
+                    route_agent.update_action_history(vlm_vel_commands)
                     env_steps_to_go = int(time_to_go / (
                         env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation
                     ))
+                    if env_steps_to_go <= 0 and "stop" not in str(stream_output).lower():
+                        env_steps_to_go = 1
                     target_steps = num_steps + env_steps_to_go
                     phase_events.append({
                         "step": int(num_steps),
@@ -423,10 +1266,12 @@ def main():
                         "command": [float(x) for x in vlm_vel_commands],
                         "duration_seconds": float(time_to_go),
                     })
+                    last_vlm_step = num_steps
                     print(
                         f"[{phase}] VLM output: {stream_output}\n"
                         f"Vel Command: {vlm_vel_commands}, Env Steps to go: {env_steps_to_go}, "
-                        f"Parseable: {is_parseable}\n"
+                        f"Parseable: {is_parseable}\n",
+                        flush=True,
                     )
 
                     if env_steps_to_go == 0 and "stop" in str(stream_output).lower():
@@ -442,7 +1287,7 @@ def main():
                             outbound_stop_distance_to_goal = float(
                                 np.linalg.norm(get_robot_position(env)[:2] - goal_pos[:2])
                             )
-                            outbound_success = outbound_stop_distance_to_goal <= float(episode["goals"][0]["radius"])
+                            outbound_success = outbound_stop_distance_to_goal < success_radius
                             phase = "confirm"
                             phase_events.append({
                                 "step": int(num_steps),
@@ -456,42 +1301,150 @@ def main():
                             stream_output = "[Confirm] scripted 360-degree scan"
                             image_observations = []
                         else:
+                            return_stop_distance_to_start = float(
+                                np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2])
+                            )
+                            return_success = return_stop_distance_to_start < success_radius
                             phase_events.append({
                                 "step": int(num_steps),
                                 "phase": phase,
                                 "event": "return_stop",
-                                "distance_to_start": float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2])),
+                                "distance_to_start": return_stop_distance_to_start,
+                                "success": bool(return_success),
                             })
                             env.set_stop_called(True)
 
                 elif phase == "confirm":
                     phase = "return"
                     return_start_step = num_steps
-                    current_instruction_text = get_query_instruction(episode, "return", round_trip_instruction)
+                    previous_anchor_count = len(route_agent.anchors)
+                    route_agent.finalize_outbound()
+                    if args_cli.route_memory and len(route_agent.anchors) > previous_anchor_count:
+                        route_agent.update_latest_anchor_metadata({
+                            "world_pose": [float(x) for x in get_robot_pose(env)],
+                            "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        })
+                    return_pose_before_oracle = get_robot_pose(env)
+                    oracle_return_pose = get_oracle_return_pose(env, episode)
+                    return_pose_error_before_oracle = summarize_pose_error(
+                        return_pose_before_oracle,
+                        oracle_return_pose,
+                    )
+                    if args_cli.oracle_return_pose:
+                        reset_navigation_memory(env, oracle_return_pose)
+                    if args_cli.oracle_align_return_yaw_to_anchor_segment:
+                        return_yaw_alignment = align_return_yaw_to_anchor_segment(env, route_agent)
+                    return_pose_after_oracle = get_robot_pose(env)
+                    return_pose_error_after_oracle = summarize_pose_error(
+                        return_pose_after_oracle,
+                        oracle_return_pose,
+                    )
+                    current_instruction_text = (
+                        round_trip_instruction
+                        if args_cli.round_trip_mode == "static_long_instruction"
+                        else return_instruction
+                    )
                     phase_events.append({
                         "step": int(num_steps),
                         "phase": phase,
                         "event": "confirm_complete_to_return",
                         "instruction": current_instruction_text,
+                        "oracle_return_pose_enabled": bool(args_cli.oracle_return_pose),
+                        "oracle_align_return_yaw_to_anchor_segment": bool(
+                            args_cli.oracle_align_return_yaw_to_anchor_segment
+                        ),
+                        "return_yaw_alignment": return_yaw_alignment,
+                        "pose_before_oracle": [float(x) for x in return_pose_before_oracle],
+                        "pose_after_oracle": [float(x) for x in return_pose_after_oracle],
+                        "pose_error_before_oracle": return_pose_error_before_oracle,
+                        "pose_error_after_oracle": return_pose_error_after_oracle,
                     })
                     vlm_vel_commands = [0.0, 0.0, 0.0]
                     target_steps = num_steps + 1
                     image_observations = []
+                    force_capture_next_image = True
                     stream_output = "[Return] query NaVILA with return instruction"
+                    print(
+                        f"[return] start step={num_steps}, oracle={bool(args_cli.oracle_return_pose)}, "
+                        f"pose_error_after_oracle={return_pose_error_after_oracle}",
+                        flush=True,
+                    )
 
         obs, _, done, infos = env.step(torch.tensor(vlm_vel_commands, device = obs.device))
 
-        distance_to_start = float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2]))
-        if phase == "return" and distance_to_start <= args_cli.return_success_radius:
-            return_success = True
-            phase_events.append({
-                "step": int(num_steps),
-                "phase": phase,
-                "event": "return_success_radius_reached",
-                "distance_to_start": distance_to_start,
-            })
-            break
+        if args_cli.route_memory:
+            action_delta = [
+                float(vlm_vel_commands[0]) * control_dt,
+                float(vlm_vel_commands[1]) * control_dt,
+                float(vlm_vel_commands[2]) * control_dt,
+            ]
+            route_descriptor = route_memory_descriptor_from_infos(infos, env)
+            if phase in ("outbound", "confirm"):
+                previous_anchor_count = len(route_agent.anchors)
+                route_agent.update_outbound_motion(action_delta, descriptor=route_descriptor)
+                if len(route_agent.anchors) > previous_anchor_count:
+                    route_agent.update_latest_anchor_metadata({
+                        "world_pose": [float(x) for x in get_robot_pose(env)],
+                        "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                    })
+            elif phase == "return":
+                relocalization = (
+                    oracle_anchor_relocalization(env, route_agent)
+                    if args_cli.route_relocalization_backend == "oracle_anchor"
+                    else None
+                )
+                route_agent.update_return_motion(
+                    action_delta,
+                    local_descriptor=route_descriptor,
+                    relocalization=relocalization,
+                )
 
+        route_memory_progress = None
+        if args_cli.route_memory and phase == "return":
+            progress = route_progress_override(args_cli.route_hint_source, env, start_pos, route_agent)
+            if progress is None:
+                progress = route_agent.progress()
+            if progress is not None:
+                route_memory_progress = {
+                    "source": progress.source,
+                    "configured_source": args_cli.route_hint_source,
+                    "target_dx_m": progress.target_dx_m,
+                    "target_dy_m": progress.target_dy_m,
+                    "distance_to_start_m": progress.distance_to_start_m,
+                    "bearing_to_start_deg": progress.bearing_to_start_deg,
+                    "current_pose_from_start": progress.current_pose_from_start,
+                    "return_pose_from_return_start": progress.return_pose_from_return_start,
+                    "return_start_pose_from_start": progress.return_start_pose_from_start,
+                    "target_anchor_index": progress.target_anchor_index,
+                    "anchor_dx_m": progress.anchor_dx_m,
+                    "anchor_dy_m": progress.anchor_dy_m,
+                    "distance_to_anchor_m": progress.distance_to_anchor_m,
+                    "bearing_to_anchor_deg": progress.bearing_to_anchor_deg,
+                    "anchor_route_remaining_m": progress.anchor_route_remaining_m,
+                    "anchor_heading_reliable": progress.anchor_heading_reliable,
+                    "relocalization_confidence": progress.relocalization_confidence,
+                    "relocalization_backend": progress.relocalization_backend,
+                    "filter_std_m": progress.filter_std_m,
+                    "oracle_route_current_s_m": progress.oracle_route_current_s_m,
+                    "oracle_route_target_s_m": progress.oracle_route_target_s_m,
+                    "oracle_route_lookahead_m": progress.oracle_route_lookahead_m,
+                }
+
+        trajectory_records.append(make_trajectory_record(
+            num_steps,
+            phase,
+            env,
+            vlm_vel_commands,
+            stream_output,
+            start_pos,
+            goal_pos,
+            reference_path_xy,
+            return_path_xy,
+            last_vlm_step,
+            route_memory_progress,
+        ))
+
+        distance_to_start = float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2]))
         if phase == "return" and return_start_step is not None and num_steps - return_start_step > max_return_steps:
             phase_events.append({
                 "step": int(num_steps),
@@ -500,6 +1453,13 @@ def main():
                 "distance_to_start": distance_to_start,
             })
             break
+
+        if phase == "return" and return_start_step is not None and (num_steps - return_start_step) % 500 == 0:
+            print(
+                f"[return] step={num_steps}, elapsed_return_steps={num_steps - return_start_step}, "
+                f"distance_to_start={distance_to_start:.3f}",
+                flush=True,
+            )
 
         if done or env.is_stop_called or (phase == "outbound" and num_steps > max_episode_steps):
             break
@@ -517,11 +1477,12 @@ def main():
             print("Robot has stayed in the same location for 1000 steps. Breaking out of the loop.")
             break
 
-        if num_steps % steps_per_image == 0:
+        if force_capture_next_image or num_steps % steps_per_image == 0:
             curr_frame = infos["observations"]["camera_obs"][0, :, :, :3].cpu().numpy()
             image_observations.append(Image.fromarray(curr_frame))
             curr_frame_copy = curr_frame.copy()
             add_instruction_on_img(curr_frame_copy, f"[{phase}] {current_instruction_text}")
+            force_capture_next_image = False
             
         if num_steps % steps_per_viz_image == 0:
             curr_vis_frame = infos["observations"]["viz_camera_obs"][0, :, :, :3].cpu().numpy()
@@ -536,6 +1497,13 @@ def main():
     final_pos = get_robot_position(env)
     distance_to_start = float(np.linalg.norm(final_pos[:2] - start_pos[:2]))
     distance_to_goal = float(np.linalg.norm(final_pos[:2] - goal_pos[:2]))
+    result_suffix = f"_{args_cli.result_suffix}" if args_cli.result_suffix else ""
+    result_dir = (
+        f"eval_results/round_trip_{args_cli.round_trip_mode}_{args_cli.task}_"
+        f"loco_{args_cli.load_run}{result_suffix}"
+    )
+    episode_output_id = int(episode["episode_id"]) - 1
+    trajectory_relpath = f"trajectories/output_{episode_output_id}.jsonl"
     measurements["round_trip"] = {
         "mode": args_cli.round_trip_mode,
         "completed_phase": phase,
@@ -547,22 +1515,59 @@ def main():
         "round_trip_instruction": round_trip_instruction,
         "outbound_instruction": outbound_instruction,
         "return_instruction": return_instruction,
+        "instruction_rewriter_provider": episode_instructions["source"],
+        "instruction_rewriter_model": episode_instructions["model"],
+        "return_instruction_override": bool(
+            args_cli.return_instruction_override.strip() or args_cli.return_instruction_file
+        ),
+        "return_instruction_file": args_cli.return_instruction_file or None,
+        "oracle_return_pose_enabled": bool(args_cli.oracle_return_pose),
+        "oracle_align_return_yaw_to_anchor_segment": bool(args_cli.oracle_align_return_yaw_to_anchor_segment),
+        "return_yaw_alignment": return_yaw_alignment,
+        "return_pose_before_oracle": (
+            [float(x) for x in return_pose_before_oracle]
+            if return_pose_before_oracle is not None else None
+        ),
+        "return_pose_after_oracle": (
+            [float(x) for x in return_pose_after_oracle]
+            if return_pose_after_oracle is not None else None
+        ),
+        "oracle_return_pose": (
+            [float(x) for x in oracle_return_pose]
+            if oracle_return_pose is not None else None
+        ),
+        "return_pose_error_before_oracle": return_pose_error_before_oracle,
+        "return_pose_error_after_oracle": return_pose_error_after_oracle,
         "outbound_stop_output": outbound_stop_output,
         "outbound_stop_distance_to_goal": outbound_stop_distance_to_goal,
-        "outbound_goal_radius": float(episode["goals"][0]["radius"]),
-        "return_success_radius": float(args_cli.return_success_radius),
+        "episode_goal_radius": episode_goal_radius,
+        "success_radius": success_radius,
+        "success_requires_stop": True,
+        "trajectory_file": trajectory_relpath,
+        "trajectory_record_count": len(trajectory_records),
         "stop_events": stop_events,
         "phase_events": phase_events,
+        "route_hint_source": args_cli.route_hint_source,
+        "route_relocalization_backend": args_cli.route_relocalization_backend,
+        "route_relocalization_diagnostics": route_relocalization_diagnostics,
+        "route_memory": route_agent.summary(),
     }
 
-    result_dir = f"eval_results/round_trip_{args_cli.round_trip_mode}_{args_cli.task}_loco_{args_cli.load_run}"
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
+
+    trajectory_dir = os.path.join(result_dir, "trajectories")
+    if not os.path.exists(trajectory_dir):
+        os.makedirs(trajectory_dir)
+    trajectory_path = os.path.join(result_dir, trajectory_relpath)
+    with open(trajectory_path, "w", encoding="utf-8") as f:
+        for record in trajectory_records:
+            f.write(json.dumps(record) + "\n")
 
     measurement_dir = os.path.join(result_dir, "measurements")
     if not os.path.exists(measurement_dir):
         os.makedirs(measurement_dir)
-    with open(f"{measurement_dir}/{int(episode['episode_id'])-1}.json", "w") as f:
+    with open(f"{measurement_dir}/{episode_output_id}.json", "w") as f:
         json.dump(measurements, f, indent=4)
 
 
@@ -570,7 +1575,7 @@ def main():
     if not os.path.exists(video_dir):
         os.makedirs(video_dir)
 
-    writer = imageio.get_writer(f"{video_dir}/output_{int(episode['episode_id'])-1}.mp4", fps=10)
+    writer = imageio.get_writer(f"{video_dir}/output_{episode_output_id}.mp4", fps=10)
     for frame in rgb_obses:
         frame = frame.astype(np.uint8)
         writer.append_data(frame)

@@ -1,0 +1,28 @@
+Batch started at 2026-06-29T16:26:33+01:00
+Each episode uses a fresh 8-bit VLM server and a fresh Isaac evaluation process.
+Each episode uses a unique VLM port: PORT_BASE(54321) + episode_idx.
+Route hint config: --route_memory --route_hint_mode=compact --route_hint_source=oracle --route_relocalization_backend=none
+Return yaw alignment enabled: --oracle_align_return_yaw_to_anchor_segment
+[2026-06-29T16:26:33+01:00] starting episode 4 (x8F5xyUWy9e), port=54325, suffix=direct_oracle_align_yaw_hard_20260629_ep4
+[2026-06-29T16:29:31+01:00] finished episode 4, exit_code=0
+[2026-06-29T16:29:31+01:00] starting episode 5 (x8F5xyUWy9e), port=54326, suffix=direct_oracle_align_yaw_hard_20260629_ep5
+[2026-06-29T16:32:52+01:00] finished episode 5, exit_code=0
+[2026-06-29T16:32:52+01:00] starting episode 134 (2azQ1b91cZZ), port=54455, suffix=direct_oracle_align_yaw_hard_20260629_ep134
+[2026-06-29T16:35:24+01:00] finished episode 134, exit_code=0
+[2026-06-29T16:35:24+01:00] starting episode 187 (EU6Fwq7SyZv), port=54508, suffix=direct_oracle_align_yaw_hard_20260629_ep187
+[2026-06-29T16:39:32+01:00] finished episode 187, exit_code=0
+[2026-06-29T16:39:32+01:00] starting episode 367 (X7HyMhZNoso), port=54688, suffix=direct_oracle_align_yaw_hard_20260629_ep367
+[2026-06-29T16:45:30+01:00] finished episode 367, exit_code=0
+[2026-06-29T16:45:30+01:00] starting episode 368 (X7HyMhZNoso), port=54689, suffix=direct_oracle_align_yaw_hard_20260629_ep368
+[2026-06-29T16:52:15+01:00] finished episode 368, exit_code=0
+[2026-06-29T16:52:15+01:00] starting episode 408 (oLBMNvg9in8), port=54729, suffix=direct_oracle_align_yaw_hard_20260629_ep408
+[2026-06-29T16:58:49+01:00] finished episode 408, exit_code=0
+[2026-06-29T16:58:49+01:00] starting episode 678 (zsNo4HB9uLZ), port=54999, suffix=direct_oracle_align_yaw_hard_20260629_ep678
+[2026-06-29T17:02:30+01:00] finished episode 678, exit_code=0
+[2026-06-29T17:02:30+01:00] starting episode 680 (zsNo4HB9uLZ), port=55001, suffix=direct_oracle_align_yaw_hard_20260629_ep680
+[2026-06-29T17:06:14+01:00] finished episode 680, exit_code=0
+[2026-06-29T17:06:14+01:00] starting episode 994 (QUCTc6BB5sX), port=55315, suffix=direct_oracle_align_yaw_hard_20260629_ep994
+[2026-06-29T17:10:04+01:00] finished episode 994, exit_code=0
+[2026-06-29T17:10:04+01:00] starting episode 1040 (X7HyMhZNoso), port=55361, suffix=direct_oracle_align_yaw_hard_20260629_ep1040
+[2026-06-29T17:14:16+01:00] finished episode 1040, exit_code=0
+Batch finished at 2026-06-29T17:14:16+01:00

@@ -80,6 +80,10 @@ class RelativeStartProgress:
     anchor_heading_reliable: Optional[bool] = None
     relocalization_confidence: Optional[float] = None
     relocalization_backend: Optional[str] = None
+    filter_std_m: Optional[float] = None
+    oracle_route_current_s_m: Optional[float] = None
+    oracle_route_target_s_m: Optional[float] = None
+    oracle_route_lookahead_m: Optional[float] = None
 
 
 @dataclass
@@ -113,6 +117,123 @@ class AnchorRelocalization:
         if self.distance_to_anchor_m <= 1e-6:
             return 0.0
         return float(math.degrees(math.atan2(self.anchor_dy_m, self.anchor_dx_m)))
+
+
+@dataclass
+class SequenceArcObservation:
+    observed_s_m: float
+    confidence: float
+    sigma_m: float
+    anchor_index: int
+    backend: str
+    source: str
+    selected_score: float
+    candidate_count: int
+    expected_s_m: Optional[float] = None
+    motion_error_m: Optional[float] = None
+
+
+@dataclass
+class ArcLengthParticleFilter:
+    """One-dimensional Bayesian filter over route distance remaining to start."""
+
+    total_length_m: float
+    particle_count: int = 256
+    process_noise_m: float = 0.20
+    resample_uniform_mix: float = 0.02
+    particles: list[float] = field(default_factory=list)
+    weights: list[float] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.total_length_m = max(0.0, float(self.total_length_m))
+        self.particle_count = max(8, int(self.particle_count))
+        if not self.particles:
+            if self.particle_count == 1:
+                self.particles = [self.total_length_m]
+            else:
+                step = self.total_length_m / float(self.particle_count - 1)
+                self.particles = [i * step for i in range(self.particle_count)]
+        if not self.weights:
+            sigma = max(0.35, self.process_noise_m * 2.0)
+            self.weights = [
+                math.exp(-0.5 * ((p - self.total_length_m) / sigma) ** 2)
+                for p in self.particles
+            ]
+            self._normalize()
+
+    def std(self) -> float:
+        mean = self.estimate()
+        variance = sum(w * ((p - mean) ** 2) for p, w in zip(self.particles, self.weights))
+        return float(math.sqrt(max(0.0, variance)))
+
+    def predict(self, travel_distance_m: float, extra_process_noise_m: float = 0.0) -> None:
+        travel = max(0.0, float(travel_distance_m))
+        extra = max(0.0, float(extra_process_noise_m))
+        if travel <= 1e-9 and extra <= 1e-9:
+            return
+        sigma = max(0.05, self.process_noise_m + 0.08 * travel + extra)
+        inv_two_sigma2 = 1.0 / (2.0 * sigma * sigma)
+        predicted = [0.0 for _ in self.particles]
+        for prev_s, prev_w in zip(self.particles, self.weights):
+            if prev_w <= 0.0:
+                continue
+            expected_s = max(0.0, prev_s - travel)
+            for j, new_s in enumerate(self.particles):
+                if new_s > prev_s + sigma:
+                    continue
+                error = new_s - expected_s
+                predicted[j] += prev_w * math.exp(-(error * error) * inv_two_sigma2)
+        self.weights = predicted
+        self._normalize()
+
+    def observe(self, observed_s_m: float, confidence: float = 1.0, sigma_m: float = 1.0) -> None:
+        observed_s = min(self.total_length_m, max(0.0, float(observed_s_m)))
+        confidence = min(1.0, max(0.0, float(confidence)))
+        if confidence <= 0.0:
+            return
+        sigma = max(0.25, float(sigma_m))
+        inv_two_sigma2 = 1.0 / (2.0 * sigma * sigma)
+        floor = max(0.0, 1.0 - confidence)
+        self.weights = [
+            w * (floor + confidence * math.exp(-((p - observed_s) ** 2) * inv_two_sigma2))
+            for p, w in zip(self.particles, self.weights)
+        ]
+        self._normalize()
+
+    def estimate(self) -> float:
+        return float(sum(p * w for p, w in zip(self.particles, self.weights)))
+
+    def confidence(self) -> float:
+        mean = self.estimate()
+        variance = sum(w * ((p - mean) ** 2) for p, w in zip(self.particles, self.weights))
+        sigma = math.sqrt(max(0.0, variance))
+        scale = max(0.5, self.total_length_m * 0.25)
+        return float(1.0 / (1.0 + sigma / scale))
+
+    def summary(self) -> dict:
+        mean = self.estimate()
+        variance = sum(w * ((p - mean) ** 2) for p, w in zip(self.particles, self.weights))
+        max_i = max(range(len(self.weights)), key=lambda i: self.weights[i])
+        return {
+            "total_length_m": float(self.total_length_m),
+            "particle_count": int(self.particle_count),
+            "mean_remaining_m": float(mean),
+            "mode_remaining_m": float(self.particles[max_i]),
+            "std_remaining_m": float(math.sqrt(max(0.0, variance))),
+            "confidence": self.confidence(),
+        }
+
+    def _normalize(self) -> None:
+        total = float(sum(self.weights))
+        if not math.isfinite(total) or total <= 0.0:
+            self.weights = [1.0 / len(self.particles) for _ in self.particles]
+            return
+        uniform = 1.0 / len(self.weights)
+        mix = min(0.25, max(0.0, self.resample_uniform_mix))
+        self.weights = [
+            (1.0 - mix) * (w / total) + mix * uniform
+            for w in self.weights
+        ]
 
 
 @dataclass
@@ -155,12 +276,29 @@ class RouteMemoryAgent:
         self._outbound_distance_m = 0.0
         self._last_anchor_distance_m = -float("inf")
         self._latest_relocalization: Optional[AnchorRelocalization] = None
+        self._arc_length_filter: Optional[ArcLengthParticleFilter] = None
+        self._arc_observation: Optional[dict] = None
+        self._sequence_observation: Optional[SequenceArcObservation] = None
+        self._sequence_observation_history: list[dict] = []
+        self._distance_since_sequence_observation_m = 0.0
+        self._sequence_current_s_m: Optional[float] = None
+        self.sequence_window = 8
+        self.sequence_motion_sigma_m = 1.0
+        self.sequence_forward_tolerance_m = 0.4
+        self.sequence_max_anchor_distance_m = max(6.0, 4.0 * self.anchor_spacing_m)
         self._target_anchor_index: Optional[int] = None
         self._target_anchor_min_distance_m: Optional[float] = None
         self.anchor_pass_radius_m = 0.8
         self.anchor_pass_hysteresis_m = 0.6
         self.anchor_pass_max_min_distance_m = max(2.0 * self.anchor_spacing_m, self.anchor_pass_radius_m)
         self._return_update_count = 0
+        # VIO bridge: suppress visual observations in the corridor dead zone;
+        # only accept updates when the filter is confident OR near a path feature
+        # (a turn or doorway where geometry disambiguates position along the route).
+        self.vio_bridge_enabled: bool = False
+        self.vio_bridge_std_threshold_m: float = 2.5
+        self.vio_bridge_feature_radius_m: float = 2.0
+        self._feature_anchor_indices: set = set()
         if self.enabled:
             self._append_anchor(descriptor=None, metadata={"event": "start"})
 
@@ -194,6 +332,17 @@ class RouteMemoryAgent:
         if not self.enabled or not self._return_started:
             return
         self._return_pose_from_return_start = compose_pose(self._return_pose_from_return_start, delta)
+        dx, dy, _ = [float(v) for v in delta]
+        # Project onto forward/backward axis only — lateral (dy) motion is not arc progress.
+        forward_distance = abs(float(dx))
+        if self._arc_length_filter is not None:
+            # Accelerate uncertainty inflation proportionally to observation gap.
+            blackout_m = self._distance_since_sequence_observation_m
+            extra_noise = max(0.0, (blackout_m - 3.0) * 0.015) if blackout_m > 3.0 else 0.0
+            self._arc_length_filter.predict(forward_distance, extra_process_noise_m=extra_noise)
+        if self._sequence_current_s_m is not None:
+            self._sequence_current_s_m = max(0.0, self._sequence_current_s_m - forward_distance)
+        self._distance_since_sequence_observation_m += forward_distance
         self._propagate_latest_relocalization(delta)
         self._return_update_count += 1
         self.update_relocalization(local_descriptor=local_descriptor, relocalization=relocalization)
@@ -204,7 +353,42 @@ class RouteMemoryAgent:
         self._finalize_anchor_route_lengths()
         self._return_start_pose_from_start = list(self._outbound_pose_from_start)
         self._return_pose_from_return_start = [0.0, 0.0, 0.0]
+        self._arc_length_filter = ArcLengthParticleFilter(total_length_m=self._outbound_distance_m)
+        self._arc_observation = None
+        self._sequence_observation = None
+        self._sequence_observation_history = []
+        self._distance_since_sequence_observation_m = 0.0
+        self._sequence_current_s_m = None
         self._return_started = True
+        self._compute_feature_anchors()
+
+    def _compute_feature_anchors(self, heading_change_threshold_deg: float = 15.0) -> None:
+        """Mark anchors where the outbound path turns sharply (corners / doorways).
+        These positions have geometry that disambiguates arc-length, so the VIO
+        bridge allows visual observations only near them when the filter is uncertain.
+        """
+        self._feature_anchor_indices = set()
+        threshold_rad = math.radians(heading_change_threshold_deg)
+        for i in range(1, len(self.anchors)):
+            prev = self.anchors[i - 1]
+            curr = self.anchors[i]
+            if prev.pose_from_start is None or curr.pose_from_start is None:
+                continue
+            dtheta = abs(wrap_angle(curr.pose_from_start[2] - prev.pose_from_start[2]))
+            if dtheta > threshold_rad:
+                self._feature_anchor_indices.add(prev.index)
+                self._feature_anchor_indices.add(curr.index)
+
+    def _is_near_feature_anchor(self, arc_length_s_m: float) -> bool:
+        """Return True if ``arc_length_s_m`` is within ``vio_bridge_feature_radius_m``
+        of any feature anchor (path corner / doorway)."""
+        for idx in self._feature_anchor_indices:
+            anchor = self._anchor_by_index(idx)
+            if anchor is None:
+                continue
+            if abs(anchor.distance_from_start_m - arc_length_s_m) <= self.vio_bridge_feature_radius_m:
+                return True
+        return False
 
     def update_relocalization(
         self,
@@ -213,43 +397,36 @@ class RouteMemoryAgent:
     ) -> Optional[AnchorRelocalization]:
         if not self.enabled or not self._return_started:
             return None
-        estimate = self._coerce_relocalization(relocalization)
-        if estimate is None and self.relocalizer is not None:
+        estimates = self._coerce_relocalizations(relocalization)
+        if not estimates and self.relocalizer is not None:
             if self._return_update_count % self.relocalization_interval_updates != 0:
                 return None
-            estimate = self.relocalizer(local_descriptor, self.anchors)
-        if estimate is None or estimate.confidence < self.min_relocalization_confidence:
+            estimates = self._coerce_relocalizations(
+                self.relocalizer(local_descriptor, self.anchors)
+            )
+        estimates = [
+            estimate for estimate in estimates
+            if estimate.confidence >= self.min_relocalization_confidence
+            and self._anchor_by_index(estimate.anchor_index) is not None
+        ]
+        if not estimates:
             return None
-        if not self._anchor_by_index(estimate.anchor_index):
-            return None
-        estimate, reject_reason = self._apply_monotonic_anchor_policy(estimate)
+
+        estimate, observation, reject_reason = self._sequence_match_observation(estimates)
         if estimate is None:
             self.relocalization_events.append({
                 "accepted": False,
                 "reject_reason": reject_reason,
-                "target_anchor_index": self._target_anchor_index,
+                "candidate_count": len(estimates),
+                "sequence_observation": (
+                    asdict(self._sequence_observation)
+                    if self._sequence_observation is not None else None
+                ),
             })
             return None
-        consistency_error = self._relocalization_consistency_error(estimate)
-        if consistency_error is not None:
-            self.relocalization_events.append({
-                "anchor_index": int(estimate.anchor_index),
-                "anchor_dx_m": float(estimate.anchor_dx_m),
-                "anchor_dy_m": float(estimate.anchor_dy_m),
-                "anchor_dtheta_rad": float(estimate.anchor_dtheta_rad),
-                "distance_to_anchor_m": estimate.distance_to_anchor_m,
-                "bearing_to_anchor_deg": estimate.bearing_to_anchor_deg,
-                "confidence": float(estimate.confidence),
-                "backend": estimate.backend,
-                "inlier_count": estimate.inlier_count,
-                "reprojection_error_px": estimate.reprojection_error_px,
-                "anchor_heading_reliable": bool(estimate.anchor_heading_reliable),
-                "accepted": False,
-                "reject_reason": "inconsistent_with_integrated_progress",
-                "consistency_error_m": float(consistency_error),
-            })
-            return None
+
         self._latest_relocalization = estimate
+        self._update_arc_filter_from_sequence(observation)
         self.relocalization_events.append({
             "anchor_index": int(estimate.anchor_index),
             "anchor_dx_m": float(estimate.anchor_dx_m),
@@ -262,6 +439,8 @@ class RouteMemoryAgent:
             "inlier_count": estimate.inlier_count,
             "reprojection_error_px": estimate.reprojection_error_px,
             "anchor_heading_reliable": bool(estimate.anchor_heading_reliable),
+            "candidate_count": len(estimates),
+            "sequence_observation": asdict(observation),
             "target_anchor_index": self._target_anchor_index,
             "accepted": True,
         })
@@ -275,6 +454,9 @@ class RouteMemoryAgent:
     def progress(self) -> Optional[RelativeStartProgress]:
         if not self.enabled or not self._return_started:
             return None
+        arc_progress = self._arc_length_progress()
+        if arc_progress is not None:
+            return arc_progress
         anchor_progress = self._anchor_progress()
         if anchor_progress is not None:
             return anchor_progress
@@ -298,6 +480,14 @@ class RouteMemoryAgent:
             return ""
         if progress.target_anchor_index is not None:
             return self._make_anchor_hint(progress)
+        if progress.distance_to_start_m < 0.35 and self._filter_lost(progress):
+            # Filter has lost lock — do not claim arrival.
+            std = progress.filter_std_m or 0.0
+            return (
+                f"[System Hint: position uncertain (σ≈{std:.1f} m, filter lost lock); "
+                "continue toward the outbound start using the visual instruction — "
+                "do NOT stop until you visually confirm you are back at the starting location.]"
+            )
         if progress.distance_to_start_m < 0.35:
             direction = "at the outbound start"
         elif abs(progress.bearing_to_start_deg) <= 10.0:
@@ -375,6 +565,17 @@ class RouteMemoryAgent:
             "return_start_pose_from_start": [float(x) for x in self._return_start_pose_from_start],
             "return_pose_from_return_start": [float(x) for x in self._return_pose_from_return_start],
             "relative_start_progress": asdict(progress) if progress is not None else None,
+            "arc_length_filter": (
+                self._arc_length_filter.summary()
+                if self._arc_length_filter is not None else None
+            ),
+            "arc_length_observation": self._arc_observation,
+            "sequence_observation": (
+                asdict(self._sequence_observation)
+                if self._sequence_observation is not None else None
+            ),
+            "sequence_current_s_m": self._sequence_current_s_m,
+            "sequence_observation_history": list(self._sequence_observation_history),
             "hint_events": self.hint_events,
             "relocalization_events": self.relocalization_events,
             "fallback_events": self.fallback_events,
@@ -473,6 +674,19 @@ class RouteMemoryAgent:
             ),
         )
 
+    def _coerce_relocalizations(self, relocalization: object) -> list[AnchorRelocalization]:
+        if relocalization is None:
+            return []
+        if isinstance(relocalization, (list, tuple)):
+            estimates = []
+            for item in relocalization:
+                estimate = self._coerce_relocalization(item)
+                if estimate is not None:
+                    estimates.append(estimate)
+            return estimates
+        estimate = self._coerce_relocalization(relocalization)  # type: ignore[arg-type]
+        return [estimate] if estimate is not None else []
+
     def _propagate_latest_relocalization(self, delta: Iterable[float]) -> None:
         if self._latest_relocalization is None:
             return
@@ -489,7 +703,119 @@ class RouteMemoryAgent:
             anchor_dy_m=float(propagated[1]),
             anchor_dtheta_rad=float(propagated[2]),
         )
-        self._maybe_advance_passed_anchor()
+
+    def _estimate_arc_observation(
+        self,
+        estimate: AnchorRelocalization,
+    ) -> Optional[SequenceArcObservation]:
+        anchor = self._anchor_by_index(estimate.anchor_index)
+        if anchor is None:
+            return None
+        if estimate.anchor_heading_reliable:
+            anchor_pose_from_current = [
+                estimate.anchor_dx_m,
+                estimate.anchor_dy_m,
+                estimate.anchor_dtheta_rad,
+            ]
+            current_pose_from_anchor = inverse_delta(anchor_pose_from_current)
+            current_pose_from_start = compose_pose(anchor.pose_from_start, current_pose_from_anchor)
+            observed_s = self._project_pose_to_route_distance(current_pose_from_start)
+            sigma = max(0.45, min(2.0, estimate.distance_to_anchor_m + 0.5 * self.anchor_spacing_m))
+            source = "seqslam_pose_projection"
+        else:
+            observed_s = float(anchor.distance_from_start_m)
+            sigma = max(1.5, estimate.distance_to_anchor_m + 2.0 * self.anchor_spacing_m)
+            source = "seqslam_anchor_similarity"
+        confidence = max(
+            0.05,
+            min(1.0, (estimate.confidence - self.min_relocalization_confidence) /
+                max(1e-6, 1.0 - self.min_relocalization_confidence)),
+        )
+        return SequenceArcObservation(
+            observed_s_m=float(observed_s),
+            confidence=float(confidence),
+            sigma_m=float(sigma),
+            anchor_index=int(anchor.index),
+            backend=estimate.backend,
+            source=source,
+            selected_score=0.0,
+            candidate_count=1,
+        )
+
+    def _sequence_match_observation(
+        self,
+        estimates: list[AnchorRelocalization],
+    ) -> tuple[Optional[AnchorRelocalization], Optional[SequenceArcObservation], Optional[str]]:
+        candidates: list[tuple[float, AnchorRelocalization, SequenceArcObservation]] = []
+        if self._sequence_observation is not None:
+            expected_s = max(
+                0.0,
+                self._sequence_observation.observed_s_m - self._distance_since_sequence_observation_m,
+            )
+        else:
+            expected_s = None
+
+        for estimate in estimates:
+            if estimate.distance_to_anchor_m > self.sequence_max_anchor_distance_m:
+                continue
+            observation = self._estimate_arc_observation(estimate)
+            if observation is None:
+                continue
+            motion_error = 0.0 if expected_s is None else observation.observed_s_m - expected_s
+            if self._sequence_observation is not None and motion_error > self.sequence_forward_tolerance_m:
+                continue
+            monotonic_penalty = 1.0
+            abs_motion_error = 0.0 if expected_s is None else abs(motion_error)
+            continuity = math.exp(
+                -(abs_motion_error ** 2)
+                / (2.0 * max(0.25, self.sequence_motion_sigma_m) ** 2)
+            )
+            inlier_bonus = math.sqrt(max(1, int(estimate.inlier_count or 1))) / math.sqrt(30.0)
+            score = observation.confidence * continuity * monotonic_penalty * inlier_bonus
+            observation.expected_s_m = None if expected_s is None else float(expected_s)
+            observation.motion_error_m = None if expected_s is None else float(motion_error)
+            observation.selected_score = float(score)
+            observation.candidate_count = len(estimates)
+            candidates.append((score, estimate, observation))
+
+        if not candidates:
+            return None, None, "no_sequence_candidates"
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        score, estimate, observation = candidates[0]
+        min_score = 0.02 if self._sequence_observation is None else 0.005
+        if score < min_score:
+            return None, None, "sequence_candidate_score_too_low"
+
+        # VIO bridge: in the corridor dead zone the arc-length position is ambiguous.
+        # If the filter is uncertain AND the candidate lands away from a feature anchor
+        # (corner, doorway), reject the visual update and rely on dead reckoning instead.
+        if (
+            self.vio_bridge_enabled
+            and self._arc_length_filter is not None
+            and self._arc_length_filter.std() > self.vio_bridge_std_threshold_m
+            and not self._is_near_feature_anchor(observation.observed_s_m)
+        ):
+            return None, None, "vio_bridge_suppressed"
+
+        self._sequence_observation = observation
+        self._sequence_current_s_m = float(observation.observed_s_m)
+        self._sequence_observation_history.append(asdict(observation))
+        if len(self._sequence_observation_history) > self.sequence_window:
+            self._sequence_observation_history = self._sequence_observation_history[-self.sequence_window:]
+        self._distance_since_sequence_observation_m = 0.0
+        self._target_anchor_index = int(observation.anchor_index)
+        self._target_anchor_min_distance_m = estimate.distance_to_anchor_m
+        return estimate, observation, None
+
+    def _update_arc_filter_from_sequence(self, observation: SequenceArcObservation) -> None:
+        if self._arc_length_filter is None:
+            return
+        self._arc_length_filter.observe(
+            observation.observed_s_m,
+            confidence=observation.confidence,
+            sigma_m=observation.sigma_m,
+        )
+        self._arc_observation = asdict(observation)
 
     def _apply_monotonic_anchor_policy(
         self,
@@ -594,6 +920,167 @@ class RouteMemoryAgent:
             return_start_pose_from_start=[float(x) for x in self._return_start_pose_from_start],
         )
 
+    def _update_arc_filter_observation(self, estimate: AnchorRelocalization) -> None:
+        if self._arc_length_filter is None:
+            return
+        anchor = self._anchor_by_index(estimate.anchor_index)
+        if anchor is None:
+            return
+
+        if estimate.anchor_heading_reliable:
+            anchor_pose_from_current = [
+                estimate.anchor_dx_m,
+                estimate.anchor_dy_m,
+                estimate.anchor_dtheta_rad,
+            ]
+            current_pose_from_anchor = inverse_delta(anchor_pose_from_current)
+            current_pose_from_start = compose_pose(anchor.pose_from_start, current_pose_from_anchor)
+            observed_s = self._project_pose_to_route_distance(current_pose_from_start)
+            sigma = max(0.45, min(2.0, estimate.distance_to_anchor_m + 0.5 * self.anchor_spacing_m))
+            source = "pose_projection"
+        else:
+            observed_s = float(anchor.distance_from_start_m)
+            sigma = max(1.5, estimate.distance_to_anchor_m + 2.0 * self.anchor_spacing_m)
+            source = "anchor_similarity"
+
+        confidence = max(
+            0.05,
+            min(1.0, (estimate.confidence - self.min_relocalization_confidence) /
+                max(1e-6, 1.0 - self.min_relocalization_confidence)),
+        )
+        self._arc_length_filter.observe(observed_s, confidence=confidence, sigma_m=sigma)
+        self._arc_observation = {
+            "source": source,
+            "anchor_index": int(anchor.index),
+            "observed_remaining_m": float(observed_s),
+            "sigma_m": float(sigma),
+            "confidence": float(confidence),
+        }
+
+    def _project_pose_to_route_distance(self, pose_from_start: Iterable[float]) -> float:
+        px, py, _ = [float(v) for v in pose_from_start]
+        if not self.anchors:
+            return 0.0
+        if len(self.anchors) == 1:
+            return float(self.anchors[0].distance_from_start_m)
+
+        best_distance2 = float("inf")
+        best_route_distance = 0.0
+        for a, b in zip(self.anchors[:-1], self.anchors[1:]):
+            ax, ay, _ = a.pose_from_start
+            bx, by, _ = b.pose_from_start
+            vx = bx - ax
+            vy = by - ay
+            segment_len2 = vx * vx + vy * vy
+            if segment_len2 <= 1e-9:
+                t = 0.0
+            else:
+                t = ((px - ax) * vx + (py - ay) * vy) / segment_len2
+                t = max(0.0, min(1.0, t))
+            cx = ax + t * vx
+            cy = ay + t * vy
+            distance2 = (px - cx) ** 2 + (py - cy) ** 2
+            route_distance = (
+                a.distance_from_start_m
+                + t * (b.distance_from_start_m - a.distance_from_start_m)
+            )
+            if distance2 < best_distance2:
+                best_distance2 = distance2
+                best_route_distance = route_distance
+        return float(max(0.0, min(self._outbound_distance_m, best_route_distance)))
+
+    def _target_anchor_for_remaining_distance(self, remaining_m: float) -> Optional[RouteAnchor]:
+        if not self.anchors:
+            return None
+        eligible = [
+            anchor for anchor in self.anchors
+            if anchor.distance_from_start_m <= remaining_m + 1e-6
+        ]
+        if eligible:
+            return max(eligible, key=lambda anchor: anchor.distance_from_start_m)
+        return self.anchors[0]
+
+    def _arc_length_progress(self) -> Optional[RelativeStartProgress]:
+        if self._arc_length_filter is None:
+            return None
+        if self._arc_observation is None:
+            return None
+        integrated_progress = self._action_integrated_progress()
+        remaining = (
+            self._sequence_current_s_m
+            if self._sequence_current_s_m is not None
+            else self._arc_length_filter.estimate()
+        )
+        target_anchor = self._target_anchor_for_remaining_distance(remaining)
+
+        estimate = self._latest_relocalization
+        dx = integrated_progress.target_dx_m
+        dy = integrated_progress.target_dy_m
+        if estimate is not None and estimate.anchor_heading_reliable:
+            anchor = self._anchor_by_index(estimate.anchor_index)
+            if anchor is not None:
+                anchor_to_start = relative_delta(anchor.pose_from_start, [0.0, 0.0, 0.0])
+                anchor_pose_from_current = [
+                    estimate.anchor_dx_m,
+                    estimate.anchor_dy_m,
+                    estimate.anchor_dtheta_rad,
+                ]
+                start_pose_from_current = compose_pose(anchor_pose_from_current, anchor_to_start)
+                dx, dy, _ = start_pose_from_current
+
+        bearing = float(math.degrees(math.atan2(dy, dx))) if remaining > 1e-6 else 0.0
+        anchor_dx = None
+        anchor_dy = None
+        distance_to_anchor = None
+        bearing_to_anchor = None
+        anchor_heading_reliable = None
+        relocalization_backend = None
+        filter_std_m = self._arc_length_filter.std()
+        relocalization_confidence = self._arc_length_filter.confidence()
+        if self._sequence_observation is not None:
+            odom_decay = math.exp(-self._distance_since_sequence_observation_m / 5.0)
+            relocalization_confidence = min(
+                relocalization_confidence,
+                self._sequence_observation.confidence * odom_decay,
+            )
+        if estimate is not None:
+            relocalization_backend = estimate.backend
+            anchor_heading_reliable = bool(estimate.anchor_heading_reliable)
+        if target_anchor is not None:
+            if estimate is not None and estimate.anchor_index == target_anchor.index:
+                anchor_dx = float(estimate.anchor_dx_m)
+                anchor_dy = float(estimate.anchor_dy_m)
+                distance_to_anchor = estimate.distance_to_anchor_m
+                bearing_to_anchor = estimate.bearing_to_anchor_deg
+            else:
+                along_route_gap = max(0.0, remaining - target_anchor.distance_from_start_m)
+                distance_to_anchor = float(along_route_gap)
+                bearing_to_anchor = 0.0
+
+        return RelativeStartProgress(
+            target_dx_m=float(dx),
+            target_dy_m=float(dy),
+            distance_to_start_m=float(remaining),
+            bearing_to_start_deg=bearing,
+            current_pose_from_start=[float(x) for x in integrated_progress.current_pose_from_start],
+            return_pose_from_return_start=[float(x) for x in self._return_pose_from_return_start],
+            return_start_pose_from_start=[float(x) for x in self._return_start_pose_from_start],
+            source="arc_length_particle_filter",
+            target_anchor_index=int(target_anchor.index) if target_anchor is not None else None,
+            anchor_dx_m=anchor_dx,
+            anchor_dy_m=anchor_dy,
+            distance_to_anchor_m=distance_to_anchor,
+            bearing_to_anchor_deg=bearing_to_anchor,
+            anchor_route_remaining_m=(
+                float(target_anchor.route_remaining_to_start_m)
+                if target_anchor is not None else None
+            ),
+            anchor_heading_reliable=anchor_heading_reliable,
+            relocalization_confidence=float(relocalization_confidence),
+            relocalization_backend=relocalization_backend,
+            filter_std_m=float(filter_std_m),
+        )
+
     def _relocalization_consistency_error(self, estimate: AnchorRelocalization) -> Optional[float]:
         if estimate.backend == "oracle_anchor" or self.max_relocalization_consistency_error_m <= 0.0:
             return None
@@ -652,10 +1139,49 @@ class RouteMemoryAgent:
             return None
         return self._anchor_progress_from_estimate(estimate)
 
+    def _filter_lost(self, progress: RelativeStartProgress) -> bool:
+        if progress.filter_std_m is None:
+            return False
+        route_len = (
+            self._arc_length_filter.total_length_m
+            if self._arc_length_filter is not None else 10.0
+        )
+        threshold = max(2.5, 0.20 * route_len)
+        return progress.filter_std_m > threshold
+
     def _make_anchor_hint(self, progress: RelativeStartProgress) -> str:
         assert progress.target_anchor_index is not None
         anchor_distance = progress.distance_to_anchor_m or 0.0
         anchor_bearing = progress.bearing_to_anchor_deg or 0.0
+        remaining = (
+            anchor_distance + (progress.anchor_route_remaining_m or 0.0)
+            if progress.anchor_route_remaining_m is not None else progress.distance_to_start_m
+        )
+        if progress.source == "direct_oracle_route_anchor":
+            vector_label = "next-anchor vector"
+        else:
+            vector_label = "odometry start vector" if progress.anchor_heading_reliable is False else "start vector"
+
+        # When the particle filter has lost lock (high std), suppress arrival claims.
+        if self._filter_lost(progress):
+            std = progress.filter_std_m or 0.0
+            if abs(progress.target_dx_m) < 1e-6 and abs(progress.target_dy_m) < 1e-6:
+                direction_clause = ""
+            else:
+                bearing = float(math.degrees(math.atan2(progress.target_dy_m, progress.target_dx_m)))
+                if abs(bearing) <= 10.0:
+                    direction_clause = f"; {vector_label} points ahead"
+                elif bearing > 0.0:
+                    direction_clause = f"; {vector_label} points {abs(bearing):.0f} deg to your left"
+                else:
+                    direction_clause = f"; {vector_label} points {abs(bearing):.0f} deg to your right"
+            return (
+                f"[System Hint: position uncertain (σ≈{std:.1f} m, filter lost lock); "
+                f"route anchor A{progress.target_anchor_index} is near but position estimate unreliable"
+                f"{direction_clause}. "
+                "Continue toward the outbound start using the visual instruction — do NOT stop until you visually confirm you are back at the starting location.]"
+            )
+
         if anchor_distance < 0.35:
             anchor_direction = "at your current position"
         elif abs(anchor_bearing) <= 10.0:
@@ -664,17 +1190,17 @@ class RouteMemoryAgent:
             anchor_direction = f"{abs(anchor_bearing):.0f} deg to your left"
         else:
             anchor_direction = f"{abs(anchor_bearing):.0f} deg to your right"
-        remaining = (
-            anchor_distance + (progress.anchor_route_remaining_m or 0.0)
-            if progress.anchor_route_remaining_m is not None else progress.distance_to_start_m
-        )
-        vector_label = "odometry start vector" if progress.anchor_heading_reliable is False else "start vector"
         if self.hint_mode == "verbose":
+            vector_distance = (
+                anchor_distance
+                if progress.source == "direct_oracle_route_anchor"
+                else progress.distance_to_start_m
+            )
             return (
                 "[System Hint: Route memory matched outbound anchor "
                 f"A{progress.target_anchor_index}. The anchor is estimated {anchor_distance:.2f} m away, "
                 f"{anchor_direction}, from map-free relocalization. The {vector_label} is estimated "
-                f"{progress.distance_to_start_m:.2f} m away in body-frame coordinates "
+                f"{vector_distance:.2f} m away in body-frame coordinates "
                 f"dx={progress.target_dx_m:.2f} m forward, dy={progress.target_dy_m:.2f} m left. "
                 f"Approximate remaining route distance through that anchor is {remaining:.2f} m. "
                 "Move toward the anchor when it is visually consistent, then continue retracing toward the start.]"
