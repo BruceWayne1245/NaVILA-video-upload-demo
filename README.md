@@ -4,6 +4,27 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
+**Latest update (2026-06-29) — pure VLM baseline (no hint, no stop gate, no yaw alignment) evaluated on 11-episode hard batch:** the same 11 hard episodes were run with no route-memory hint, no stop-gate arbiter, and no confirm-phase yaw alignment — VLM navigates purely on visual input. This establishes the unassisted baseline for comparison against oracle hint and stop-gate variants. Result: outbound `9/11` (ep134 outbound fail; ep678 outbound failed this run — VLM non-determinism), return `4/9` (valid outbound-success samples), round-trip `4/11`. Successful round trips: ep5 (2.809 m), ep680 (1.001 m), ep994 (1.201 m), ep1040 (2.266 m). ep367 had a transient VLM server crash (transformers import race) on first attempt and was rerun immediately; second attempt succeeded (outbound ✅, return ❌ 5.397 m). Batch logs: `batch_logs/no_hint_hard_fresh_20260629/`. Per-step JSONL trajectories uploaded to `artifacts/no_hint_hard_batch_20260629/trajectories/`.
+
+Three-way comparison across all 11 episodes (round-trip success / distance):
+
+| Episode | no-hint | oracle+yaw | oracle+yaw+stop-gate |
+|---:|:---:|:---:|:---:|
+| 4 | ❌ 12.9 m | ✅ 0.378 m | ✅ 0.496 m |
+| 5 | ✅ 2.809 m | ✅ 2.253 m | ❌ 9.559 m |
+| 134 | ❌ outbound | ❌ outbound | ❌ outbound |
+| 187 | ❌ 11.9 m | ❌ 7.649 m | ❌ 7.567 m |
+| 367 | ❌ 5.397 m | ❌ 0.000 m† | ❌ 0.000 m† |
+| 368 | ❌ 6.949 m | ❌ 4.447 m | ✅ 1.625 m |
+| 408 | ❌ 3.947 m | ❌ 5.996 m | ❌ 8.483 m |
+| 678 | ❌ outbound | ✅ 2.824 m | ✅ 1.292 m |
+| 680 | ✅ 1.001 m | ✅ 1.253 m | ✅ 2.553 m |
+| 994 | ✅ 1.201 m | ❌ 4.410 m | ❌ 4.329 m |
+| 1040 | ✅ 2.266 m | ✅ 1.264 m | ✅ 1.916 m |
+| **round-trip** | **4/11** | **5/11** | **5/11** |
+
+†ep367: oracle distance reports 9.6 m throughout return while physical distance is 0.000 m — bookkeeping anomaly, not a genuine success. Key observations: (1) oracle hint improves outbound reliability (9→10/11); (2) for return, oracle hint and no-hint both achieve 5 and 4 successes respectively on their valid outbound-success sets — the gain is marginal and non-monotone (ep5/994/680 succeed without hint but fail or regress with hint, while ep4/678 require the hint to complete outbound); (3) stop-gate converts ep368 from failure to success and rescues ep1040 via FORCED terminal, but regressions on ep5 offset the gain.
+
 **Latest update (2026-06-29) — return-phase stop-gate arbiter implemented and evaluated on 11-episode oracle hard batch:** a dedicated stop-arbitration layer (`scripts/stop_gate.py`, `ReturnStopGate`) was added between the VLM output and the terminal-condition check in `round_trip_eval.py`. It does not modify hint generation, anchor selection, or particle filtering; it only reads the authoritative oracle distance and decides each step: VETO a premature stop (high conf, d > r_out=3.0 m) and inject a forward command toward `bearing_to_start`; ACCEPT a stop (high conf, d ≤ r_in=2.5 m); DEFER to the VLM (low conf or hysteresis zone); FORCE terminal if the robot stays within r_in for ≥ 3 consecutive VLM-query steps without issuing a stop; PASS on teleport frames (single-step jump > 3 m). The gate was tested with `--route_hint_source=oracle --route_relocalization_backend=none --oracle_align_return_yaw_to_anchor_segment --stop_gate --stop_gate_r_in=2.5 --stop_gate_r_out=3.0 --stop_gate_confirm_steps=3 --stop_gate_min_confidence=0.5` on the 11 hard episodes. Aggregate: outbound `10/11`, return `5/10` (outbound-success episodes), round-trip `5/11` — equal to the oracle baseline. Gate net contribution: ep368 converted from failure (4.447 m) to success (1.625 m, 1× ACCEPTED); ep1040 saved by FORCED stop (VLM never issued stop, gate triggered terminal at d=2.01 m → 1.916 m success); ep5 regressed to failure (9.559 m vs baseline 2.253 m — VLM non-determinism, 0 gate events); ep187 and ep994 vetoed 33× and 79× respectively but robot still stalled (navigation capacity bottleneck, not a stop-decision problem). ep367 anomaly unchanged: Isaac distance reports 9.6 m throughout return while physical distance is 0.000 m — oracle d is invalid (likely start_pos/teleport-reset misalignment), stop never triggered. 31 unit tests for stop_gate all pass. Batch logs: `batch_logs/stop_gate_oracle_hard_fresh_20260629/`.
 
 | Episode | Outbound | Return | Round Trip | Final dist | Gate events |
