@@ -4,6 +4,9 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
+**Latest update (2026-06-29) — rear-camera anchor fix + VIO bridge:** root-cause diagnosis of the seqpf_sfix second-half failure led to two targeted fixes. (1) **GT co-visibility diagnostic (completed 2026-06-28):** per-attempt analysis of all 85 LoFTR calls in `seqpf_sfix` revealed two distinct failure zones. Zone A (d2s < 6 m, attempts 37–85): depth-consistent co-visibility = 0% throughout; cause is **camera-direction mismatch** — Go2 strafes laterally so the outbound anchors (A0–A15) face ~+92° to ±180° (north/west) while the return robot faces ~0° to −90° (east/south), giving a ~150–180° angular separation. LoFTR produces 40–100 "matches" via visual aliasing on repetitive corridor texture, but RANSAC gives position errors of +6 to +13 m which SeqSLAM correctly rejects. Zone B (d2s 6–8 m, attempts 27–35): depth-consistent co-visibility is 13–24% (real shared geometry), LoFTR finds 110–170 inliers with conf=1.0, but **corridor geometric degeneracy** — planar walls cannot constrain translation along the corridor axis — causes RANSAC to give position errors of +3.9 to +5.9 m; again correctly rejected by SeqSLAM. Branch verdicts: Branch 1 (co-visibility low/zero) ✅ confirmed for Zone A (camera direction mismatch, not off-path drift); Branch 2 (co-visibility exists but matching fails) ✅ applies to Zone B (degeneracy, not matcher quality — MASt3R would have the same problem); Branch 3 (anchor spacing too large) ❌ wrong (1 m anchors, robot 0.2–1.5 m from nearest anchor throughout). Key confirmed finding: `hint_gate` was harmful because the VLM is robust to specific-but-wrong hints (it ignores erroneous "0 m arrived" claims) but loses navigational narrative when given generic "position uncertain" messages; the fix is to preserve directional/distance language and only suppress explicit arrival/stop claims when filter std is high. (2) **Rear-camera anchor + LoFTR fix (2026-06-29):** the camera-direction mismatch is fixed by adding a rear-facing camera (`rear_rgbd_camera`, body −x direction, rot=(−0.5, 0.5, 0.5, −0.5), 54° FOV, 512×512 RGB+depth) in `Go2VisionSceneCfg`. `route_memory_descriptor_from_infos` now also saves `rear_rgb`, `rear_depth_depth_measurement`, `rear_camera_intrinsics`, `rear_camera_rotation_body`, `rear_camera_position_body` at each outbound anchor. `build_rear_view_descriptor()` in `relocalization.py` constructs a synthetic anchor descriptor exposing rear camera data under standard field names (so LoFTR + 3-D RANSAC + `camera_rotation_to_body_yaw` work unchanged). `feature_depth_anchor_relocalization` now tries two views per anchor — `("front", anchor.descriptor)` then `("rear", build_rear_view_descriptor(anchor.descriptor))` — with `backend` tags `_front`/`_rear` for diagnostic tracking. During the return phase: current front-camera view (faces east) ↔ anchor rear-camera view (faces east during outbound when body faces west) = correct orientation match. (3) **VIO bridge (2026-06-29, off by default):** `RouteMemoryAgent` computes `_feature_anchor_indices` in `finalize_outbound` by marking consecutive anchor pairs where `|Δyaw| > 15°` (corners/doorways); `_sequence_match_observation` suppresses visual particle-filter updates when filter std > `vio_bridge_std_threshold_m` (default 2.5 m) AND the candidate arc-length is > `vio_bridge_feature_radius_m` (default 2.0 m) from any feature anchor. Enabled with `--vio_bridge`. On ep994, feature anchors identified at A2, A3, A5, A6, A9, A10, A12, A13, A15, A16 (10 of 17, covering all path turns). Next step: run ep994 with `--route_relocalization_backend=loftr_depth --result_suffix=rear_cam_20260629` and compare second-half co-visibility and accepted observation count against `seqpf_sfix`.
+
+
 **Latest update (2026-06-28) — uncertainty-gated hints + lateral-exclusion odometry + blackout noise inflation:** three targeted fixes to the arc-length particle filter pipeline, motivated by post-hoc diagnosis of `seqpf_sfix`. (1) **Hint gating** (`filter_std_m` field added to `RelativeStartProgress`): when particle filter std exceeds `max(2.5, 20% × route_length)` — 3.2 m for a 16 m route — `_filter_lost()` returns true and the hint switches from a precise distance claim to `"position uncertain (σ≈X m, filter lost lock); continue toward the outbound start using the visual instruction — do NOT stop until you visually confirm you are back at the starting location."` This directly prevents premature VLM stop from a "0 m arrived" hint while the robot is still 4–5 m away. Retroactive replay on seqpf_sfix shows 35/37 hint events would be gated (only the first two — pure action-integration and first anchor match — would pass as high-confidence). (2) **Lateral-motion exclusion**: `update_return_motion()` replaces `math.hypot(dx, dy)` with `abs(dx)` for both particle filter `predict()` and `_sequence_current_s_m` decrement; lateral velocity commands during turns no longer inflate arc-length odometry. (3) **Blackout noise inflation**: `predict()` gains `extra_process_noise_m` parameter; when `_distance_since_sequence_observation_m > 3 m`, extra noise grows at 0.015 m per additional meter, so the filter spreads faster during observation gaps and std crosses the gating threshold sooner. All 57 tests pass. Ep994 rerun `loftr_depth_ep994_hint_gate_20260628` ran and **return failed**: outbound success true, return success false, final distance to start `4.403 m`. Gating activated at step 2626 (dist 10.8 m, std 3.68 m), leaving the VLM with 21 consecutive generic "position uncertain, continue via visual instruction" hints and no specific distance/direction signal for the final 10 m. The VLM stopped at step 3926 based on visual judgment alone. Root cause: hint gating removes navigational narrative that keeps the VLM moving — seqpf_sfix succeeded precisely because the VLM correctly ignored specific-but-wrong "0 m arrived" hints; replacing those with generic warnings removed the implicit "keep moving" signal. Fix direction: preserve directional/distance information even when filter is uncertain, and only suppress the explicit arrival/stop claim. Artifacts in `artifacts/loftr_depth_ep994_hint_gate_20260628/`.
 
 **Latest update (2026-06-28) — SeqSLAM particle filter (seqpf_sfix):** arc-length position is now tracked by a 256-particle filter (`ArcLengthParticleFilter`) updated via LoFTR relocalization observations scored with a SeqSLAM-style sequence-consistency metric. Ep994 rerun `loftr_depth_ep994_seqpf_sfix_20260628` succeeded: outbound success true, return success true, round-trip success true, final distance to start `1.264 m`. The particle filter captured 8 LoFTR observations spanning anchors 14→8 (route positions 14.1 m → 7.8 m from start), then lost track. From step 3626 onward, hints incorrectly reported 0 m remaining while the true simulator distance was 4–5 m; the VLM did not stop prematurely and navigated correctly using visual/instruction cues. Key diagnosis: the particle filter provides accurate early hints but loses observations after anchor 8 and collapses to zero, so late-return guidance currently comes from the VLN instruction rather than the relocalization hint. Measurement and per-step trajectory are in `artifacts/loftr_depth_ep994_seqpf_sfix_20260628/`.
@@ -1152,6 +1155,60 @@ Interpretation:
 
 ---
 
+### 2026-06-29 — GT Co-visibility Diagnostic + Rear Camera Fix + VIO Bridge
+
+#### GT Co-visibility Diagnostic (completed 2026-06-28)
+
+Ran a detailed per-attempt analysis of all 85 LoFTR relocalization calls recorded in `seqpf_sfix` (`measurements/1699.json`, `covisibility_records`). The particle filter successfully accepted 8 observations covering anchors A14→A8 (d2s ~14→7.8 m) in the first half of the return route, then lost track completely.
+
+**Two distinct failure zones in the second half:**
+
+| Zone | d2s range | Attempts | Depth co-vis | LoFTR inliers | Position error | SeqSLAM verdict |
+|---|---|---|---|---|---|---|
+| A (deep) | 0–6 m | 37–85 | 0% | 40–100 (aliasing) | +6 to +13 m | Correctly rejected |
+| B (transition) | 6–8 m | 27–35 | 13–24% | 110–170 (conf=1.0) | +3.9 to +5.9 m | Correctly rejected |
+
+**Zone A root cause:** camera direction mismatch. Go2 strafes laterally during navigation, so its body yaw is roughly perpendicular to its velocity. Outbound anchors A0–A15 captured views facing ~+92° to ±180° (north/west); the return robot faces ~0° to −90° (east/south). The ~150–180° angular separation means there is zero genuine co-visibility. LoFTR's high match count (40–100) comes from visual aliasing on repetitive corridor and room textures. Robot stays within 0–2 m of the outbound path throughout (not off-path drift).
+
+**Zone B root cause:** corridor geometric degeneracy. At d2s 6–8 m the robot's rear view overlaps with anchor front views from the far corridor walls, giving 13–24% real depth-consistent co-visibility. LoFTR succeeds (110–170 inliers), but the scene is a planar wall — RANSAC/Kabsch cannot recover the translation component along the corridor axis, producing +4–6 m position errors. This would affect MASt3R equally.
+
+**Three-branch verdict:**
+- Branch 1 (co-visibility low/zero → coverage problem): ✅ confirmed for Zone A, caused by camera direction mismatch
+- Branch 2 (co-visibility exists but matching fails): ✅ confirmed for Zone B, caused by planar degeneracy
+- Branch 3 (anchor spacing too large): ❌ ruled out — 1 m spacing, robot within 0.2–1.5 m of nearest anchor
+
+**Hint gating re-confirmed harmful:** the `hint_gate` experiment failed (4.403 m final distance) because the VLM uses specific distance/bearing hints as navigational narrative ("keep going toward 0 m") rather than as precise localization. Replacing specific-but-wrong hints with generic "position uncertain" messages removed this signal. Fix: preserve directional/distance content in hints when filter is uncertain; only suppress explicit "you have arrived / stop now" language.
+
+#### Rear Camera Anchor Fix
+
+Added a rear-facing camera to `Go2VisionSceneCfg` to capture the scene direction that the return robot's front camera will see:
+
+**`go2_matterport_vision_cfg.py`:**
+- `rear_rgbd_camera`: `pos=(−0.1, 0.0, 0.5)`, `rot=(−0.5, 0.5, 0.5, −0.5)` — camera +Z maps to body −x (rear-facing), 54° FOV, 512×512 RGB + depth
+- `RearCameraObsCfg` and `RearDepthObsCfg` observation groups added to `ObservationsCfg`
+
+**`round_trip_eval.py`:**
+- `rear_camera_intrinsics_from_env`, `rear_camera_pose_from_env`, `rear_camera_extrinsic_body_from_env` added
+- `route_memory_descriptor_from_infos` saves: `rear_rgb`, `rear_depth_depth_measurement`, `rear_camera_intrinsics`, `rear_camera_position_w`, `rear_camera_quat_wxyz`, `rear_camera_rotation_body`, `rear_camera_position_body`
+
+**`relocalization.py`:**
+- `descriptor_rear_depth`, `descriptor_rear_rgb_gray`, `build_rear_view_descriptor` added
+- `build_rear_view_descriptor(anchor_descriptor)`: constructs a synthetic descriptor exposing `rear_rgb` → `rgb`, `rear_depth_*` → `depth_obs`, `rear_camera_intrinsics` → `camera_intrinsics`, `rear_camera_rotation_body`/`rear_camera_position_body` → standard extrinsics; all existing geometry code (LoFTR, RANSAC, `camera_rotation_to_body_yaw`) works unchanged
+- `feature_depth_anchor_relocalization` now iterates `views_to_try = [("front", anchor.descriptor), ("rear", rear_view)]` per anchor, tagging backend as `feature_depth_loftr_3d3d_front` or `feature_depth_loftr_3d3d_rear`; all candidates across all views/anchors compete by score
+
+During the return phase, the correct matching combination is: current front-camera image (faces east) ↔ anchor rear-camera image (also faces east, since outbound body faced west). The rear view descriptor carries the rear camera's extrinsics, so `camera_rotation_to_body_yaw` correctly resolves the anchor body heading relative to the current body frame.
+
+#### VIO Bridge (off by default, `--vio_bridge`)
+
+`RouteMemoryAgent._compute_feature_anchors()` scans consecutive anchor pairs for `|Δyaw| > 15°` after `finalize_outbound()`, marking those anchors as path feature points (corners, doorways) where scene geometry disambiguates position along the route.
+
+`_sequence_match_observation()` new gate: if `filter.std() > vio_bridge_std_threshold_m` (default 2.5 m) AND the candidate arc-length is more than `vio_bridge_feature_radius_m` (default 2.0 m) from any feature anchor, reject the visual observation and continue with dead reckoning. Logged as `"vio_bridge_suppressed"`.
+
+On ep994: feature anchors at A2, A3, A5, A6, A9, A10, A12, A13, A15, A16 (covers all path turns). The bridge is most useful for episodes with long featureless straight corridors; ep994 has many turns so the bridge rarely activates.
+
+**Next step:** run ep994 with `--route_relocalization_backend=loftr_depth --result_suffix=rear_cam_20260629` to measure whether rear-camera matching produces accepted observations in the second-half corridor (Zone A + Zone B) that were previously rejected.
+
+
 ### 2026-06-27 — Anchor Relocalization Interface and Feature-Depth Backend
 
 Motivation:
@@ -1920,3 +1977,4 @@ The only patches needed here are genuine code bugs or minor version mismatches u
 - [IsaacLab fork](https://github.com/yang-zj1026/IsaacLab)
 - [NaVILA checkpoint (HuggingFace)](https://huggingface.co/a8cheng/navila-llama3-8b-8f)
 - [VLN-CE-Isaac dataset (HuggingFace)](https://huggingface.co/datasets/Zhaojing/VLN-CE-Isaac)
+
