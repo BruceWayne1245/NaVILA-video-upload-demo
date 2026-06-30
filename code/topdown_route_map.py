@@ -191,6 +191,133 @@ def _polyline(image: np.ndarray, points_xy: list[list[float]], meta: dict, color
     cv2.polylines(image, [pts], isClosed=False, color=color, thickness=thickness, lineType=cv2.LINE_AA)
 
 
+def _dashed_polyline(
+    image: np.ndarray,
+    points_xy: list[list[float]],
+    meta: dict,
+    color: tuple[int, int, int],
+    thickness: int = 1,
+    dash_px: float = 7.0,
+    gap_px: float = 5.0,
+) -> None:
+    if len(points_xy) < 2:
+        return
+    pts = [np.asarray(world_to_pixel(p, meta), dtype=np.float32) for p in points_xy]
+    period = float(dash_px + gap_px)
+    cursor = 0.0
+    for start, end in zip(pts[:-1], pts[1:]):
+        delta = end - start
+        length = float(np.linalg.norm(delta))
+        if length < 1e-6:
+            continue
+        direction = delta / length
+        local = 0.0
+        while local < length:
+            phase = cursor % period
+            if phase < dash_px:
+                draw_len = min(dash_px - phase, length - local)
+                p0 = start + direction * local
+                p1 = start + direction * (local + draw_len)
+                cv2.line(
+                    image,
+                    tuple(np.round(p0).astype(int)),
+                    tuple(np.round(p1).astype(int)),
+                    color,
+                    thickness,
+                    cv2.LINE_AA,
+                )
+            else:
+                draw_len = min(period - phase, length - local)
+            local += draw_len
+            cursor += draw_len
+
+
+def _draw_return_timestamps(
+    image: np.ndarray,
+    return_records: list[dict],
+    meta: dict,
+    color: tuple[int, int, int],
+    max_labels: int = 6,
+) -> None:
+    if len(return_records) < 2 or max_labels <= 0:
+        return
+    first_step = int(return_records[0].get("step", 0))
+    pixel_points: list[tuple[int, int]] = []
+    valid_records: list[dict] = []
+    for record in return_records:
+        pos = record.get("position")
+        if pos is None:
+            continue
+        px, py = world_to_pixel(pos[:2], meta)
+        if 0 <= px < image.shape[1] and 0 <= py < image.shape[0]:
+            pixel_points.append((px, py))
+            valid_records.append(record)
+    if len(pixel_points) < 2:
+        return
+    cumulative = [0.0]
+    for a, b in zip(pixel_points[:-1], pixel_points[1:]):
+        cumulative.append(cumulative[-1] + float(math.hypot(b[0] - a[0], b[1] - a[1])))
+    total_distance = cumulative[-1]
+    if total_distance < 1.0:
+        return
+    sample_count = min(max_labels, max(1, int(total_distance // 18)))
+    targets = np.linspace(
+        total_distance / float(sample_count + 1),
+        total_distance * sample_count / float(sample_count + 1),
+        sample_count,
+        dtype=np.float32,
+    )
+    sample_indices = [int(np.searchsorted(cumulative, float(target))) for target in targets]
+    used_boxes: list[tuple[int, int, int, int]] = [(0, 0, 108, 92)]
+    offsets = [(10, -12), (-54, -12), (10, 10), (-54, 10), (10, -30), (-54, -30)]
+    def overlaps(box: tuple[int, int, int, int]) -> bool:
+        x0, y0, x1, y1 = box
+        for ox0, oy0, ox1, oy1 in used_boxes:
+            if x0 <= ox1 and x1 >= ox0 and y0 <= oy1 and y1 >= oy0:
+                return True
+        return False
+
+    for label_idx, record_idx in enumerate(sample_indices):
+        record = valid_records[min(int(record_idx), len(valid_records) - 1)]
+        step = int(record.get("step", first_step))
+        elapsed = step - first_step
+        px, py = pixel_points[min(int(record_idx), len(pixel_points) - 1)]
+        label = f"R{elapsed}"
+        (text_w, text_h), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)
+        chosen = None
+        for dx, dy in offsets[label_idx % len(offsets):] + offsets[:label_idx % len(offsets)]:
+            box_x0 = px + dx
+            box_y0 = py + dy
+            box_x0 = max(1, min(image.shape[1] - text_w - 8, box_x0))
+            box_y0 = max(1, min(image.shape[0] - text_h - baseline - 7, box_y0))
+            box_x1 = box_x0 + text_w + 6
+            box_y1 = box_y0 + text_h + baseline + 6
+            box = (box_x0, box_y0, box_x1, box_y1)
+            if not overlaps(box):
+                chosen = box
+                break
+        if chosen is None:
+            continue
+        box_x0, box_y0, box_x1, box_y1 = chosen
+        used_boxes.append(chosen)
+        cv2.circle(image, (px, py), 3, color, -1, lineType=cv2.LINE_AA)
+        cv2.circle(image, (px, py), 4, (255, 255, 255), 1, lineType=cv2.LINE_AA)
+        line_x = box_x0 + 3 if (box_x0 + box_x1) * 0.5 >= px else box_x1 - 3
+        cv2.line(image, (px, py), (int(line_x), box_y0 + text_h), color, 1, cv2.LINE_AA)
+        cv2.rectangle(image, (box_x0, box_y0), (box_x1, box_y1), (255, 255, 255), -1)
+        cv2.rectangle(image, (box_x0, box_y0), (box_x1, box_y1), color, 1)
+        cv2.putText(
+            image,
+            label,
+            (box_x0 + 3, box_y1 - baseline - 3),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.42,
+            color,
+            1,
+            cv2.LINE_AA,
+        )
+
+
 def _draw_marker(
     image: np.ndarray,
     xy: Iterable[float],
@@ -252,13 +379,17 @@ def render_route_overlay(
         for r in trajectory_records
         if r.get("phase") == "outbound" and r.get("position") is not None
     ]
-    ret = [
-        [float(r["position"][0]), float(r["position"][1])]
-        for r in trajectory_records
+    return_records = [
+        r for r in trajectory_records
         if r.get("phase") == "return" and r.get("position") is not None
     ]
-    _polyline(image, outbound, meta, (230, 105, 35), 3)
-    _polyline(image, ret, meta, (35, 75, 230), 3)
+    ret = [
+        [float(r["position"][0]), float(r["position"][1])]
+        for r in return_records
+    ]
+    _dashed_polyline(image, outbound, meta, (230, 105, 35), thickness=1, dash_px=4.0, gap_px=16.0)
+    _dashed_polyline(image, ret, meta, (35, 75, 230), thickness=1, dash_px=4.0, gap_px=16.0)
+    _draw_return_timestamps(image, return_records, meta, (35, 75, 230))
 
     anchors = (route_memory_summary or {}).get("anchors") or []
     for anchor in anchors:
