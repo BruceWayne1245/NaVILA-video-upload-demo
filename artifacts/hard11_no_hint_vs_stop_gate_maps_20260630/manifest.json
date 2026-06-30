@@ -1,0 +1,101 @@
+[
+  {
+    "episode": 4,
+    "scene": "x8F5xyUWy9e",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep4_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 12.908180236816406,
+    "stop_gate_distance_to_start": 0.49582043290138245,
+    "no_hint_round_trip_success": false,
+    "stop_gate_round_trip_success": true
+  },
+  {
+    "episode": 5,
+    "scene": "x8F5xyUWy9e",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep5_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 2.8089401721954346,
+    "stop_gate_distance_to_start": 9.559235572814941,
+    "no_hint_round_trip_success": true,
+    "stop_gate_round_trip_success": false
+  },
+  {
+    "episode": 134,
+    "scene": "2azQ1b91cZZ",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep134_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 2.765026330947876,
+    "stop_gate_distance_to_start": 7.493719577789307,
+    "no_hint_round_trip_success": false,
+    "stop_gate_round_trip_success": false
+  },
+  {
+    "episode": 187,
+    "scene": "EU6Fwq7SyZv",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep187_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 11.87309455871582,
+    "stop_gate_distance_to_start": 7.566544055938721,
+    "no_hint_round_trip_success": false,
+    "stop_gate_round_trip_success": false
+  },
+  {
+    "episode": 367,
+    "scene": "X7HyMhZNoso",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep367_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 5.396775722503662,
+    "stop_gate_distance_to_start": 0.0,
+    "no_hint_round_trip_success": false,
+    "stop_gate_round_trip_success": false
+  },
+  {
+    "episode": 368,
+    "scene": "X7HyMhZNoso",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep368_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 6.948735237121582,
+    "stop_gate_distance_to_start": 1.6251705884933472,
+    "no_hint_round_trip_success": false,
+    "stop_gate_round_trip_success": true
+  },
+  {
+    "episode": 408,
+    "scene": "oLBMNvg9in8",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep408_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 3.9465322494506836,
+    "stop_gate_distance_to_start": 8.48281478881836,
+    "no_hint_round_trip_success": false,
+    "stop_gate_round_trip_success": false
+  },
+  {
+    "episode": 678,
+    "scene": "zsNo4HB9uLZ",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep678_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 4.900697231292725,
+    "stop_gate_distance_to_start": 1.2923755645751953,
+    "no_hint_round_trip_success": false,
+    "stop_gate_round_trip_success": true
+  },
+  {
+    "episode": 680,
+    "scene": "zsNo4HB9uLZ",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep680_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 1.003607988357544,
+    "stop_gate_distance_to_start": 2.552574872970581,
+    "no_hint_round_trip_success": true,
+    "stop_gate_round_trip_success": true
+  },
+  {
+    "episode": 994,
+    "scene": "QUCTc6BB5sX",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep994_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 1.2008845806121826,
+    "stop_gate_distance_to_start": 4.328891754150391,
+    "no_hint_round_trip_success": true,
+    "stop_gate_round_trip_success": false
+  },
+  {
+    "episode": 1040,
+    "scene": "X7HyMhZNoso",
+    "output": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/results/hard11_no_hint_vs_stop_gate_maps_20260630/ep1040_no_oracle_vs_oracle_yaw_stop_gate.png",
+    "no_hint_distance_to_start": 2.26587176322937,
+    "stop_gate_distance_to_start": 1.9158188104629517,
+    "no_hint_round_trip_success": true,
+    "stop_gate_round_trip_success": true
+  }
+]
