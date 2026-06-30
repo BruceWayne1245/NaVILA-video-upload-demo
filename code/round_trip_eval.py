@@ -28,6 +28,7 @@ from omni.isaac.lab.app import AppLauncher
 # local imports
 import cli_args  # isort: skip
 from instruction_rewriter import InstructionRewriteError, InstructionRewriter
+from hint_action_arbiter import HintActionArbiter, HintActionArbiterConfig
 from route_memory_agent import AnchorRelocalization, RelativeStartProgress, RouteMemoryAgent
 from stop_gate import GateDecision, ReturnStopGate
 from topdown_route_map import capture_occupancy_floor_slice, save_topdown_route_map
@@ -185,10 +186,33 @@ parser.add_argument(
         "r_in for confirm_steps consecutive VLM steps.  Off by default."
     ),
 )
-parser.add_argument("--stop_gate_r_in", type=float, default=2.5, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_r_in", type=float, default=3.0, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_r_out", type=float, default=3.0, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_confirm_steps", type=int, default=3, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_min_confidence", type=float, default=0.5, help=argparse.SUPPRESS)
+parser.add_argument(
+    "--hint_action_arbiter",
+    action="store_true",
+    default=False,
+    help=(
+        "Enable return-phase hint-following action arbitration. If the VLM action clearly conflicts "
+        "with the next-anchor route hint and the hinted local path is clear, replace the VLM output "
+        "with a matching NaVILA action string."
+    ),
+)
+parser.add_argument("--hint_arbiter_forward_cone_deg", type=float, default=15.0, help=argparse.SUPPRESS)
+parser.add_argument("--hint_arbiter_forward_conflict_bearing_deg", type=float, default=30.0, help=argparse.SUPPRESS)
+parser.add_argument("--hint_arbiter_turn_step_deg", type=float, default=45.0, help=argparse.SUPPRESS)
+parser.add_argument("--hint_arbiter_forward_distance_cm", type=int, default=75, help=argparse.SUPPRESS)
+parser.add_argument("--hint_arbiter_max_clear_path_distance_m", type=float, default=1.0, help=argparse.SUPPRESS)
+parser.add_argument("--hint_arbiter_robot_radius_m", type=float, default=0.30, help=argparse.SUPPRESS)
+parser.add_argument("--hint_arbiter_clearance_margin_m", type=float, default=0.12, help=argparse.SUPPRESS)
+parser.add_argument(
+    "--hint_arbiter_allow_without_clear_path",
+    action="store_true",
+    default=False,
+    help=argparse.SUPPRESS,
+)
 parser.add_argument("--route_fallback_window", type=int, default=4, help=argparse.SUPPRESS)
 parser.add_argument("--route_fallback_duration_seconds", type=float, default=0.5, help=argparse.SUPPRESS)
 parser.add_argument(
@@ -1253,7 +1277,7 @@ def main():
     stop_gate = None
     if getattr(args_cli, "stop_gate", False):
         stop_gate = ReturnStopGate(
-            r_in=float(getattr(args_cli, "stop_gate_r_in", 2.5)),
+            r_in=float(getattr(args_cli, "stop_gate_r_in", 3.0)),
             r_out=float(getattr(args_cli, "stop_gate_r_out", 3.0)),
             confirm_steps=int(getattr(args_cli, "stop_gate_confirm_steps", 3)),
             min_confidence=float(getattr(args_cli, "stop_gate_min_confidence", 0.5)),
@@ -1262,6 +1286,31 @@ def main():
             f"[stop_gate] enabled: r_in={stop_gate.r_in} r_out={stop_gate.r_out} "
             f"confirm_steps={stop_gate.confirm_steps} "
             f"min_confidence={stop_gate.min_confidence}",
+            flush=True,
+        )
+    hint_action_arbiter = None
+    _last_hint_action_decision = None
+    if getattr(args_cli, "hint_action_arbiter", False):
+        hint_action_arbiter = HintActionArbiter(HintActionArbiterConfig(
+            forward_cone_deg=float(getattr(args_cli, "hint_arbiter_forward_cone_deg", 15.0)),
+            forward_conflict_bearing_deg=float(
+                getattr(args_cli, "hint_arbiter_forward_conflict_bearing_deg", 30.0)
+            ),
+            turn_step_deg=float(getattr(args_cli, "hint_arbiter_turn_step_deg", 45.0)),
+            forward_distance_cm=int(getattr(args_cli, "hint_arbiter_forward_distance_cm", 75)),
+            max_clear_path_distance_m=float(
+                getattr(args_cli, "hint_arbiter_max_clear_path_distance_m", 1.0)
+            ),
+            robot_radius_m=float(getattr(args_cli, "hint_arbiter_robot_radius_m", 0.30)),
+            clearance_margin_m=float(getattr(args_cli, "hint_arbiter_clearance_margin_m", 0.12)),
+            allow_without_clear_path=bool(
+                getattr(args_cli, "hint_arbiter_allow_without_clear_path", False)
+            ),
+        ))
+        print(
+            "[hint_arbiter] enabled: "
+            f"topdown_map_available={topdown_route_map is not None} "
+            f"allow_without_clear_path={hint_action_arbiter.cfg.allow_without_clear_path}",
             flush=True,
         )
     if args_cli.route_memory:
@@ -1327,6 +1376,33 @@ def main():
                         query_instruction_text,
                     )
                     vlm_vel_commands, time_to_go, is_parseable = parse_vlm_command(stream_output)
+                    _last_hint_action_decision = None
+                    if hint_action_arbiter is not None and phase == "return":
+                        _last_hint_action_decision = hint_action_arbiter.check(
+                            progress=_gate_vlm_progress,
+                            vlm_output=stream_output,
+                            robot_position=get_robot_position(env),
+                            robot_yaw_rad=pose_yaw(get_robot_pose(env)),
+                            topdown_map=topdown_route_map,
+                        )
+                        phase_events.append({
+                            "step": int(num_steps),
+                            "phase": phase,
+                            "event": "hint_action_arbiter",
+                            **_last_hint_action_decision.as_log_dict(),
+                        })
+                        if _last_hint_action_decision.override:
+                            stream_output = _last_hint_action_decision.replacement_output
+                            vlm_vel_commands, time_to_go, is_parseable = parse_vlm_command(stream_output)
+                        print(
+                            f"[hint_arbiter] step={num_steps} "
+                            f"override={_last_hint_action_decision.override} "
+                            f"reason={_last_hint_action_decision.reason} "
+                            f"desired={_last_hint_action_decision.desired_kind} "
+                            f"bearing={_last_hint_action_decision.desired_bearing_deg} "
+                            f"clear={_last_hint_action_decision.clear_path}",
+                            flush=True,
+                        )
                     route_agent.update_action_history(vlm_vel_commands)
                     env_steps_to_go = int(time_to_go / (
                         env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation
@@ -1557,6 +1633,8 @@ def main():
         )
         if stop_gate is not None and _last_gate_decision is not None:
             _traj_record["stop_gate"] = _last_gate_decision.as_log_dict()
+        if hint_action_arbiter is not None and _last_hint_action_decision is not None:
+            _traj_record["hint_action_arbiter"] = _last_hint_action_decision.as_log_dict()
         trajectory_records.append(_traj_record)
 
         distance_to_start = float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2]))
