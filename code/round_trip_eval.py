@@ -29,6 +29,8 @@ from omni.isaac.lab.app import AppLauncher
 import cli_args  # isort: skip
 from instruction_rewriter import InstructionRewriteError, InstructionRewriter
 from route_memory_agent import AnchorRelocalization, RelativeStartProgress, RouteMemoryAgent
+from stop_gate import GateDecision, ReturnStopGate
+from topdown_route_map import capture_occupancy_floor_slice, save_topdown_route_map
 from relocalization import (
     backproject_points as _backproject_points,
     camera_point_to_body as _camera_point_to_body,
@@ -173,8 +175,33 @@ parser.add_argument(
          "(filter std > vio_bridge_std_m) away from path feature anchors (corners/doorways).",
 )
 parser.add_argument("--vio_bridge_std_m", type=float, default=2.5, help=argparse.SUPPRESS)
+parser.add_argument(
+    "--stop_gate",
+    action="store_true",
+    default=False,
+    help=(
+        "Enable the return-phase stop-gate arbiter.  Vetoes premature stops "
+        "(d > r_out, high conf) and forces terminal when robot stays within "
+        "r_in for confirm_steps consecutive VLM steps.  Off by default."
+    ),
+)
+parser.add_argument("--stop_gate_r_in", type=float, default=2.5, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_r_out", type=float, default=3.0, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_confirm_steps", type=int, default=3, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_min_confidence", type=float, default=0.5, help=argparse.SUPPRESS)
 parser.add_argument("--route_fallback_window", type=int, default=4, help=argparse.SUPPRESS)
 parser.add_argument("--route_fallback_duration_seconds", type=float, default=0.5, help=argparse.SUPPRESS)
+parser.add_argument(
+    "--topdown_route_map",
+    action="store_true",
+    default=False,
+    help="Save a USD floor-slice occupancy map with outbound/return trajectories and route anchors.",
+)
+parser.add_argument("--topdown_map_resolution", type=float, default=0.05, help=argparse.SUPPRESS)
+parser.add_argument("--topdown_map_padding_m", type=float, default=3.0, help=argparse.SUPPRESS)
+parser.add_argument("--topdown_map_z_min", type=float, default=0.08, help=argparse.SUPPRESS)
+parser.add_argument("--topdown_map_z_max", type=float, default=2.2, help=argparse.SUPPRESS)
+parser.add_argument("--topdown_map_max_size_px", type=int, default=2400, help=argparse.SUPPRESS)
 
 
 # r2r argparse arguments
@@ -1158,6 +1185,38 @@ def main():
     )
     reference_path_xy = np.asarray([[p[0], p[1]] for p in episode["reference_path"]], dtype=np.float32)
     return_path_xy = np.asarray([[p[0], p[1]] for p in reversed(episode["reference_path"])], dtype=np.float32)
+    result_suffix = f"_{args_cli.result_suffix}" if args_cli.result_suffix else ""
+    result_dir = (
+        f"eval_results/round_trip_{args_cli.round_trip_mode}_{args_cli.task}_"
+        f"loco_{args_cli.load_run}{result_suffix}"
+    )
+    episode_output_id = int(episode["episode_id"]) - 1
+    trajectory_relpath = f"trajectories/output_{episode_output_id}.jsonl"
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
+    topdown_route_map = None
+    topdown_route_map_summary = {"enabled": False}
+    if args_cli.topdown_route_map:
+        try:
+            topdown_route_map = capture_occupancy_floor_slice(
+                episode,
+                resolution_m_per_px=args_cli.topdown_map_resolution,
+                padding_m=args_cli.topdown_map_padding_m,
+                z_min_above_floor_m=args_cli.topdown_map_z_min,
+                z_max_above_floor_m=args_cli.topdown_map_z_max,
+                max_size_px=args_cli.topdown_map_max_size_px,
+            )
+            print(
+                "[INFO] Captured USD floor-slice occupancy map: "
+                f"{topdown_route_map.meta['width_px']}x{topdown_route_map.meta['height_px']} px, "
+                f"{topdown_route_map.meta['mesh_triangles_rasterized']} rasterized triangles"
+            )
+        except Exception as exc:
+            topdown_route_map_summary = {
+                "enabled": True,
+                "error": str(exc),
+            }
+            print(f"[WARN] Unable to capture top-down occupancy map: {exc}")
     stream_output = ""
     vlm_vel_commands = [0.0, 0.0, 0.0]
     route_relocalizer = None
@@ -1191,6 +1250,20 @@ def main():
     )
     route_agent.vio_bridge_enabled = bool(getattr(args_cli, "vio_bridge", False))
     route_agent.vio_bridge_std_threshold_m = float(getattr(args_cli, "vio_bridge_std_m", 2.5))
+    stop_gate = None
+    if getattr(args_cli, "stop_gate", False):
+        stop_gate = ReturnStopGate(
+            r_in=float(getattr(args_cli, "stop_gate_r_in", 2.5)),
+            r_out=float(getattr(args_cli, "stop_gate_r_out", 3.0)),
+            confirm_steps=int(getattr(args_cli, "stop_gate_confirm_steps", 3)),
+            min_confidence=float(getattr(args_cli, "stop_gate_min_confidence", 0.5)),
+        )
+        print(
+            f"[stop_gate] enabled: r_in={stop_gate.r_in} r_out={stop_gate.r_out} "
+            f"confirm_steps={stop_gate.confirm_steps} "
+            f"min_confidence={stop_gate.min_confidence}",
+            flush=True,
+        )
     if args_cli.route_memory:
         route_agent.update_latest_anchor_metadata({
             "world_pose": [float(x) for x in get_robot_pose(env)],
@@ -1214,6 +1287,8 @@ def main():
     return_pose_error_after_oracle = None
     last_vlm_step = None
     force_capture_next_image = False
+    _gate_vlm_progress = None     # progress used at the last VLM query step
+    _last_gate_decision: GateDecision = None  # gate decision from the last VLM query
     # visualizer = define_markers()
     # simulate environment
     while simulation_app.is_running():
@@ -1223,6 +1298,7 @@ def main():
                 if phase in ("outbound", "return"):
                     query_instruction_text = current_instruction_text
                     route_hint_event = None
+                    _gate_vlm_progress = None   # reset each VLM step
                     if phase == "return" and args_cli.route_memory:
                         progress_override = route_progress_override(
                             args_cli.route_hint_source,
@@ -1230,6 +1306,7 @@ def main():
                             start_pos,
                             route_agent,
                         )
+                        _gate_vlm_progress = progress_override   # capture for stop gate
                         query_instruction_text, route_hint_event = route_agent.inject_hint(
                             current_instruction_text,
                             num_steps,
@@ -1274,7 +1351,39 @@ def main():
                         flush=True,
                     )
 
-                    if env_steps_to_go == 0 and "stop" in str(stream_output).lower():
+                    # --- Stop-gate arbiter (return phase only, no-op when disabled) ---
+                    _vlm_stop_requested = (
+                        env_steps_to_go == 0 and "stop" in str(stream_output).lower()
+                    )
+                    if stop_gate is not None and phase == "return":
+                        _last_gate_decision = stop_gate.check(
+                            progress=_gate_vlm_progress,
+                            vlm_issued_stop=_vlm_stop_requested,
+                        )
+                        phase_events.append({
+                            "step": int(num_steps),
+                            "phase": phase,
+                            "event": "stop_gate",
+                            **_last_gate_decision.as_log_dict(),
+                        })
+                        if _last_gate_decision.decision == "vetoed":
+                            vlm_vel_commands = list(_last_gate_decision.suggested_command)
+                            route_agent.update_action_history(vlm_vel_commands)
+                            env_steps_to_go = _last_gate_decision.suggested_steps
+                            target_steps = num_steps + env_steps_to_go
+                            _vlm_stop_requested = False
+                        elif _last_gate_decision.decision == "forced":
+                            _vlm_stop_requested = True
+                        print(
+                            f"[stop_gate] step={num_steps} "
+                            f"decision={_last_gate_decision.decision} "
+                            f"d={_last_gate_decision.authority_d} "
+                            f"conf={_last_gate_decision.conf:.3f} "
+                            f"teleport={_last_gate_decision.is_teleport_frame}",
+                            flush=True,
+                        )
+
+                    if _vlm_stop_requested:
                         stop_events.append({
                             "step": int(num_steps),
                             "phase": phase,
@@ -1372,6 +1481,9 @@ def main():
 
         obs, _, done, infos = env.step(torch.tensor(vlm_vel_commands, device = obs.device))
 
+        if stop_gate is not None and phase == "return":
+            stop_gate.notify_sim_step(get_robot_position(env))
+
         if args_cli.route_memory:
             action_delta = [
                 float(vlm_vel_commands[0]) * control_dt,
@@ -1430,7 +1542,7 @@ def main():
                     "oracle_route_lookahead_m": progress.oracle_route_lookahead_m,
                 }
 
-        trajectory_records.append(make_trajectory_record(
+        _traj_record = make_trajectory_record(
             num_steps,
             phase,
             env,
@@ -1442,7 +1554,10 @@ def main():
             return_path_xy,
             last_vlm_step,
             route_memory_progress,
-        ))
+        )
+        if stop_gate is not None and _last_gate_decision is not None:
+            _traj_record["stop_gate"] = _last_gate_decision.as_log_dict()
+        trajectory_records.append(_traj_record)
 
         distance_to_start = float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2]))
         if phase == "return" and return_start_step is not None and num_steps - return_start_step > max_return_steps:
@@ -1497,13 +1612,28 @@ def main():
     final_pos = get_robot_position(env)
     distance_to_start = float(np.linalg.norm(final_pos[:2] - start_pos[:2]))
     distance_to_goal = float(np.linalg.norm(final_pos[:2] - goal_pos[:2]))
-    result_suffix = f"_{args_cli.result_suffix}" if args_cli.result_suffix else ""
-    result_dir = (
-        f"eval_results/round_trip_{args_cli.round_trip_mode}_{args_cli.task}_"
-        f"loco_{args_cli.load_run}{result_suffix}"
-    )
-    episode_output_id = int(episode["episode_id"]) - 1
-    trajectory_relpath = f"trajectories/output_{episode_output_id}.jsonl"
+    route_memory_summary = route_agent.summary()
+    if topdown_route_map is not None:
+        try:
+            topdown_route_map_summary = save_topdown_route_map(
+                result_dir,
+                episode_output_id,
+                topdown_route_map,
+                trajectory_records,
+                route_memory_summary,
+                episode,
+            )
+            print(
+                "[INFO] Saved top-down route map: "
+                f"{topdown_route_map_summary['route_overlay_file']}"
+            )
+        except Exception as exc:
+            topdown_route_map_summary = {
+                "enabled": True,
+                "error": str(exc),
+                "meta": dict(topdown_route_map.meta),
+            }
+            print(f"[WARN] Unable to save top-down route map: {exc}")
     measurements["round_trip"] = {
         "mode": args_cli.round_trip_mode,
         "completed_phase": phase,
@@ -1550,11 +1680,16 @@ def main():
         "route_hint_source": args_cli.route_hint_source,
         "route_relocalization_backend": args_cli.route_relocalization_backend,
         "route_relocalization_diagnostics": route_relocalization_diagnostics,
-        "route_memory": route_agent.summary(),
+        "route_memory": route_memory_summary,
+        "topdown_route_map": topdown_route_map_summary,
+        "stop_gate": {
+            "enabled": stop_gate is not None,
+            "r_in": stop_gate.r_in if stop_gate is not None else None,
+            "r_out": stop_gate.r_out if stop_gate is not None else None,
+            "confirm_steps": stop_gate.confirm_steps if stop_gate is not None else None,
+            "min_confidence": stop_gate.min_confidence if stop_gate is not None else None,
+        },
     }
-
-    if not os.path.exists(result_dir):
-        os.makedirs(result_dir)
 
     trajectory_dir = os.path.join(result_dir, "trajectories")
     if not os.path.exists(trajectory_dir):
