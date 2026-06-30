@@ -237,7 +237,7 @@ def _draw_return_timestamps(
     return_records: list[dict],
     meta: dict,
     color: tuple[int, int, int],
-    max_labels: int = 6,
+    max_labels: int = 10,
 ) -> None:
     if len(return_records) < 2 or max_labels <= 0:
         return
@@ -260,7 +260,7 @@ def _draw_return_timestamps(
     total_distance = cumulative[-1]
     if total_distance < 1.0:
         return
-    sample_count = min(max_labels, max(1, int(total_distance // 18)))
+    sample_count = min(max_labels, max(1, int(total_distance // 12)))
     targets = np.linspace(
         total_distance / float(sample_count + 1),
         total_distance * sample_count / float(sample_count + 1),
@@ -268,51 +268,20 @@ def _draw_return_timestamps(
         dtype=np.float32,
     )
     sample_indices = [int(np.searchsorted(cumulative, float(target))) for target in targets]
-    used_boxes: list[tuple[int, int, int, int]] = [(0, 0, 108, 92)]
-    offsets = [(10, -12), (-54, -12), (10, 10), (-54, 10), (10, -30), (-54, -30)]
-    def overlaps(box: tuple[int, int, int, int]) -> bool:
-        x0, y0, x1, y1 = box
-        for ox0, oy0, ox1, oy1 in used_boxes:
-            if x0 <= ox1 and x1 >= ox0 and y0 <= oy1 and y1 >= oy0:
-                return True
-        return False
-
     for label_idx, record_idx in enumerate(sample_indices):
-        record = valid_records[min(int(record_idx), len(valid_records) - 1)]
-        step = int(record.get("step", first_step))
-        elapsed = step - first_step
         px, py = pixel_points[min(int(record_idx), len(pixel_points) - 1)]
-        label = f"R{elapsed}"
-        (text_w, text_h), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.42, 1)
-        chosen = None
-        for dx, dy in offsets[label_idx % len(offsets):] + offsets[:label_idx % len(offsets)]:
-            box_x0 = px + dx
-            box_y0 = py + dy
-            box_x0 = max(1, min(image.shape[1] - text_w - 8, box_x0))
-            box_y0 = max(1, min(image.shape[0] - text_h - baseline - 7, box_y0))
-            box_x1 = box_x0 + text_w + 6
-            box_y1 = box_y0 + text_h + baseline + 6
-            box = (box_x0, box_y0, box_x1, box_y1)
-            if not overlaps(box):
-                chosen = box
-                break
-        if chosen is None:
-            continue
-        box_x0, box_y0, box_x1, box_y1 = chosen
-        used_boxes.append(chosen)
-        cv2.circle(image, (px, py), 3, color, -1, lineType=cv2.LINE_AA)
-        cv2.circle(image, (px, py), 4, (255, 255, 255), 1, lineType=cv2.LINE_AA)
-        line_x = box_x0 + 3 if (box_x0 + box_x1) * 0.5 >= px else box_x1 - 3
-        cv2.line(image, (px, py), (int(line_x), box_y0 + text_h), color, 1, cv2.LINE_AA)
-        cv2.rectangle(image, (box_x0, box_y0), (box_x1, box_y1), (255, 255, 255), -1)
-        cv2.rectangle(image, (box_x0, box_y0), (box_x1, box_y1), color, 1)
+        label = str(label_idx + 1)
+        radius = 4
+        cv2.circle(image, (px, py), radius + 2, (255, 255, 255), -1, lineType=cv2.LINE_AA)
+        cv2.circle(image, (px, py), radius + 2, (20, 20, 20), 1, lineType=cv2.LINE_AA)
+        cv2.circle(image, (px, py), radius, color, -1, lineType=cv2.LINE_AA)
         cv2.putText(
             image,
             label,
-            (box_x0 + 3, box_y1 - baseline - 3),
+            (px - 3 if len(label) == 1 else px - 6, py + 4),
             cv2.FONT_HERSHEY_SIMPLEX,
-            0.42,
-            color,
+            0.30,
+            (255, 255, 255),
             1,
             cv2.LINE_AA,
         )
@@ -387,9 +356,9 @@ def render_route_overlay(
         [float(r["position"][0]), float(r["position"][1])]
         for r in return_records
     ]
-    _dashed_polyline(image, outbound, meta, (230, 105, 35), thickness=1, dash_px=4.0, gap_px=16.0)
-    _dashed_polyline(image, ret, meta, (35, 75, 230), thickness=1, dash_px=4.0, gap_px=16.0)
-    _draw_return_timestamps(image, return_records, meta, (35, 75, 230))
+    _dashed_polyline(image, outbound, meta, (230, 105, 35), thickness=1, dash_px=8.0, gap_px=5.0)
+    _dashed_polyline(image, ret, meta, (35, 75, 230), thickness=1, dash_px=8.0, gap_px=5.0)
+    _draw_return_timestamps(image, return_records, meta, (200, 40, 200))
 
     anchors = (route_memory_summary or {}).get("anchors") or []
     for anchor in anchors:
@@ -414,6 +383,7 @@ def render_route_overlay(
         ((55, 55, 55), "occupied"),
         ((230, 105, 35), "outbound"),
         ((35, 75, 230), "return"),
+        ((200, 40, 200), "return order"),
         ((0, 220, 255), "anchor"),
     ]
     for idx, (color, label) in enumerate(legend):
