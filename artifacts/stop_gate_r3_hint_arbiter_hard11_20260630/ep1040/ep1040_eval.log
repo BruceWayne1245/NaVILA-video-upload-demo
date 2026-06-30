@@ -1,0 +1,1277 @@
+[3g
+H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H   
+[INFO] Using python from: /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/bin/python
+[Warning] [omni.isaac.kit.simulation_app] Modules: ['omni.kit_app'] were loaded before SimulationApp was started and might not be loaded correctly.
+[Warning] [omni.isaac.kit.simulation_app] Please check to make sure no extra omniverse or pxr modules are imported before the call to SimulationApp(...)
+Loading user config located at: '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni/data/Kit/Isaac-Sim/4.1/user.config.json'
+[Info] [carb] Logging to file: /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni/logs/Kit/Isaac-Sim/4.1/kit_20260630_161946.log
+2026-06-30 15:19:46 [0ms] [Warning] [omni.kit.app.plugin] No crash reporter present, dumps uploading isn't available.
+[0.021s] [ext: omni.kit.async_engine-0.0.0] startup
+[0.061s] [ext: omni.stats-1.0.1] startup
+[0.061s] [ext: omni.client-1.1.0] startup
+[0.075s] [ext: omni.datastore-0.0.0] startup
+[0.075s] [ext: omni.blobkey-1.1.0] startup
+[0.075s] [ext: omni.ujitso.default-1.0.0] startup
+[0.076s] [ext: omni.hsscclient-0.0.0] startup
+[0.076s] [ext: omni.rtx.shadercache.vulkan-1.0.0] startup
+[0.076s] [ext: omni.assets.plugins-0.0.0] startup
+[0.077s] [ext: omni.gpu_foundation-0.0.0] startup
+[0.081s] [ext: carb.windowing.plugins-1.0.0] startup
+2026-06-30 15:19:46 [72ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-30 15:19:46 [72ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.082s] [ext: omni.kit.renderer.init-0.0.0] startup
+2026-06-30 15:19:46 [85ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 570.124.06    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 4090          | Yes: 0 |     | 24564   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2684      | 5493c24e.. |
+|     |                                  |        |     |            | 1         |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-111-generic
+| Processor: Intel(R) Core(TM) i9-14900K | Cores: 24 | Logical: 48
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 128516 | Free Memory: 115517
+| Total Page/Swap (MB): 2047 | Free Page/Swap: 1959
+|---------------------------------------------------------------------------------------------|
+2026-06-30 15:19:46 [490ms] [Warning] [gpu.foundation.plugin] IOMMU is enabled.
+[0.597s] [ext: omni.kit.pipapi-0.0.0] startup
+[0.598s] [ext: omni.kit.pip_archive-0.0.0] startup
+[0.598s] [ext: omni.mtlx-0.1.0] startup
+[0.598s] [ext: omni.usd.config-1.0.4] startup
+[0.600s] [ext: omni.gpucompute.plugins-0.0.0] startup
+[0.600s] [ext: omni.usd.libs-1.0.1] startup
+[0.654s] [ext: omni.kit.telemetry-0.5.0] startup
+[0.669s] [ext: omni.kit.loop-isaac-1.2.0] startup
+[0.670s] [ext: omni.kit.test-0.0.0] startup
+[0.692s] [ext: omni.usd.schema.semantics-0.0.0] startup
+[0.753s] [ext: omni.usd.schema.anim-0.0.0] startup
+[0.764s] [ext: omni.usd.schema.physx-106.0.20] startup
+[0.788s] [ext: omni.usd.schema.omnigraph-1.0.0] startup
+[0.792s] [ext: omni.usd.schema.audio-0.0.0] startup
+[0.794s] [ext: omni.usd.schema.geospatial-0.0.0] startup
+[0.796s] [ext: omni.usd.schema.forcefield-106.0.20] startup
+[0.799s] [ext: omni.usd_resolver-1.0.0] startup
+[0.803s] [ext: usdrt.scenegraph-7.4.8] startup
+[0.830s] [ext: omni.appwindow-1.1.8] startup
+2026-06-30 15:19:47 [821ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-30 15:19:47 [821ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.832s] [ext: omni.kit.actions.core-1.0.0] startup
+[0.833s] [ext: omni.kit.renderer.core-1.0.1] startup
+2026-06-30 15:19:47 [824ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-30 15:19:47 [824ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-06-30 15:19:47 [830ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-30 15:19:47 [830ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.841s] [ext: omni.kit.commands-1.4.9] startup
+[0.842s] [ext: omni.kit.renderer.capture-0.0.0] startup
+[0.844s] [ext: omni.graph.exec-0.9.3] startup
+[0.844s] [ext: omni.kit.renderer.imgui-1.0.1] startup
+2026-06-30 15:19:47 [836ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-30 15:19:47 [836ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-06-30 15:19:47 [837ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-30 15:19:47 [837ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-06-30 15:19:47 [837ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-30 15:19:47 [837ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.884s] [ext: carb.audio-0.1.0] startup
+[0.886s] [ext: omni.ui-2.23.11] startup
+[0.892s] [ext: omni.kit.usd_undo-0.1.8] startup
+[0.892s] [ext: omni.kit.exec.core-0.13.2] startup
+[0.893s] [ext: omni.kit.audiodeviceenum-1.0.1] startup
+[0.894s] [ext: omni.activity.core-1.0.1] startup
+[0.895s] [ext: omni.kit.window.popup_dialog-2.0.24] startup
+[0.897s] [ext: omni.usd.core-1.2.11] startup
+[0.900s] [ext: omni.resourcemonitor-105.0.1] startup
+[0.901s] [ext: omni.timeline-1.0.10] startup
+[0.902s] [ext: omni.kit.widget.nucleus_connector-1.1.8] startup
+[0.903s] [ext: omni.hydra.usdrt_delegate-7.4.7] startup
+[0.921s] [ext: omni.hydra.scene_delegate-0.3.3] startup
+[0.927s] [ext: omni.usd-1.11.2] startup
+[0.952s] [ext: omni.kit.helper.file_utils-0.1.8] startup
+[0.953s] [ext: omni.kit.widget.path_field-2.0.9] startup
+[0.953s] [ext: omni.kit.widget.options_menu-1.1.4] startup
+[0.955s] [ext: omni.kit.widget.context_menu-1.2.1] startup
+[0.955s] [ext: omni.kit.widget.filebrowser-2.10.48] startup
+[0.957s] [ext: omni.kit.widget.browser_bar-2.0.10] startup
+[0.957s] [ext: omni.kit.widget.options_button-1.0.2] startup
+[0.958s] [ext: omni.ui.scene-1.9.3] startup
+[0.960s] [ext: omni.kit.notification_manager-1.0.8] startup
+[0.961s] [ext: omni.kit.clipboard-1.0.3] startup
+[0.961s] [ext: omni.kit.window.filepicker-2.10.34] startup
+[0.966s] [ext: omni.ujitso.processor.texture-1.0.0] startup
+[0.967s] [ext: omni.iray.libs-0.0.0] startup
+[0.970s] [ext: omni.kit.window.file_importer-1.1.11] startup
+[0.971s] [ext: omni.ujitso.client-0.0.0] startup
+[0.971s] [ext: omni.mdl.neuraylib-0.2.5] startup
+[0.972s] [ext: omni.mdl-52.0.1] startup
+[0.981s] [ext: omni.kit.menu.utils-1.5.27] startup
+[0.986s] [ext: omni.kit.usd.layers-2.1.31] startup
+[0.992s] [ext: omni.volume-0.5.0] startup
+[0.993s] [ext: omni.kit.context_menu-1.8.0] startup
+[0.994s] [ext: omni.hydra.rtx-0.2.0] startup
+[1.005s] [ext: omni.kit.material.library-1.4.4] startup
+[1.007s] [ext: omni.hydra.engine.stats-1.0.2] startup
+[1.010s] [ext: omni.kit.hydra_texture-1.2.6] startup
+[1.014s] [ext: omni.kit.viewport.registry-104.0.6] startup
+[1.014s] [ext: omni.kit.raycast.query-1.0.5] startup
+[1.021s] [ext: omni.kit.hotkeys.core-1.3.3] startup
+[1.023s] [ext: omni.kit.widget.viewport-106.0.3] startup
+[1.025s] [ext: omni.inspect-1.0.1] startup
+[1.026s] [ext: omni.kit.viewport.window-106.0.8] startup
+[1.034s] [ext: omni.kit.window.file_exporter-1.0.29] startup
+[1.035s] [ext: omni.kit.widget.filter-1.1.4] startup
+[1.035s] [ext: omni.kit.viewport.utility-1.0.17] startup
+[1.035s] [ext: omni.kit.widget.prompt-1.0.7] startup
+[1.036s] [ext: omni.kit.widget.stage-2.10.26] startup
+[1.040s] [ext: omni.graph.core-2.170.3] startup
+[1.043s] [ext: omni.kit.widget.text_editor-1.0.2] startup
+[1.044s] [ext: omni.physx.foundation-106.0.20] startup
+[1.044s] [ext: omni.kit.widget.searchfield-1.1.6] startup
+[1.045s] [ext: omni.kit.widget.highlight_label-1.0.2] startup
+[1.045s] [ext: omni.kit.widget.settings-1.1.1] startup
+[1.046s] [ext: omni.kit.window.property-1.11.1] startup
+[1.047s] [ext: omni.graph.tools-1.78.0] startup
+[1.056s] [ext: omni.kit.window.preferences-1.5.3] startup
+[1.060s] [ext: omni.kit.property.usd-3.21.28] startup
+[1.065s] [ext: omni.graph-1.135.0] startup
+[1.085s] [ext: omni.graph.image.core-0.3.2] startup
+[1.089s] [ext: omni.graph.ui-1.70.0] startup
+[1.096s] [ext: omni.graph.action_core-1.1.4] startup
+[1.103s] [ext: omni.graph.image.nodes-1.0.2] startup
+[1.104s] [ext: omni.graph.action_nodes-1.23.0] startup
+[1.111s] [ext: omni.graph.nodes-1.143.0] startup
+[1.119s] [ext: omni.graph.action-1.102.1] startup
+[1.121s] [ext: omni.kvdb-106.0.20] startup
+[1.124s] [ext: omni.debugdraw-0.1.3] startup
+[1.129s] [ext: omni.usdphysics-106.0.20] startup
+[1.132s] [ext: omni.localcache-106.0.20] startup
+[1.134s] [ext: omni.convexdecomposition-106.0.20] startup
+[1.138s] [ext: omni.graph.ui_nodes-1.25.1] startup
+[1.143s] [ext: omni.physx.cooking-106.0.20] startup
+[1.153s] [ext: omni.graph.bundle.action-2.0.4] startup
+[1.154s] [ext: omni.kit.stage_template.core-1.1.21] startup
+[1.156s] [ext: omni.physx-106.0.20] startup
+[1.168s] [ext: omni.graph.scriptnode-1.19.1] startup
+[1.171s] [ext: omni.physx.stageupdate-106.0.20] startup
+[1.175s] [ext: omni.kit.primitive.mesh-1.0.16] startup
+[1.185s] [ext: omni.kit.manipulator.transform-104.7.5] startup
+[1.189s] [ext: omni.kit.widget.toolbar-1.6.2] startup
+[1.210s] [ext: omni.usdphysics.ui-106.0.20] startup
+[1.244s] [ext: omni.physx.commands-106.0.20] startup
+[1.247s] [ext: omni.kit.manipulator.tool.snap-1.4.5] startup
+[1.252s] [ext: omni.kit.stage_templates-1.2.3] startup
+[1.257s] [ext: omni.physx.ui-106.0.20] startup
+[1.280s] [ext: omni.kit.window.file-1.3.52] startup
+[1.283s] [ext: omni.kit.property.material-1.9.4] startup
+[1.287s] [ext: omni.physics.tensors-106.0.20] startup
+[1.292s] [ext: omni.physx.demos-106.0.20] startup
+[1.369s] [ext: omni.kit.property.physx-106.0.20] startup
+[1.408s] [ext: omni.physx.tensors-106.0.20] startup
+[1.413s] [ext: omni.physx.vehicle-106.0.20] startup
+[1.423s] [ext: omni.sensors.tiled-0.0.4] startup
+[1.426s] [ext: omni.physx.camera-106.0.20] startup
+[1.432s] [ext: omni.kit.manipulator.selector-1.1.1] startup
+[1.434s] [ext: omni.ui_query-1.1.2] startup
+[1.434s] [ext: omni.fabric.commands-1.1.4] startup
+[1.438s] [ext: omni.kit.viewport.manipulator.transform-106.0.1] startup
+[1.439s] [ext: omni.kit.ui_test-1.2.18] startup
+[1.440s] [ext: omni.kit.widget.graph-1.12.8] startup
+[1.443s] [ext: omni.kit.manipulator.prim.core-107.0.3] startup
+[1.446s] [ext: omni.physx.cct-106.0.20] startup
+[1.453s] [ext: omni.kit.graph.delegate.default-1.2.2] startup
+[1.454s] [ext: omni.kit.manipulator.prim.fabric-106.0.1] startup
+[1.456s] [ext: omni.kit.manipulator.prim.usd-106.0.1] startup
+[1.458s] [ext: omni.kit.graph.editor.core-1.5.3] startup
+[1.459s] [ext: omni.kit.widget.material_preview-1.0.16] startup
+[1.462s] [ext: omni.kit.manipulator.prim-106.0.0] startup
+[1.463s] [ext: omni.kit.graph.usd.commands-1.3.1] startup
+[1.464s] [ext: omni.kit.window.toolbar-1.6.1] startup
+[1.465s] [ext: omni.kit.widget.layers-1.7.9] startup
+[1.470s] [ext: omni.kit.manipulator.selection-104.0.9] startup
+[1.471s] [ext: omni.physx.graph-106.0.20] startup
+[1.481s] [ext: omni.physx.telemetry-106.0.20] startup
+[1.484s] [ext: omni.physx.supportui-106.0.20] startup
+[1.494s] [ext: omni.kit.window.material_graph-1.8.15] startup
+[1.545s] [ext: omni.warp.core-1.2.1] startup
+[1.548s] [ext: omni.syntheticdata-0.6.7] startup
+[1.559s] [ext: omni.isaac.version-1.1.0] startup
+[1.560s] [ext: omni.warp-1.2.1] startup
+[1.564s] [ext: omni.physx.bundle-106.0.20] startup
+[1.564s] [ext: omni.command.usd-1.0.3] startup
+[1.566s] [ext: omni.isaac.nucleus-0.3.0] startup
+[1.567s] [ext: omni.replicator.core-1.11.14] startup
+2026-06-30 15:19:47 [1,675ms] [Warning] [omni.replicator.core.scripts.annotators] Annotator PostProcessDispatch is already registered, overwriting annotator template
+[1.739s] [ext: omni.isaac.core-3.18.1] startup
+[1.850s] [ext: omni.isaac.kit-1.13.0] startup
+[1.853s] [ext: omni.replicator.isaac-1.15.0] startup
+[1.876s] [ext: omni.physx.fabric-106.0.20] startup
+[1.882s] [ext: omni.isaac.cloner-0.8.1] startup
+[1.884s] [ext: omni.kit.viewport.rtx-104.0.1] startup
+[1.885s] [ext: isaaclab.python.headless-1.1.0] startup
+[1.885s] [ext: isaaclab.python.headless.rendering-1.1.0] startup
+[1.889s] Simulation App Starting
+[3.128s] app ready
+[3.290s] Simulation App Startup Complete
+[4.056s] [ext: omni.kit.asset_converter-2.1.11] startup
+2026-06-30 15:19:52 [6,531ms] [Warning] [omni.hydra.scene_delegate.plugin] Calling getBypassRenderSkelMeshProcessing for prim /World/envs/env_0/Robot/RL_foot/visuals.proto_mesh_0_id0 that has not been populated
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55278 doesn't match expected size 90402 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90402 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55254 doesn't match expected size 90378 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90378 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_thigh/visuals.proto_me[INFO][AppLauncher]: Loading experience file: /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/source/extensions/omni.isaac.lab/omni/isaac/lab/app/../../../../../../apps/isaaclab.python.headless.rendering.kit
+Starting kit application with the following args:  ['/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/exts/omni.isaac.kit/omni/isaac/kit/simulation_app.py', '/mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/source/extensions/omni.isaac.lab/omni/isaac/lab/app/../../../../../../apps/isaaclab.python.headless.rendering.kit', '--/app/tokens/exe-path=/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni', '--/persistent/app/viewport/displayOptions=3094', '--/rtx/materialDb/syncLoads=True', '--/rtx/hydra/materialSyncLoads=True', '--/omni.kit.plugin/syncUsdLoads=True', '--/app/renderer/resolution/width=1280', '--/app/renderer/resolution/height=720', '--/app/window/width=1440', '--/app/window/height=900', '--/renderer/multiGpu/enabled=True', '--/app/fastShutdown=True', '--ext-folder', '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/exts', '--ext-folder', '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/apps', '--/renderer/activeGpu=0', '--/physics/cudaDevice=0', '--portable', '--no-window', '--/app/window/hideUi=True']
+Passing the following args to the base kit application:  ['--task=go2_matterport_vision', '--num_envs=1', '--history_length=9', '--load_run=2024-09-25_23-22-02', '--headless', '--enable_cameras', '--round_trip_mode=phase_prompt', '--instruction_rewriter_provider=cache_only', '--vlm_port=55361', '--episode_idx=1040', '--result_suffix=stop_gate_r3_hint_arbiter_hard11_20260630_ep1040', '--route_memory', '--route_hint_mode=compact', '--route_hint_source=oracle', '--route_relocalization_backend=none', '--oracle_align_return_yaw_to_anchor_segment', '--stop_gate', '--stop_gate_r_in=3.0', '--stop_gate_r_out=3.0', '--stop_gate_confirm_steps=3', '--stop_gate_min_confidence=0.5', '--topdown_route_map', '--hint_action_arbiter']
+Warp 1.2.1 initialized:
+   CUDA Toolkit 11.8, Driver 12.8
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA GeForce RTX 4090" (24 GiB, sm_89, mempool enabled)
+   Kernel cache:
+     /home/teambruce/.cache/warp/1.2.1
+[INFO]: Parsing configuration from: <class 'omni.isaac.vlnce.config.go2.go2_matterport_vision_cfg.Go2MatterportVisionCfg'>
+[INFO]: Parsing configuration from: <class 'omni.isaac.vlnce.config.go2.go2_matterport_vision_cfg.Go2VisionRoughPPORunnerCfg'>
+[INFO] Loading run from directory: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02
+[INFO]: Loading model checkpoint from: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02/model_26499.pt
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+	Physics GPU pipeline  : True
+	Physics GPU simulation: True
+[INFO]: Time taken for scene creation : 1.373843 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 1
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/matterport']
+	Replicate physics     : True
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 0.816001 seconds
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++------------------------------------------------+
+|              Active Command Terms              |
++-------+---------------+------------------------+
+| Index | Name          |          Type          |
++-------+---------------+------------------------+
+|   0   | base_velocity | UniformVelocityCommand |
++-------+---------------+------------------------+
+
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++------------------------------------+
+|  Active Action Terms (shape: 12)   |
++--------+-------------+-------------+
+| Index  | Name        |   Dimension |
++--------+-------------+-------------+
+|   0    | joint_pos   |          12 |
++--------+-------------+-------------+
+
+Module omni.isaac.lab.utils.warp.kernels ca938a1 load on device 'cuda:0' took 0.24 ms
+[INFO] Observation Manager: <ObservationManager> contains 9 groups.
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (504,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_ang_vel                   |     (3,)    |
+|     1     | base_rpy                       |     (3,)    |
+|     2     | velocity_commands              |     (3,)    |
+|     3     | joint_pos                      |    (12,)    |
+|     4     | joint_vel                      |    (12,)    |
+|     5     | actions                        |    (12,)    |
+|     6     | height_map                     |    (459,)   |
++-----------+--------------------------------+-------------+
++---------------------------------------------------------+
+| Active Observation Terms in Group: 'proprio' (shape: (45,)) |
++-----------+---------------------------------+-----------+
+|   Index   | Name                            |   Shape   |
++-----------+---------------------------------+-----------+
+|     0     | base_ang_vel                    |    (3,)   |
+|     1     | base_rpy                        |    (3,)   |
+|     2     | velocity_commands               |    (3,)   |
+|     3     | joint_pos                       |   (12,)   |
+|     4     | joint_vel                       |   (12,)   |
+|     5     | actions                         |   (12,)   |
++-----------+---------------------------------+-----------+
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (699,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_lin_vel                   |     (3,)    |
+|     1     | base_ang_vel                   |     (3,)    |
+|     2     | base_rpy                       |     (3,)    |
+|     3     | velocity_commands              |     (3,)    |
+|     4     | joint_pos                      |    (12,)    |
+|     5     | joint_vel                      |    (12,)    |
+|     6     | actions                        |    (12,)    |
+|     7     | height_scan                    |    (651,)   |
++-----------+--------------------------------+-------------+
++----------------------------------------------------------------------+
+| Active Observation Terms in Group: 'camera_obs' (shape: (512, 512, 4)) |
++------------+------------------------------+--------------------------+
+|   Index    | Name                         |          Shape           |
++------------+------------------------------+--------------------------+
+|     0      | rgb_measurement              |      (512, 512, 4)       |
++------------+------------------------------+--------------------------+
++------------------------------------------------------------------------+
+| Active Observation Terms in Group: 'viz_camera_obs' (shape: (512, 512, 4)) |
++------------+-------------------------------+---------------------------+
+|   Index    | Name                          |           Shape           |
++------------+-------------------------------+---------------------------+
+|     0      | rgb_measurement               |       (512, 512, 4)       |
++------------+-------------------------------+---------------------------+
++---------------------------------------------------------------------+
+| Active Observation Terms in Group: 'depth_obs' (shape: (1, 512, 512)) |
++-----------+-------------------------------+-------------------------+
+|   Index   | Name                          |          Shape          |
++-----------+-------------------------------+-------------------------+
+|     0     | depth_measurement             |      (1, 512, 512)      |
++-----------+-------------------------------+-------------------------+
++-------------------------------------------------------------------------+
+| Active Observation Terms in Group: 'rear_camera_obs' (shape: (512, 512, 4)) |
++------------+-------------------------------+----------------------------+
+|   Index    | Name                          |           Shape            |
++------------+-------------------------------+----------------------------+
+|     0      | rgb_measurement               |       (512, 512, 4)        |
++------------+-------------------------------+----------------------------+
++-------------------------------------------------------------------------+
+| Active Observation Terms in Group: 'rear_depth_obs' (shape: (1, 512, 512)) |
++------------+---------------------------------+--------------------------+
+|   Index    | Name                            |          Shape           |
++------------+---------------------------------+--------------------------+
+|     0      | depth_measurement               |      (1, 512, 512)       |
++------------+---------------------------------+--------------------------+
++---------------------------------------------------+
+| Active Observation Terms in Group: 'route_memory_obs' |
++------------+-----------------------+--------------+
+|   Index    | Name                  |    Shape     |
++------------+-----------------------+--------------+
+|     0      | height_map            |    (459,)    |
+|     1      | height_scan           |    (651,)    |
++------------+-----------------------+--------------+
+
+[INFO] Event Manager:  <EventManager> contains 1 active terms.
++-------------------------------------+
+| Active Event Terms in Mode: 'reset' |
++--------+----------------------------+
+| Index  | Name                       |
++--------+----------------------------+
+|   0    | reset_scene_to_default     |
+|   1    | reset_base                 |
++--------+----------------------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 3 active terms.
++------------------------------------+
+|      Active Termination Terms      |
++-------+-----------------+----------+
+| Index | Name            | Time Out |
++-------+-----------------+----------+
+|   0   | time_out        |   True   |
+|   1   | base_contact    |  False   |
+|   2   | bad_orientation |  False   |
++-------+-----------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 1 active terms.
++--------------------------------------+
+|         Active Reward Terms          |
++-------+---------------------+--------+
+| Index | Name                | Weight |
++-------+---------------------+--------+
+|   0   | termination_penalty | -200.0 |
++-------+---------------------+--------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.
++----------------------+
+| Active Curriculum Terms |
++-----------+----------+
+|   Index   | Name     |
++-----------+----------+
++-----------+----------+
+
+[INFO]: Completed setting up the environment...
+ActorCritic.__init__ got unexpected arguments, which will be ignored: ['history_length']
+Actor MLP: Sequential(
+  (0): Linear(in_features=909, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=12, bias=True)
+)
+Critic MLP: Sequential(
+  (0): Linear(in_features=699, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=1, bias=True)
+)
+[INFO]: Loading model checkpoint from: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02/model_26499.pt
+Warmup step 0/100...
+Warmup step 99/100...
+[INFO] Captured USD floor-slice occupancy map: 236x216 px, 18162 rasterized triangles
+[stop_gate] enabled: r_in=3.0 r_out=3.0 confirm_steps=3 min_confidence=0.5
+[hint_arbiter] enabled: topdown_map_available=True allow_without_clear_path=False
+Not enough images received, padding.
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+Not enough images received, padding.
+[outbound] VLM output: The next action is turn left 30 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 50, Parseable: True
+
+Not enough images received, padding.
+[outbound] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+Not enough images received, padding.
+[outbound] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn left 30 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 50, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 30 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 50, Parseable: True
+
+[outbound] VLM output: The next action is turn right 30 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 50, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 25 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 25 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[return] start step=2450, oracle=False, pose_error_after_oracle={'xy_error_m': 0.7110657691955566, 'z_error_m': 0.0, 'yaw_error_rad': -0.002698926729524098, 'yaw_error_deg': -0.1546371108167771}
+[return] step=2450, elapsed_return_steps=0, distance_to_start=6.690
+Not enough images received, padding.
+[hint_arbiter] step=2451 override=False reason=occupied_in_hint_path desired=forward bearing=0.8576909307732744 clear=False
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2451 decision=pass d=10.859706417593923 conf=1.000 teleport=False
+Not enough images received, padding.
+[hint_arbiter] step=2526 override=False reason=vlm_action_consistent desired=right bearing=-27.541058379724358 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2526 decision=pass d=10.7491139881156 conf=1.000 teleport=False
+Not enough images received, padding.
+[hint_arbiter] step=2601 override=False reason=vlm_action_consistent desired=right bearing=-30.197281561839066 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=2601 decision=pass d=10.251960003335046 conf=1.000 teleport=False
+[hint_arbiter] step=2626 override=False reason=vlm_action_consistent desired=right bearing=-22.777773516928416 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=2626 decision=pass d=10.187013723796854 conf=1.000 teleport=False
+[hint_arbiter] step=2651 override=False reason=vlm_action_consistent desired=right bearing=-15.605452876385897 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2651 decision=pass d=10.16720216635886 conf=1.000 teleport=False
+[hint_arbiter] step=2726 override=False reason=vlm_action_consistent desired=right bearing=-24.798190189998593 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=2726 decision=pass d=9.471801848490221 conf=1.000 teleport=False
+[hint_arbiter] step=2751 override=False reason=vlm_action_consistent desired=right bearing=-18.459448725497182 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2751 decision=pass d=9.415650806472295 conf=1.000 teleport=False
+[hint_arbiter] step=2826 override=False reason=vlm_action_consistent desired=forward bearing=-10.042887107258702 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2826 decision=pass d=8.61770927498676 conf=1.000 teleport=False
+[hint_arbiter] step=2901 override=False reason=vlm_action_consistent desired=forward bearing=-13.876314683244159 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2901 decision=pass d=8.039305832396472 conf=1.000 teleport=False
+[return] step=2950, elapsed_return_steps=500, distance_to_start=5.700
+[hint_arbiter] step=2976 override=False reason=vlm_action_consistent desired=left bearing=31.698353273634805 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=2976 decision=pass d=7.334627843857264 conf=1.000 teleport=False
+[hint_arbiter] step=3001 override=False reason=vlm_action_consistent desired=left bearing=22.4888675084236 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=3001 decision=pass d=7.278563220104112 conf=1.000 teleport=False
+[hint_arbiter] step=3026 override=False reason=occupied_in_hint_path desired=forward bearing=11.36880463618922 clear=False
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=3026 decision=pass d=7.271473171619354 conf=1.000 teleport=False
+[hint_arbiter] step=3051 override=False reason=vlm_action_consistent desired=forward bearing=6.176884577723398 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3051 decision=pass d=7.26528906972574 conf=1.000 teleport=False
+[hint_arbiter] step=3126 override=False reason=vlm_action_consistent desired=left bearing=43.12758305883139 clear=None
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3126 decision=pass d=6.74678587018145 conf=1.000 teleport=False
+[hint_arbiter] step=3201 override=False reason=vlm_action_consistent desired=forward bearing=10.290410567552577 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3201 decision=pass d=6.661220784381493 conf=1.000 teleport=False
+[hint_arbiter] step=3276 override=False reason=vlm_action_consistent desired=left bearing=15.990925350649825 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3276 decision=pass d=6.051116970958855 conf=1.000 teleport=False
+[hint_arbiter] step=3351 override=False reason=vlm_action_consistent desired=left bearing=18.558963297430708 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3351 decision=pass d=5.4826396353556 conf=1.000 teleport=False
+[hint_arbiter] step=3426 override=False reason=occupied_in_hint_path desired=left bearing=41.78091559212653 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3426 decision=pass d=4.457089114787884 conf=1.000 teleport=False
+[return] step=3450, elapsed_return_steps=1000, distance_to_start=3.599
+[hint_arbiter] step=3501 override=False reason=occupied_in_hint_path desired=left bearing=62.15126856825883 clear=False
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3501 decision=pass d=4.099316025764278 conf=1.000 teleport=False
+[hint_arbiter] step=3576 override=False reason=occupied_in_hint_path desired=left bearing=97.75908549761783 clear=False
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3576 decision=pass d=4.067138179392581 conf=1.000 teleport=False
+[hint_arbiter] step=3651 override=False reason=occupied_in_hint_path desired=left bearing=132.53752237873627 clear=False
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3651 decision=pass d=4.088721391710798 conf=1.000 teleport=False
+[hint_arbiter] step=3726 override=False reason=occupied_in_hint_path desired=left bearing=164.12459042537154 clear=False
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3726 decision=pass d=4.142623215758662 conf=1.000 teleport=False
+[hint_arbiter] step=3801 override=False reason=vlm_action_consistent desired=right bearing=-165.91424569368985 clear=None
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3801 decision=pass d=4.20689838474076 conf=1.000 teleport=False
+[hint_arbiter] step=3876 override=False reason=vlm_action_consistent desired=right bearing=-137.25674162239545 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=3876 decision=pass d=4.272835858756206 conf=1.000 teleport=False
+[hint_arbiter] step=3901 override=False reason=vlm_action_consistent desired=right bearing=-128.25729691675318 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=3901 decision=pass d=4.293255225407373 conf=1.000 teleport=False
+[hint_arbiter] step=3926 override=False reason=vlm_action_consistent desired=right bearing=-118.59272885713821 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=3926 decision=pass d=4.3035636843011895 conf=1.000 teleport=False
+[return] step=3950, elapsed_return_steps=1500, distance_to_start=3.259
+[hint_arbiter] step=3951 override=False reason=vlm_action_consistent desired=right bearing=-110.10499210274874 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=3951 decision=pass d=4.315546881612262 conf=1.000 teleport=False
+[hint_arbiter] step=3976 override=False reason=occupied_in_hint_path desired=right bearing=-101.42330048339875 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3976 decision=pass d=4.328051853387131 conf=1.000 teleport=False
+[hint_arbiter] step=4051 override=False reason=occupied_in_hint_path desired=right bearing=-124.73782754967932 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4051 decision=pass d=4.535247728237004 conf=1.000 teleport=False
+[hint_arbiter] step=4126 override=False reason=occupied_in_hint_path desired=right bearing=-152.81526111955057 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4126 decision=pass d=5.456350119447163 conf=1.000 teleport=False
+[hint_arbiter] step=4201 override=False reason=vlm_action_consistent desired=right bearing=-164.66429258747345 clear=None
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4201 decision=pass d=6.027544560368263 conf=1.000 teleport=False
+[hint_arbiter] step=4276 override=False reason=vlm_action_consistent desired=right bearing=-141.5189038723628 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=4276 decision=pass d=6.222220987548836 conf=1.000 teleport=False
+[hint_arbiter] step=4301 override=False reason=vlm_action_consistent desired=right bearing=-138.46258619517715 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=4301 decision=pass d=6.249865919442547 conf=1.000 teleport=False
+[hint_arbiter] step=4326 override=False reason=occupied_in_hint_path desired=right bearing=-129.4223354660922 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4326 decision=pass d=6.301318368748703 conf=1.000 teleport=False
+[hint_arbiter] step=4401 override=False reason=vlm_action_consistent desired=right bearing=-144.1472777289425 clear=None
+[return] VLM output: The next action is turn right 30 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 50, Parseable: True
+
+[stop_gate] step=4401 decision=pass d=6.727320119241212 conf=1.000 teleport=False
+[return] step=4450, elapsed_return_steps=2000, distance_to_start=5.591
+[hint_arbiter] step=4451 override=False reason=occupied_in_hint_path desired=right bearing=-126.17684006745772 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4451 decision=vetoed d=6.827535014686942 conf=1.000 teleport=False
+[hint_arbiter] step=4461 override=False reason=vlm_action_consistent desired=right bearing=-123.65001949653264 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=4461 decision=pass d=6.840704389308165 conf=1.000 teleport=False
+[hint_arbiter] step=4486 override=False reason=occupied_in_hint_path desired=right bearing=-114.87210510653838 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4486 decision=vetoed d=6.89176491407396 conf=1.000 teleport=False
+[hint_arbiter] step=4496 override=False reason=occupied_in_hint_path desired=right bearing=-112.49207481110459 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4496 decision=vetoed d=6.908448751130984 conf=1.000 teleport=False
+[hint_arbiter] step=4506 override=False reason=occupied_in_hint_path desired=right bearing=-110.7082839426808 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4506 decision=vetoed d=6.931392268278981 conf=1.000 teleport=False
+[hint_arbiter] step=4516 override=False reason=occupied_in_hint_path desired=right bearing=-109.2950008936376 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4516 decision=vetoed d=6.957390192572597 conf=1.000 teleport=False
+[hint_arbiter] step=4526 override=False reason=occupied_in_hint_path desired=right bearing=-107.53711327649074 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4526 decision=vetoed d=6.975460746863499 conf=1.000 teleport=False
+[hint_arbiter] step=4536 override=False reason=occupied_in_hint_path desired=right bearing=-106.03037202732402 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4536 decision=vetoed d=6.990867612146204 conf=1.000 teleport=False
+[hint_arbiter] step=4546 override=False reason=occupied_in_hint_path desired=right bearing=-104.37574527478269 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4546 decision=pass d=7.009084415605567 conf=1.000 teleport=False
+[hint_arbiter] step=4621 override=False reason=occupied_in_hint_path desired=right bearing=-146.05538690731433 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4621 decision=vetoed d=7.360182082101961 conf=1.000 teleport=False
+[hint_arbiter] step=4631 override=False reason=occupied_in_hint_path desired=right bearing=-145.11008567669978 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4631 decision=vetoed d=7.414016512547582 conf=1.000 teleport=False
+[hint_arbiter] step=4641 override=False reason=occupied_in_hint_path desired=right bearing=-142.53531816678372 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4641 decision=vetoed d=7.4377376023761235 conf=1.000 teleport=False
+[hint_arbiter] step=4651 override=False reason=occupied_in_hint_path desired=right bearing=-140.83336064087183 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4651 decision=vetoed d=7.45751659282837 conf=1.000 teleport=False
+[hint_arbiter] step=4661 override=False reason=occupied_in_hint_path desired=right bearing=-137.53396452940663 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4661 decision=pass d=7.4834994313890695 conf=1.000 teleport=False
+[hint_arbiter] step=4736 override=False reason=occupied_in_hint_path desired=right bearing=-175.7574669450582 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4736 decision=pass d=8.04739318168231 conf=1.000 teleport=False
+[hint_arbiter] step=4811 override=False reason=occupied_in_hint_path desired=left bearing=178.29679312124 clear=False
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=4811 decision=pass d=8.645052267526095 conf=1.000 teleport=False
+[hint_arbiter] step=4836 override=False reason=occupied_in_hint_path desired=right bearing=-178.87762090846334 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4836 decision=vetoed d=8.931549259225905 conf=1.000 teleport=False
+[hint_arbiter] step=4846 override=False reason=occupied_in_hint_path desired=right bearing=-174.33903282319716 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4846 decision=vetoed d=8.951118758385276 conf=1.000 teleport=False
+[hint_arbiter] step=4856 override=False reason=vlm_action_consistent desired=right bearing=-171.75160072438695 clear=None
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4856 decision=pass d=8.988585811522283 conf=1.000 teleport=False
+[hint_arbiter] step=4931 override=False reason=occupied_in_hint_path desired=right bearing=-141.4399494112137 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4931 decision=vetoed d=9.08023656817343 conf=1.000 teleport=False
+[hint_arbiter] step=4941 override=False reason=occupied_in_hint_path desired=right bearing=-139.22715529203717 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4941 decision=vetoed d=9.088252117903027 conf=1.000 teleport=False
+[return] step=4950, elapsed_return_steps=2500, distance_to_start=6.047
+[hint_arbiter] step=4951 override=False reason=occupied_in_hint_path desired=right bearing=-136.3507126019074 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4951 decision=vetoed d=9.104162448612758 conf=1.000 teleport=False
+[hint_arbiter] step=4961 override=False reason=occupied_in_hint_path desired=right bearing=-133.8925709020006 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4961 decision=vetoed d=9.126062535339202 conf=1.000 teleport=False
+[hint_arbiter] step=4971 override=False reason=occupied_in_hint_path desired=right bearing=-131.61726377199489 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4971 decision=vetoed d=9.144289920670328 conf=1.000 teleport=False
+[hint_arbiter] step=4981 override=False reason=occupied_in_hint_path desired=right bearing=-129.31244766925698 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4981 decision=vetoed d=9.15812136780489 conf=1.000 teleport=False
+[hint_arbiter] step=4991 override=False reason=occupied_in_hint_path desired=right bearing=-125.77893956112548 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=4991 decision=vetoed d=9.16851117003334 conf=1.000 teleport=False
+[hint_arbiter] step=5001 override=False reason=occupied_in_hint_path desired=right bearing=-123.48242402074587 clear=False
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5001 decision=pass d=9.183227980302043 conf=1.000 teleport=False
+[hint_arbiter] step=5076 override=False reason=occupied_in_hint_path desired=right bearing=-157.13991331649714 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5076 decision=vetoed d=9.215651912164041 conf=1.000 teleport=False
+[hint_arbiter] step=5086 override=False reason=occupied_in_hint_path desired=right bearing=-155.20784990390263 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5086 decision=vetoed d=9.219365823387049 conf=1.000 teleport=False
+[hint_arbiter] step=5096 override=False reason=occupied_in_hint_path desired=right bearing=-153.26595194878627 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5096 decision=vetoed d=9.230157145668933 conf=1.000 teleport=False
+[hint_arbiter] step=5106 override=False reason=occupied_in_hint_path desired=right bearing=-151.15165884635016 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5106 decision=vetoed d=9.243235519846278 conf=1.000 teleport=False
+[hint_arbiter] step=5116 override=False reason=occupied_in_hint_path desired=right bearing=-148.31114724524576 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5116 decision=vetoed d=9.258870347179965 conf=1.000 teleport=False
+[hint_arbiter] step=5126 override=False reason=occupied_in_hint_path desired=right bearing=-144.56367446625097 clear=False
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5126 decision=pass d=9.27102228800395 conf=1.000 teleport=False
+[hint_arbiter] step=5201 override=False reason=occupied_in_hint_path desired=left bearing=175.974288907908 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5201 decision=vetoed d=9.270787856494932 conf=1.000 teleport=False
+[hint_arbiter] step=5211 override=False reason=occupied_in_hint_path desired=left bearing=172.03628034133752 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5211 decision=vetoed d=9.289474753937464 conf=1.000 teleport=False
+[hint_arbiter] step=5221 override=False reason=occupied_in_hint_path desired=left bearing=167.68041983869765 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5221 decision=vetoed d=9.315605821867601 conf=1.000 teleport=False
+[hint_arbiter] step=5231 override=False reason=occupied_in_hint_path desired=left bearing=164.07483206295677 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5231 decision=vetoed d=9.336600819313508 conf=1.000 teleport=False
+[hint_arbiter] step=5241 override=False reason=occupied_in_hint_path desired=left bearing=160.56633989565663 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5241 decision=vetoed d=9.353165903532474 conf=1.000 teleport=False
+[hint_arbiter] step=5251 override=False reason=occupied_in_hint_path desired=left bearing=156.84159486026275 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5251 decision=vetoed d=9.369902027070562 conf=1.000 teleport=False
+[hint_arbiter] step=5261 override=False reason=occupied_in_hint_path desired=left bearing=153.95921259626644 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5261 decision=vetoed d=9.39191187163009 conf=1.000 teleport=False
+[hint_arbiter] step=5271 override=False reason=occupied_in_hint_path desired=left bearing=149.7957191564284 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5271 decision=vetoed d=9.411374014041032 conf=1.000 teleport=False
+[hint_arbiter] step=5281 override=False reason=occupied_in_hint_path desired=left bearing=146.32574684791558 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5281 decision=vetoed d=9.42837982065967 conf=1.000 teleport=False
+[hint_arbiter] step=5291 override=False reason=occupied_in_hint_path desired=left bearing=143.0529308631074 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5291 decision=vetoed d=9.4434102057321 conf=1.000 teleport=False
+[hint_arbiter] step=5301 override=False reason=occupied_in_hint_path desired=left bearing=140.09323240805162 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5301 decision=vetoed d=9.45973550100691 conf=1.000 teleport=False
+[hint_arbiter] step=5311 override=False reason=occupied_in_hint_path desired=left bearing=137.69116339571323 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5311 decision=vetoed d=9.476496683814881 conf=1.000 teleport=False
+[hint_arbiter] step=5321 override=False reason=occupied_in_hint_path desired=left bearing=134.3935430500043 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5321 decision=vetoed d=9.49331852104063 conf=1.000 teleport=False
+[hint_arbiter] step=5331 override=False reason=occupied_in_hint_path desired=left bearing=131.44177918043985 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5331 decision=vetoed d=9.509072505312629 conf=1.000 teleport=False
+[hint_arbiter] step=5341 override=False reason=occupied_in_hint_path desired=left bearing=128.1820000857115 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5341 decision=vetoed d=9.522821548728885 conf=1.000 teleport=False
+[hint_arbiter] step=5351 override=False reason=occupied_in_hint_path desired=left bearing=124.76133951913364 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5351 decision=vetoed d=9.531610085522395 conf=1.000 teleport=False
+[hint_arbiter] step=5361 override=False reason=occupied_in_hint_path desired=left bearing=121.63568971771116 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5361 decision=vetoed d=9.545664141169553 conf=1.000 teleport=False
+[hint_arbiter] step=5371 override=False reason=occupied_in_hint_path desired=left bearing=117.73606882146414 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5371 decision=vetoed d=9.554646901447882 conf=1.000 teleport=False
+[hint_arbiter] step=5381 override=False reason=occupied_in_hint_path desired=left bearing=114.44408369484395 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5381 decision=vetoed d=9.56332833975341 conf=1.000 teleport=False
+[hint_arbiter] step=5391 override=False reason=occupied_in_hint_path desired=left bearing=110.93145777224198 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5391 decision=vetoed d=9.569119325242475 conf=1.000 teleport=False
+[hint_arbiter] step=5401 override=False reason=occupied_in_hint_path desired=left bearing=107.39423605269698 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5401 decision=vetoed d=9.574599337703141 conf=1.000 teleport=False
+[hint_arbiter] step=5411 override=False reason=occupied_in_hint_path desired=left bearing=102.74350261817482 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5411 decision=vetoed d=9.57887285301339 conf=1.000 teleport=False
+[hint_arbiter] step=5421 override=False reason=occupied_in_hint_path desired=left bearing=98.1919239472801 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5421 decision=vetoed d=9.581422604520204 conf=1.000 teleport=False
+[hint_arbiter] step=5431 override=False reason=occupied_in_hint_path desired=left bearing=96.06922108235361 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5431 decision=vetoed d=9.586218928940184 conf=1.000 teleport=False
+[hint_arbiter] step=5441 override=False reason=vlm_action_consistent desired=left bearing=91.78907485955138 clear=None
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5441 decision=pass d=9.58660930700282 conf=1.000 teleport=False
+[return] step=5450, elapsed_return_steps=3000, distance_to_start=6.139
+[hint_arbiter] step=5516 override=False reason=vlm_action_consistent desired=left bearing=53.05475020213586 clear=None
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5516 decision=pass d=9.577013735547117 conf=1.000 teleport=False
+[hint_arbiter] step=5591 override=False reason=vlm_action_consistent desired=left bearing=16.25207143883564 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=5591 decision=pass d=9.513961004975846 conf=1.000 teleport=False
+[hint_arbiter] step=5616 override=False reason=occupied_in_hint_path desired=forward bearing=4.713053122064646 clear=False
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5616 decision=pass d=9.494189563123966 conf=1.000 teleport=False
+[hint_arbiter] step=5691 override=False reason=vlm_action_consistent desired=left bearing=25.696060664854024 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=5691 decision=pass d=9.454343889309055 conf=1.000 teleport=False
+[hint_arbiter] step=5716 override=False reason=vlm_action_consistent desired=left bearing=16.26510064651164 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=5716 decision=pass d=9.428950164109864 conf=1.000 teleport=False
+[hint_arbiter] step=5741 override=False reason=occupied_in_hint_path desired=forward bearing=5.204665744285201 clear=False
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=5741 decision=pass d=9.409922301054547 conf=1.000 teleport=False
+[hint_arbiter] step=5766 override=False reason=vlm_action_consistent desired=forward bearing=-7.3055281501012415 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5766 decision=pass d=9.38872701056159 conf=1.000 teleport=False
+[hint_arbiter] step=5841 override=False reason=vlm_action_consistent desired=forward bearing=-10.125118164509086 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5841 decision=pass d=8.626839185749919 conf=1.000 teleport=False
+[hint_arbiter] step=5916 override=False reason=occupied_in_hint_path desired=forward bearing=-12.573797206669298 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5916 decision=vetoed d=8.0218460286275 conf=1.000 teleport=False
+[hint_arbiter] step=5926 override=False reason=occupied_in_hint_path desired=forward bearing=-11.091095688197827 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5926 decision=vetoed d=7.945916032118249 conf=1.000 teleport=False
+[hint_arbiter] step=5936 override=False reason=occupied_in_hint_path desired=forward bearing=-11.197439280722529 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5936 decision=vetoed d=7.891186967831574 conf=1.000 teleport=False
+[hint_arbiter] step=5946 override=False reason=occupied_in_hint_path desired=left bearing=21.161407189403608 clear=False
+[return] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[stop_gate] step=5946 decision=vetoed d=7.675754359251484 conf=1.000 teleport=False
+[return] step=5950, elapsed_return_steps=3500, distance_to_start=5.734
+[hint_arbiter] step=5956 override=False reason=occupied_in_hint_path desired=left bearing=21.33853220390802 clear=False
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5956 decision=pass d=7.642598498129901 conf=1.000 teleport=False
+[hint_arbiter] step=6031 override=False reason=vlm_action_consistent desired=left bearing=52.22934419752818 clear=None
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6031 decision=pass d=7.563690672474627 conf=1.000 teleport=False
+[hint_arbiter] step=6106 override=False reason=vlm_action_consistent desired=left bearing=20.36147418804799 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6106 decision=pass d=7.54761161212431 conf=1.000 teleport=False
+[hint_arbiter] step=6131 override=False reason=occupied_in_hint_path desired=forward bearing=9.259529632296593 clear=False
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6131 decision=pass d=7.538981785767135 conf=1.000 teleport=False
+[hint_arbiter] step=6206 override=False reason=vlm_action_consistent desired=left bearing=34.42459293177251 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6206 decision=pass d=7.490899240469798 conf=1.000 teleport=False
+[hint_arbiter] step=6231 override=False reason=vlm_action_consistent desired=left bearing=25.906209326232016 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6231 decision=pass d=7.476632370137716 conf=1.000 teleport=False
+[hint_arbiter] step=6256 override=False reason=occupied_in_hint_path desired=left bearing=16.23180127096344 clear=False
+[return] VLM output: The next action is turn right 45 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6256 decision=pass d=7.470692889800534 conf=1.000 teleport=False
+[hint_arbiter] step=6331 override=False reason=vlm_action_consistent desired=left bearing=43.61766841194454 clear=None
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6331 decision=pass d=7.434262884560873 conf=1.000 teleport=False
+[hint_arbiter] step=6406 override=False reason=occupied_in_hint_path desired=forward bearing=13.134275610379607 clear=False
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6406 decision=pass d=7.397381847866641 conf=1.000 teleport=False
+[hint_arbiter] step=6431 override=False reason=occupied_in_hint_path desired=forward bearing=3.002470301199004 clear=False
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6431 decision=pass d=7.385841693591085 conf=1.000 teleport=False
+[return] step=6450, elapsed_return_steps=4000, distance_to_start=5.861
+[hint_arbiter] step=6456 override=False reason=vlm_action_consistent desired=forward bearing=-6.084783068870207 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6456 decision=pass d=7.39503209165057 conf=1.000 teleport=False
+[hint_arbiter] step=6531 override=False reason=vlm_action_consistent desired=left bearing=26.06742319958267 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6531 decision=pass d=6.898416099029131 conf=1.000 teleport=False
+[hint_arbiter] step=6556 override=False reason=vlm_action_consistent desired=left bearing=19.15299680410693 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6556 decision=pass d=6.839150355776864 conf=1.000 teleport=False
+[hint_arbiter] step=6581 override=False reason=vlm_action_consistent desired=forward bearing=9.247927436594683 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6581 decision=pass d=6.808028584676862 conf=1.000 teleport=False
+[hint_arbiter] step=6656 override=False reason=occupied_in_hint_path desired=forward bearing=12.538916840570156 clear=False
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6656 decision=pass d=6.282891160182823 conf=1.000 teleport=False
+[hint_arbiter] step=6681 override=False reason=vlm_action_consistent desired=left bearing=21.00426774168817 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6681 decision=pass d=6.206408196147494 conf=1.000 teleport=False
+[hint_arbiter] step=6706 override=False reason=occupied_in_hint_path desired=forward bearing=10.16983584983189 clear=False
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6706 decision=pass d=6.1757705596300125 conf=1.000 teleport=False
+[hint_arbiter] step=6731 override=False reason=vlm_action_consistent desired=left bearing=18.128345233858646 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6731 decision=pass d=6.152021529755903 conf=1.000 teleport=False
+[hint_arbiter] step=6806 override=False reason=vlm_action_consistent desired=left bearing=29.140421748490294 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6806 decision=pass d=5.574885374851849 conf=1.000 teleport=False
+[hint_arbiter] step=6831 override=False reason=vlm_action_consistent desired=left bearing=20.58816120767139 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6831 decision=pass d=5.510992813476777 conf=1.000 teleport=False
+[hint_arbiter] step=6906 override=False reason=vlm_action_consistent desired=left bearing=26.92816476918524 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6906 decision=pass d=5.020715885743458 conf=1.000 teleport=False
+[return] step=6950, elapsed_return_steps=4500, distance_to_start=3.518
+[hint_arbiter] step=6981 override=False reason=vlm_action_consistent desired=left bearing=56.2490219708701 clear=None
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=6981 decision=pass d=4.125196194441909 conf=1.000 teleport=False
+[hint_arbiter] step=7006 override=False reason=occupied_in_hint_path desired=left bearing=48.7128478939727 clear=False
+[return] VLM output: The next action is move forward 25 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=7006 decision=pass d=4.1083631332168675 conf=1.000 teleport=False
+[hint_arbiter] step=7031 override=False reason=occupied_in_hint_path desired=left bearing=53.56331436823805 clear=False
+[return] VLM output: The next action is move forward 25 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=7031 decision=pass d=4.012955165590496 conf=1.000 teleport=False
+[hint_arbiter] step=7056 override=False reason=vlm_action_consistent desired=left bearing=56.1835379572905 clear=None
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=7056 decision=pass d=3.996488725041598 conf=1.000 teleport=False
+[hint_arbiter] step=7131 override=False reason=vlm_action_consistent desired=left bearing=21.117316327570773 clear=None
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=7131 decision=pass d=4.0050859048817635 conf=1.000 teleport=False
+[hint_arbiter] step=7206 override=False reason=occupied_in_hint_path desired=right bearing=-30.613089117448258 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=7206 decision=pass d=3.2589222297458993 conf=1.000 teleport=False
+[hint_arbiter] step=7281 override=False reason=vlm_action_consistent desired=right bearing=-62.6618961663876 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=7281 decision=pass d=2.64363588725429 conf=1.000 teleport=False
+[hint_arbiter] step=7306 override=False reason=vlm_action_consistent desired=right bearing=-56.08071371360092 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=7306 decision=pass d=2.608046619623947 conf=1.000 teleport=False
+[hint_arbiter] step=7331 override=False reason=vlm_action_consistent desired=right bearing=-46.59895604915981 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=7331 decision=forced d=2.5964924582462423 conf=1.000 teleport=False
+sh_0_id0' has corrupted data in primvar 'st_1': buffer size 55254 doesn't match expected size 90378 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90378 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55278 doesn't match expected size 90402 in faceVarying primvars
+2026-06-30 15:19:52 [6,533ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90402 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_4': buffer size 30390 doesn't match expected size 233784 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_3': buffer size 11886 doesn't match expected size 233784 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_2': buffer size 6015 doesn't match expected size 233784 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 6960 doesn't match expected size 233784 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 178533 doesn't match expected size 233784 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-06-30 15:19:52 [6,534ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-06-30 15:26:41 [414,934ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-06-30 15:26:41 [414,934ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[415.093s] Simulation App Shutting Down
+Warning: Possible version incompatibility. Attempting to load omni::fabric::IPath with version v0.2 against v0.1.
+Warning: Possible version incompatibility. Attempting to load omni::fabric::IPath with version v0.2 against v0.1.
+/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/tensordict/_pytree.py:218: UserWarning: torch.utils._pytree._register_pytree_node is deprecated. Please use torch.utils._pytree.register_pytree_node instead.
+  register_pytree_node(
+/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/tensordict/_pytree.py:237: UserWarning: torch.utils._pytree._register_pytree_node is deprecated. Please use torch.utils._pytree.register_pytree_node instead.
+  register_pytree_node(

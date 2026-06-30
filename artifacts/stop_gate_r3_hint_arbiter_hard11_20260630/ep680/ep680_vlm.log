@@ -1,0 +1,52 @@
+Traceback (most recent call last):
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/vlm_server.py", line 13, in <module>
+    from transformers import AutoTokenizer, AutoConfig
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/transformers/__init__.py", line 26, in <module>
+    from . import dependency_versions_check
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/transformers/dependency_versions_check.py", line 16, in <module>
+    from .utils.versions import require_version, require_version_core
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/transformers/utils/__init__.py", line 18, in <module>
+    from huggingface_hub import get_full_repo_name  # for backward compatibility
+  File "<frozen importlib._bootstrap>", line 1075, in _handle_fromlist
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/huggingface_hub/__init__.py", line 1044, in __getattr__
+    submod = importlib.import_module(submod_path)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/huggingface_hub/hf_api.py", line 50, in <module>
+    import requests
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/requests/__init__.py", line 45, in <module>
+    import urllib3
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/urllib3/__init__.py", line 15, in <module>
+    from ._base_connection import _TYPE_BODY
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/urllib3/_base_connection.py", line 5, in <module>
+    from .util.connection import _TYPE_SOCKET_OPTIONS
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/urllib3/util/__init__.py", line 8, in <module>
+    from .ssl_ import (
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/urllib3/util/ssl_.py", line 13, in <module>
+    from .url import _BRACELESS_IPV6_ADDRZ_RE, _IPV4_RE
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/urllib3/util/url.py", line 69, in <module>
+    _HOST_PORT_RE = re.compile(_HOST_PORT_PAT, re.UNICODE | re.DOTALL)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/re.py", line 251, in compile
+    return _compile(pattern, flags)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/re.py", line 303, in _compile
+    p = sre_compile.compile(pattern, flags)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/sre_compile.py", line 792, in compile
+    code = _code(p, flags)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/sre_compile.py", line 631, in _code
+    _compile(code, p.data, flags)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/sre_compile.py", line 184, in _compile
+    _compile(code, p, _combine_flags(flags, add_flags, del_flags))
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/sre_compile.py", line 225, in _compile
+    _compile(code, av, flags)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/sre_compile.py", line 225, in _compile
+    _compile(code, av, flags)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/sre_compile.py", line 225, in _compile
+    _compile(code, av, flags)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/sre_compile.py", line 172, in _compile
+    _compile(code, av[2], flags)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/sre_compile.py", line 106, in _compile
+    for op, av in pattern:
+ValueError: too many values to unpack (expected 0)
+ERROR conda.cli.main_run:execute(142): `conda run python /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/vlm_server.py --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f --port 55001 --load_8bit` failed. (See above for error)
+Error importing huggingface_hub.hf_api: too many values to unpack (expected 0)
+Timed out waiting for VLM server on port 55001

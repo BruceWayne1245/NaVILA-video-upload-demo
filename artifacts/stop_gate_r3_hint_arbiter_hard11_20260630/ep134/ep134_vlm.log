@@ -1,0 +1,56 @@
+Special tokens have been added in the vocabulary, make sure the associated word embeddings are fine-tuned or trained.
+
+  0%|          | 0/1 [00:00<?, ?it/s]
+Loading checkpoint shards:   0%|          | 0/1 [00:00<?, ?it/s]
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s][A
+
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:03,  1.01s/it][A
+
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.05it/s][A
+
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.08it/s][A
+
+Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.54it/s][A
+Loading checkpoint shards: 100%|██████████| 4/4 [00:03<00:00,  1.31it/s]
+
+Loading checkpoint shards:   0%|          | 0/1 [00:03<?, ?it/s]
+Traceback (most recent call last):
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/vlm_server.py", line 208, in <module>
+    server = VLMServer(args)
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/vlm_server.py", line 27, in __init__
+    self.setup()
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/vlm_server.py", line 34, in setup
+    self._load_checkpoint_w16a16()
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/vlm_server.py", line 58, in _load_checkpoint_w16a16
+    tokenizer, model, image_processor, context_len = load_pretrained_model(
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA/llava/model/builder.py", line 152, in load_pretrained_model
+    model = LlavaLlamaModel(config=config, low_cpu_mem_usage=True, **kwargs)
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA/llava/model/language_model/llava_llama.py", line 45, in __init__
+    self.init_vlm(config=config, *args, **kwargs)
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA/llava/model/llava_arch.py", line 68, in init_vlm
+    self.llm, self.tokenizer = build_llm_and_tokenizer(llm_cfg, config, *args, **kwargs)
+  File "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA/llava/model/language_model/builder.py", line 74, in build_llm_and_tokenizer
+    llm = AutoModelForCausalLM.from_pretrained(
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/transformers/models/auto/auto_factory.py", line 566, in from_pretrained
+    return model_class.from_pretrained(
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/transformers/modeling_utils.py", line 3764, in from_pretrained
+    dispatch_model(model, **device_map_kwargs)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/accelerate/big_modeling.py", line 404, in dispatch_model
+    tied_params = find_tied_parameters(model)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/accelerate/utils/modeling.py", line 639, in find_tied_parameters
+    find_tied_parameters(child, named_parameters=named_parameters, prefix=child_name, result=result)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/accelerate/utils/modeling.py", line 639, in find_tied_parameters
+    find_tied_parameters(child, named_parameters=named_parameters, prefix=child_name, result=result)
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/accelerate/utils/modeling.py", line 639, in find_tied_parameters
+    find_tied_parameters(child, named_parameters=named_parameters, prefix=child_name, result=result)
+  [Previous line repeated 2 more times]
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/accelerate/utils/modeling.py", line 626, in find_tied_parameters
+    for name, parameter in model.named_parameters():
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/torch/nn/modules/module.py", line 2262, in named_parameters
+    yield from gen
+  File "/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/torch/nn/modules/module.py", line 2199, in _named_members
+    for k, v in members:
+ValueError: too many values to unpack (expected 0)
+ERROR conda.cli.main_run:execute(142): `conda run python /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/vlm_server.py --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f --port 54455 --load_8bit` failed. (See above for error)
+Timed out waiting for VLM server on port 54455

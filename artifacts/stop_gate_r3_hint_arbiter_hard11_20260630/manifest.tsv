@@ -1,0 +1,12 @@
+episode_idx	exit_code	outbound_success	return_success	round_trip_success	distance_to_start	trajectory_record_count	arbiter_events	arbiter_overrides	arbiter_reasons	trajectory_file	route_map	occupancy_map	map_meta
+4	0	True	True	True	0.8088256120681763	2877	22	1	occupied_in_hint_path:4;vlm_action_consistent:17;vlm_conflicts_with_clear_hint:1	output_7.jsonl	output_7_routes.png	output_7_occupancy.png	output_7_map_meta.json
+5	0	True	True	True	2.052431583404541	3352	31	0	occupied_in_hint_path:17;vlm_action_consistent:14	output_8.jsonl	output_8_routes.png	output_8_occupancy.png	output_8_map_meta.json
+134	98						0	0					
+187	0	True	True	True	2.7392778396606445	5032	50	4	occupied_in_hint_path:25;vlm_action_consistent:21;vlm_conflicts_with_clear_hint:4	output_280.jsonl	output_280_routes.png	output_280_occupancy.png	output_280_map_meta.json
+367	0	True	True	True	1.9207971096038818	3852	32	0	occupied_in_hint_path:5;vlm_action_consistent:27	output_601.jsonl	output_601_routes.png	output_601_occupancy.png	output_601_map_meta.json
+368	0	True	True	True	1.854192852973938	4502	43	2	occupied_in_hint_path:14;vlm_action_consistent:27;vlm_conflicts_with_clear_hint:2	output_602.jsonl	output_602_routes.png	output_602_occupancy.png	output_602_map_meta.json
+408	0	False	False	False	2.125422239303589	1666	0	0		output_681.jsonl	output_681_routes.png	output_681_occupancy.png	output_681_map_meta.json
+678	0	False	False	False	6.065356731414795	2502	0	0		output_1164.jsonl	output_1164_routes.png	output_1164_occupancy.png	output_1164_map_meta.json
+680	98						0	0					
+994	0	True	True	True	1.1673530340194702	4552	35	8	occupied_in_hint_path:6;vlm_action_consistent:21;vlm_conflicts_with_clear_hint:8	output_1699.jsonl	output_1699_routes.png	output_1699_occupancy.png	output_1699_map_meta.json
+1040	0	True	True	True	2.47465181350708	7332	135	0	occupied_in_hint_path:82;vlm_action_consistent:53	output_1760.jsonl	output_1760_routes.png	output_1760_occupancy.png	output_1760_map_meta.json
