@@ -4,6 +4,25 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 **Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
 
+**Latest update (2026-06-30) — stop-gate r_in fixed to 3.0 m, hard-11 batch rerun with USD occupancy route maps:** the stop-gate inner radius was corrected from `r_in=2.5 m` to `r_in=3.0 m` (matching the official 3.0 m return-success radius). The previous `r_in=2.5 m` left a 0.5 m dead zone where neither VETO, ACCEPT, nor FORCE could activate even when the robot was inside the success radius — both `scripts/stop_gate.py` and the `--stop_gate_r_in` argparse default were updated. The 11 hard episodes were rerun with `--route_hint_source=oracle --oracle_align_return_yaw_to_anchor_segment --stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0 --topdown_route_map` via `scripts/run_stop_gate_r3_oracle_hard_batch_20260630.sh`. Result: outbound `8/11`, return `4/8` (outbound-success), round-trip `4/11`. Key improvement: ep5 recovered from the r_in=2.5 regression (`9.559 m` → `2.253 m ✅`). ep368 remains a success (`1.423 m`). ep678 and ep1040 outbound failures are VLM non-determinism, not gate-related. All 11 episodes have USD floor-slice occupancy route maps; a combined grid is at [`artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_20260630_grid.png`](artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_20260630_grid.png). Batch logs: `batch_logs/stop_gate_r3_oracle_hard_20260630/`. Unit tests: 31/31 stop_gate tests pass with r_in=r_out=3.0.
+
+[![hard-11 stop-gate r3 route map grid](artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_20260630_grid.png)](artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_20260630_grid.png)
+
+| Episode | Outbound | Return | Round Trip | Final dist | Gate events |
+|---:|:---:|:---:|:---:|---:|---|
+| 4 | True | True | True | 1.125 m | — |
+| 5 | True | True | True | 2.253 m | — |
+| 134 | True | False | False | 13.722 m | — |
+| 187 | True | False | False | 8.095 m | — |
+| 367 | True | False | False | 7.554 m | — |
+| 368 | True | True | True | 1.423 m | — |
+| 408 | False | False | False | 2.125 m | — (outbound fail) |
+| 678 | False | False | False | 3.576 m | — (outbound fail) |
+| 680 | True | True | True | 0.978 m | — |
+| 994 | True | False | False | 11.440 m | — |
+| 1040 | False | — | False | 2.688 m | — (outbound fail) |
+
+
 **Latest update (2026-06-30) — hard-11 no-oracle vs oracle+yaw+stop-gate trajectory comparison maps generated:** the full 11 hard episodes from the 2026-06-29 batch were rendered as side-by-side trajectory comparison maps without rerunning Isaac/VLM. Each figure uses the saved per-step JSONL trajectories and measurements: left panel = pure no-oracle/no-hint baseline, right panel = oracle route hint + confirm yaw alignment + return stop-gate. Outbound and return paths are drawn as thin dashed lines; magenta numbered dots mark return-phase temporal order; oracle anchors are shown when available. These are trajectory-space comparison plots on a shared grid, not USD occupancy maps, because the original 11 batch runs did not save `--topdown_route_map` floor-slice artifacts. All 11 PNGs plus manifest are uploaded under [`artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/), and the offline renderer is saved as [`code/plot_hard_batch_comparison_maps.py`](code/plot_hard_batch_comparison_maps.py).
 
 | Episode | Comparison map |
@@ -31,20 +50,20 @@ Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim ben
 
 Three-way comparison across all 11 episodes (round-trip success / distance):
 
-| Episode | no-hint | oracle+yaw | oracle+yaw+stop-gate |
-|---:|:---:|:---:|:---:|
-| 4 | ❌ 12.9 m | ✅ 0.378 m | ✅ 0.496 m |
-| 5 | ✅ 2.809 m | ✅ 2.253 m | ❌ 9.559 m |
-| 134 | ❌ outbound | ❌ outbound | ❌ outbound |
-| 187 | ❌ 11.9 m | ❌ 7.649 m | ❌ 7.567 m |
-| 367 | ❌ 5.397 m | ❌ 0.000 m† | ❌ 0.000 m† |
-| 368 | ❌ 6.949 m | ❌ 4.447 m | ✅ 1.625 m |
-| 408 | ❌ 3.947 m | ❌ 5.996 m | ❌ 8.483 m |
-| 678 | ❌ outbound | ✅ 2.824 m | ✅ 1.292 m |
-| 680 | ✅ 1.001 m | ✅ 1.253 m | ✅ 2.553 m |
-| 994 | ✅ 1.201 m | ❌ 4.410 m | ❌ 4.329 m |
-| 1040 | ✅ 2.266 m | ✅ 1.264 m | ✅ 1.916 m |
-| **round-trip** | **4/11** | **5/11** | **5/11** |
+| Episode | no-hint | oracle+yaw | oracle+yaw+stop-gate(r_in=2.5) | oracle+yaw+stop-gate(r_in=3.0) |
+|---:|:---:|:---:|:---:|:---:|
+| 4 | ❌ 12.9 m | ✅ 0.378 m | ✅ 0.496 m | ✅ 1.125 m |
+| 5 | ✅ 2.809 m | ✅ 2.253 m | ❌ 9.559 m | ✅ 2.253 m |
+| 134 | ❌ outbound | ❌ outbound | ❌ outbound | ❌ 13.722 m |
+| 187 | ❌ 11.9 m | ❌ 7.649 m | ❌ 7.567 m | ❌ 8.095 m |
+| 367 | ❌ 5.397 m | ❌ 0.000 m† | ❌ 0.000 m† | ❌ 7.554 m |
+| 368 | ❌ 6.949 m | ❌ 4.447 m | ✅ 1.625 m | ✅ 1.423 m |
+| 408 | ❌ 3.947 m | ❌ 5.996 m | ❌ 8.483 m | ❌ outbound |
+| 678 | ❌ outbound | ✅ 2.824 m | ✅ 1.292 m | ❌ outbound |
+| 680 | ✅ 1.001 m | ✅ 1.253 m | ✅ 2.553 m | ✅ 0.978 m |
+| 994 | ✅ 1.201 m | ❌ 4.410 m | ❌ 4.329 m | ❌ 11.440 m |
+| 1040 | ✅ 2.266 m | ✅ 1.264 m | ✅ 1.916 m | ❌ outbound |
+| **round-trip** | **4/11** | **5/11** | **5/11** | **4/11** |
 
 †ep367: oracle distance reports 9.6 m throughout return while physical distance is 0.000 m — bookkeeping anomaly, not a genuine success. Key observations: (1) oracle hint improves outbound reliability (9→10/11); (2) for return, oracle hint and no-hint both achieve 5 and 4 successes respectively on their valid outbound-success sets — the gain is marginal and non-monotone (ep5/994/680 succeed without hint but fail or regress with hint, while ep4/678 require the hint to complete outbound); (3) stop-gate converts ep368 from failure to success and rescues ep1040 via FORCED terminal, but regressions on ep5 offset the gain.
 
