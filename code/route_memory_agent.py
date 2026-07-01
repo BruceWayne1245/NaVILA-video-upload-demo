@@ -254,6 +254,7 @@ class RouteMemoryAgent:
         min_relocalization_confidence: float = 0.35,
         relocalization_interval_updates: int = 1,
         max_relocalization_consistency_error_m: float = 5.0,
+        route_progress_lookahead_m: Optional[float] = None,
         relocalizer: Optional[Callable[[object, list[RouteAnchor]], Optional[AnchorRelocalization]]] = None,
         **_: object,
     ):
@@ -264,6 +265,10 @@ class RouteMemoryAgent:
         self.min_relocalization_confidence = float(min_relocalization_confidence)
         self.relocalization_interval_updates = max(1, int(relocalization_interval_updates))
         self.max_relocalization_consistency_error_m = float(max_relocalization_consistency_error_m)
+        self.route_progress_lookahead_m = (
+            float(route_progress_lookahead_m)
+            if route_progress_lookahead_m is not None else max(1.0, self.anchor_spacing_m)
+        )
         self.relocalizer = relocalizer
         self.hint_events: list[dict] = []
         self.fallback_events: list[dict] = []
@@ -1011,24 +1016,12 @@ class RouteMemoryAgent:
             if self._sequence_current_s_m is not None
             else self._arc_length_filter.estimate()
         )
-        target_anchor = self._target_anchor_for_remaining_distance(remaining)
+        target_s = max(0.0, float(remaining) - max(0.0, self.route_progress_lookahead_m))
+        target_anchor = self._target_anchor_for_remaining_distance(target_s)
 
         estimate = self._latest_relocalization
         dx = integrated_progress.target_dx_m
         dy = integrated_progress.target_dy_m
-        if estimate is not None and estimate.anchor_heading_reliable:
-            anchor = self._anchor_by_index(estimate.anchor_index)
-            if anchor is not None:
-                anchor_to_start = relative_delta(anchor.pose_from_start, [0.0, 0.0, 0.0])
-                anchor_pose_from_current = [
-                    estimate.anchor_dx_m,
-                    estimate.anchor_dy_m,
-                    estimate.anchor_dtheta_rad,
-                ]
-                start_pose_from_current = compose_pose(anchor_pose_from_current, anchor_to_start)
-                dx, dy, _ = start_pose_from_current
-
-        bearing = float(math.degrees(math.atan2(dy, dx))) if remaining > 1e-6 else 0.0
         anchor_dx = None
         anchor_dy = None
         distance_to_anchor = None
@@ -1047,15 +1040,36 @@ class RouteMemoryAgent:
             relocalization_backend = estimate.backend
             anchor_heading_reliable = bool(estimate.anchor_heading_reliable)
         if target_anchor is not None:
-            if estimate is not None and estimate.anchor_index == target_anchor.index:
+            target_estimate = None
+            if estimate is not None and estimate.anchor_heading_reliable:
+                target_estimate = (
+                    estimate
+                    if estimate.anchor_index == target_anchor.index
+                    else self._project_estimate_to_anchor(estimate, target_anchor.index)
+                )
+            if target_estimate is not None:
+                anchor_dx = float(target_estimate.anchor_dx_m)
+                anchor_dy = float(target_estimate.anchor_dy_m)
+                distance_to_anchor = target_estimate.distance_to_anchor_m
+                bearing_to_anchor = target_estimate.bearing_to_anchor_deg
+                dx = anchor_dx
+                dy = anchor_dy
+            elif estimate is not None and estimate.anchor_index == target_anchor.index:
                 anchor_dx = float(estimate.anchor_dx_m)
                 anchor_dy = float(estimate.anchor_dy_m)
                 distance_to_anchor = estimate.distance_to_anchor_m
                 bearing_to_anchor = estimate.bearing_to_anchor_deg
+                dx = anchor_dx
+                dy = anchor_dy
             else:
                 along_route_gap = max(0.0, remaining - target_anchor.distance_from_start_m)
                 distance_to_anchor = float(along_route_gap)
                 bearing_to_anchor = 0.0
+                dx = float(along_route_gap)
+                dy = 0.0
+
+        distance_for_bearing = distance_to_anchor if distance_to_anchor is not None else remaining
+        bearing = float(math.degrees(math.atan2(dy, dx))) if distance_for_bearing > 1e-6 else 0.0
 
         return RelativeStartProgress(
             target_dx_m=float(dx),
@@ -1157,10 +1171,10 @@ class RouteMemoryAgent:
             anchor_distance + (progress.anchor_route_remaining_m or 0.0)
             if progress.anchor_route_remaining_m is not None else progress.distance_to_start_m
         )
-        if progress.source == "direct_oracle_route_anchor":
+        if progress.source == "direct_oracle_route_anchor" or progress.anchor_dx_m is not None:
             vector_label = "next-anchor vector"
         else:
-            vector_label = "odometry start vector" if progress.anchor_heading_reliable is False else "start vector"
+            vector_label = "odometry next-anchor vector" if progress.anchor_heading_reliable is False else "next-anchor vector"
 
         # When the particle filter has lost lock (high std), suppress arrival claims.
         if self._filter_lost(progress):

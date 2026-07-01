@@ -77,6 +77,38 @@ class HintActionArbiterTests(unittest.TestCase):
         )
         self.assertFalse(decision.override)
         self.assertEqual(decision.reason, "occupied_in_hint_path")
+        self.assertEqual(decision.clear_path_source, "topdown_map")
+
+    def test_local_map_blocks_before_topdown_fallback(self):
+        descriptor = {
+            "local_map_points_body": np.asarray([[0.55, 0.0, 0.35]], dtype=np.float32)
+        }
+        decision = self.make_arbiter().check(
+            progress=progress(1.0, 0.0, 0.0),
+            vlm_output="The next action is turn left 45 degree.",
+            robot_position=[0.0, 0.0, 0.0],
+            robot_yaw_rad=0.0,
+            topdown_map=clear_map(),
+            local_map_descriptor=descriptor,
+        )
+        self.assertFalse(decision.override)
+        self.assertEqual(decision.reason, "occupied_in_local_map_path")
+        self.assertEqual(decision.clear_path_source, "local_map")
+
+    def test_local_map_can_authorize_override_without_topdown(self):
+        descriptor = {
+            "local_map_points_body": np.asarray([[0.55, 0.70, 0.35]], dtype=np.float32)
+        }
+        decision = self.make_arbiter().check(
+            progress=progress(1.0, 0.0, 0.0),
+            vlm_output="The next action is turn left 45 degree.",
+            robot_position=[0.0, 0.0, 0.0],
+            robot_yaw_rad=0.0,
+            topdown_map=None,
+            local_map_descriptor=descriptor,
+        )
+        self.assertTrue(decision.override)
+        self.assertEqual(decision.clear_path_source, "local_map")
 
     def test_requires_clear_path_unless_explicitly_allowed(self):
         strict = self.make_arbiter()

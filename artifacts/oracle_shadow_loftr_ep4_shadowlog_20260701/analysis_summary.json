@@ -1,0 +1,70 @@
+{
+  "run_tag": "oracle_shadow_loftr_ep4_shadowlog_20260701",
+  "episode_idx": 4,
+  "episode_id": 8,
+  "scene": "x8F5xyUWy9e",
+  "mode": "oracle hint to VLM with non-oracle LoFTR route-memory shadow logging",
+  "result": {
+    "exit_code": 0,
+    "outbound_success": true,
+    "return_success": true,
+    "round_trip_success": true,
+    "distance_to_start_m": 0.6906803250312805,
+    "outbound_stop_distance_to_goal_m": 1.630487084388733,
+    "trajectory_record_count": 2702
+  },
+  "route_memory": {
+    "latest_relocalization_backend": "feature_depth_loftr_3d3d_rear",
+    "latest_relocalization_anchor_index": 3,
+    "latest_relocalization_confidence": 1.0,
+    "latest_relocalization_inlier_count": 265,
+    "relocalization_events": 45,
+    "sequence_observation_history": 8,
+    "arc_length_filter": {
+      "total_length_m": 10.49999999999982,
+      "particle_count": 256,
+      "mean_remaining_m": 2.8376678970429077,
+      "mode_remaining_m": 2.635294117647014,
+      "std_remaining_m": 1.1418087497953697,
+      "confidence": 0.6968763678651294
+    }
+  },
+  "shadow_alignment": {
+    "route_memory_shadow_records": 1127,
+    "route_memory_alignment_records": 1127,
+    "target_vector_error_m": {
+      "n": 1127,
+      "mean": 0.617739979288182,
+      "median": 0.3851610426318947,
+      "max": 8.354784690764092
+    },
+    "abs_bearing_error_deg": {
+      "n": 1103,
+      "mean": 12.388056077908015,
+      "median": 9.084269944490902,
+      "max": 45.02404113870762
+    },
+    "abs_distance_error_m": {
+      "n": 1103,
+      "mean": 0.2896383751682906,
+      "median": 0.21831763987182717,
+      "max": 1.0963421514997733
+    },
+    "anchor_index_error_counts": {
+      "-1": 34,
+      "0": 257,
+      "1": 677,
+      "2": 135
+    },
+    "shadow_backends": {
+      "feature_depth_loftr_3d3d_rear": 1103,
+      "null": 24
+    }
+  },
+  "diagnosis": [
+    "LoFTR rear-view relocalization is active and produces high-confidence matches, so the main failure mode is not a total visual-localization loss.",
+    "The dominant error is a one-anchor progress bias or oscillation: anchor_index_error=1 occurs in 677 of 1103 aligned records.",
+    "Median distance error is small, but bearing error rises when the selected next anchor is off by one around turns.",
+    "Next fixes should target route-progress hysteresis, monotonic remaining-distance constraints, near-start clamp, and possibly a configurable anchor-index bias before broader hard-batch reruns."
+  ]
+}

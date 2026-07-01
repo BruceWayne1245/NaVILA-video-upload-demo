@@ -1,0 +1,20 @@
+Batch started at 2026-07-01T10:42:07+01:00
+Each episode uses a fresh 8-bit VLM server and a fresh Isaac evaluation process.
+Each episode uses a unique VLM port: PORT_BASE(54321) + episode_idx.
+Running only episodes: 4
+Config: no route hint, no stop gate, no yaw alignment (pure VLM baseline)
+Extra Isaac args:    --route_memory   --route_hint_mode=compact   --route_hint_source=oracle   --route_relocalization_backend=loftr_depth   --route_relocalization_interval_updates=25   --oracle_align_return_yaw_to_anchor_segment   --stop_gate   --stop_gate_r_in=3.0   --stop_gate_r_out=3.0   --topdown_route_map   --hint_action_arbiter
+[2026-07-01T10:42:07+01:00] starting episode 4 (x8F5xyUWy9e), port=54325, suffix=oracle_shadow_loftr_ep4_shadowlog_20260701_ep4
+VLM server ready on port 54325, pid=1964811
+[2026-07-01T10:45:21+01:00] finished episode 4, exit_code=0
+Skipping episode 5; ONLY_EPISODES=4
+Skipping episode 134; ONLY_EPISODES=4
+Skipping episode 187; ONLY_EPISODES=4
+Skipping episode 367; ONLY_EPISODES=4
+Skipping episode 368; ONLY_EPISODES=4
+Skipping episode 408; ONLY_EPISODES=4
+Skipping episode 678; ONLY_EPISODES=4
+Skipping episode 680; ONLY_EPISODES=4
+Skipping episode 994; ONLY_EPISODES=4
+Skipping episode 1040; ONLY_EPISODES=4
+Batch finished at 2026-07-01T10:45:21+01:00

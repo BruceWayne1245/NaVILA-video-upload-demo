@@ -16,8 +16,10 @@ import numpy as np
 
 from relocalization import (
     backproject_points,
+    build_rear_view_descriptor,
     camera_point_to_body,
     camera_rotation_to_body_yaw,
+    descriptor_depth,
     quat_wxyz_to_matrix,
     ransac_rigid_transform,
     rigid_transform_3d,
@@ -239,6 +241,23 @@ class TestCameraPointToBody(unittest.TestCase):
         body = camera_point_to_body(p_cam, descriptor)
         # Expected: R_body_cam @ [0,0,3] + [0.3, 0, 0.5] = [0,0,3] + [0.3,0,0.5] = [0.3,0,3.5]
         np.testing.assert_allclose(body, [0.3, 0.0, 3.5], atol=1e-5)
+
+    def test_rear_view_descriptor_exposes_standard_fields(self):
+        descriptor = {
+            "rear_rgb": np.zeros((4, 4, 3), dtype=np.uint8),
+            "rear_depth_depth_measurement": np.ones((4, 4), dtype=np.float32),
+            "rear_camera_intrinsics": np.eye(3, dtype=np.float32),
+            "rear_camera_rotation_body": np.eye(3, dtype=np.float32),
+            "rear_camera_position_body": np.array([0.1, 0.0, 0.5], dtype=np.float32),
+        }
+
+        rear = build_rear_view_descriptor(descriptor)
+
+        self.assertIsNotNone(rear)
+        self.assertEqual(rear["view"], "rear")
+        self.assertIn("rgb", rear)
+        np.testing.assert_allclose(descriptor_depth(rear), np.ones((4, 4), dtype=np.float32))
+        np.testing.assert_allclose(rear["camera_intrinsics"], np.eye(3, dtype=np.float32))
 
     def test_oracle_consistency(self):
         """

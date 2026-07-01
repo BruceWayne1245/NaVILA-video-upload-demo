@@ -13,6 +13,8 @@ from typing import Optional
 
 import numpy as np
 
+from local_map import LocalMapClearPathConfig, local_map_clear_path
+
 
 @dataclass
 class HintActionArbiterConfig:
@@ -41,6 +43,7 @@ class HintActionDecision:
     target_anchor_index: Optional[int] = None
     clear_path_available: bool = False
     clear_path: Optional[bool] = None
+    clear_path_source: Optional[str] = None
     min_clearance_m: Optional[float] = None
 
     def as_log_dict(self) -> dict:
@@ -56,6 +59,7 @@ class HintActionDecision:
             "target_anchor_index": self.target_anchor_index,
             "clear_path_available": self.clear_path_available,
             "clear_path": self.clear_path,
+            "clear_path_source": self.clear_path_source,
             "min_clearance_m": self.min_clearance_m,
         }
 
@@ -200,6 +204,7 @@ class HintActionArbiter:
         robot_position: object,
         robot_yaw_rad: float,
         topdown_map: object = None,
+        local_map_descriptor: object = None,
     ) -> HintActionDecision:
         bearing, distance, target_anchor_index = _hint_direction(progress)
         base = {
@@ -227,11 +232,31 @@ class HintActionArbiter:
             target_dx = getattr(progress, "target_dx_m", None)
             target_dy = getattr(progress, "target_dy_m", None)
 
-        clear_path_available = target_dx is not None and target_dy is not None and topdown_map is not None
+        clear_path_available = False
         clear_path = None
         min_clearance = None
+        clear_path_source = None
         reason = "clear_path_unavailable"
-        if clear_path_available:
+        if target_dx is not None and target_dy is not None:
+            local_result = local_map_clear_path(
+                local_map_descriptor,
+                float(target_dx),
+                float(target_dy),
+                LocalMapClearPathConfig(
+                    max_distance_m=float(self.cfg.max_clear_path_distance_m),
+                    robot_radius_m=float(self.cfg.robot_radius_m),
+                    clearance_margin_m=float(self.cfg.clearance_margin_m),
+                    sample_step_m=float(self.cfg.sample_step_m),
+                ),
+            )
+            if local_result.available:
+                clear_path_available = True
+                clear_path = local_result.clear
+                min_clearance = local_result.min_clearance_m
+                reason = local_result.reason
+                clear_path_source = "local_map"
+        if not clear_path_available and target_dx is not None and target_dy is not None and topdown_map is not None:
+            clear_path_available = True
             clear_path, min_clearance, reason = _topdown_clear_path(
                 topdown_map,
                 np.asarray(robot_position, dtype=np.float32)[:2],
@@ -240,12 +265,14 @@ class HintActionArbiter:
                 float(target_dy),
                 self.cfg,
             )
+            clear_path_source = "topdown_map"
         if not clear_path_available and not self.cfg.allow_without_clear_path:
             return HintActionDecision(
                 override=False,
                 reason=reason,
                 clear_path_available=False,
                 clear_path=None,
+                clear_path_source=None,
                 min_clearance_m=None,
                 **base,
             )
@@ -255,6 +282,7 @@ class HintActionArbiter:
                 reason=reason,
                 clear_path_available=True,
                 clear_path=False,
+                clear_path_source=clear_path_source,
                 min_clearance_m=min_clearance,
                 **base,
             )
@@ -263,6 +291,7 @@ class HintActionArbiter:
             reason="vlm_conflicts_with_clear_hint",
             clear_path_available=clear_path_available,
             clear_path=clear_path if clear_path_available else None,
+            clear_path_source=clear_path_source,
             min_clearance_m=min_clearance,
             **base,
         )

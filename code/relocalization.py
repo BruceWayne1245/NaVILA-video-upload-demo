@@ -10,8 +10,12 @@ from __future__ import annotations
 import math
 from typing import Optional
 
-import cv2
 import numpy as np
+
+try:
+    import cv2
+except Exception:  # pragma: no cover - exercised only in minimal test envs
+    cv2 = None
 
 
 # ---------------------------------------------------------------------------
@@ -39,7 +43,70 @@ def descriptor_rgb_gray(descriptor: object) -> Optional[np.ndarray]:
         return None
     if rgb.dtype != np.uint8:
         rgb = np.clip(rgb, 0, 255).astype(np.uint8)
+    if cv2 is None:
+        return np.dot(rgb[:, :, :3], [0.299, 0.587, 0.114]).astype(np.uint8)
     return cv2.cvtColor(rgb[:, :, :3], cv2.COLOR_RGB2GRAY)
+
+
+def descriptor_rear_depth(descriptor: object) -> Optional[np.ndarray]:
+    if not isinstance(descriptor, dict):
+        return None
+    for key in ("rear_depth_depth_measurement", "rear_depth_obs"):
+        depth = descriptor.get(key)
+        if isinstance(depth, np.ndarray):
+            return np.asarray(depth, dtype=np.float32)
+    return None
+
+
+def descriptor_rear_rgb_gray(descriptor: object) -> Optional[np.ndarray]:
+    if not isinstance(descriptor, dict):
+        return None
+    rgb = descriptor.get("rear_rgb")
+    if not isinstance(rgb, np.ndarray):
+        return None
+    rgb = np.asarray(rgb)
+    if rgb.ndim != 3 or rgb.shape[2] < 3:
+        return None
+    if rgb.dtype != np.uint8:
+        rgb = np.clip(rgb, 0, 255).astype(np.uint8)
+    if cv2 is None:
+        return np.dot(rgb[:, :, :3], [0.299, 0.587, 0.114]).astype(np.uint8)
+    return cv2.cvtColor(rgb[:, :, :3], cv2.COLOR_RGB2GRAY)
+
+
+def build_rear_view_descriptor(descriptor: object) -> Optional[dict]:
+    """Expose a saved rear RGB-D view through the standard descriptor fields."""
+    if not isinstance(descriptor, dict):
+        return None
+    rear_depth = descriptor_rear_depth(descriptor)
+    rear_rgb = descriptor.get("rear_rgb")
+    if rear_depth is None or not isinstance(rear_rgb, np.ndarray):
+        return None
+    rear = dict(descriptor)
+    rear["rgb"] = np.asarray(rear_rgb).copy()
+    rear["depth_obs"] = np.asarray(rear_depth, dtype=np.float32).copy()
+    if isinstance(descriptor.get("rear_camera_intrinsics"), np.ndarray):
+        rear["camera_intrinsics"] = np.asarray(
+            descriptor["rear_camera_intrinsics"], dtype=np.float32
+        ).reshape(3, 3)
+    if isinstance(descriptor.get("rear_camera_position_w"), np.ndarray):
+        rear["camera_position_w"] = np.asarray(
+            descriptor["rear_camera_position_w"], dtype=np.float32
+        ).reshape(3)
+    if isinstance(descriptor.get("rear_camera_quat_wxyz"), np.ndarray):
+        rear["camera_quat_wxyz"] = np.asarray(
+            descriptor["rear_camera_quat_wxyz"], dtype=np.float32
+        ).reshape(4)
+    if isinstance(descriptor.get("rear_camera_rotation_body"), np.ndarray):
+        rear["camera_rotation_body"] = np.asarray(
+            descriptor["rear_camera_rotation_body"], dtype=np.float32
+        ).reshape(3, 3)
+    if isinstance(descriptor.get("rear_camera_position_body"), np.ndarray):
+        rear["camera_position_body"] = np.asarray(
+            descriptor["rear_camera_position_body"], dtype=np.float32
+        ).reshape(3)
+    rear["view"] = "rear"
+    return rear
 
 
 def descriptor_intrinsics(
@@ -396,6 +463,8 @@ _LOFTR_DEVICE = None
 
 def feature_matcher_config(matcher_backend: str) -> dict:
     if matcher_backend == "sift":
+        if cv2 is None:
+            return None
         return {
             "name": "sift",
             "required_keypoints": 20,
@@ -413,6 +482,8 @@ def feature_matcher_config(matcher_backend: str) -> dict:
             "ratio": 0.0,
             "norm": None,
         }
+    if cv2 is None:
+        return None
     return {
         "name": "orb",
         "required_keypoints": 20,
@@ -424,6 +495,8 @@ def feature_matcher_config(matcher_backend: str) -> dict:
 
 
 def create_feature_detector(matcher_backend: str) -> Optional[object]:
+    if cv2 is None:
+        return None
     if matcher_backend == "sift":
         if not hasattr(cv2, "SIFT_create"):
             return None
@@ -591,6 +664,7 @@ def feature_depth_anchor_relocalization(
     max_candidates: int = 8,
     diagnostics: Optional[dict] = None,
     matcher_backend: str = "orb",
+    return_candidates: bool = False,
 ) -> Optional[object]:
     """Attempt map-free anchor relocalization using feature matching + 3-D RANSAC.
 
@@ -603,6 +677,9 @@ def feature_depth_anchor_relocalization(
     if matcher_backend == "feature_depth":
         matcher_backend = "orb"
     config = feature_matcher_config(matcher_backend)
+    if config is None:
+        _diagnostic_inc(diagnostics, "missing_cv2")
+        return None
     _diagnostic_inc(diagnostics, "attempts")
     _diagnostic_inc(diagnostics, f"{config['name']}_attempts")
     if diagnostics is not None:
@@ -637,146 +714,160 @@ def feature_depth_anchor_relocalization(
         current_descriptor, current_gray.shape[1], current_gray.shape[0]
     )
     best = None
+    pose_candidates = []
     candidates = [
         anchor for anchor in reversed(anchors) if isinstance(anchor.descriptor, dict)
     ]
     _diagnostic_inc(diagnostics, "candidate_anchors", len(candidates[:max_candidates]))
     for anchor in candidates[:max_candidates]:
-        covisibility = gt_covisibility(anchor.descriptor, current_descriptor)
-        record: dict = {
-            "attempt": int(attempt_index) if attempt_index is not None else None,
-            "anchor_index": int(anchor.index),
-            "anchor_distance_from_start_m": float(anchor.distance_from_start_m),
-            "route_remaining_to_start_m": float(anchor.route_remaining_to_start_m),
-            "covisibility": covisibility,
-            "matcher_backend": config["name"],
-            "outcome": "not_evaluated",
-        }
-        anchor_gray = descriptor_rgb_gray(anchor.descriptor)
-        anchor_depth = descriptor_depth(anchor.descriptor)
-        if anchor_gray is None or anchor_depth is None:
-            _diagnostic_inc(diagnostics, "candidate_missing_rgb_or_depth")
-            record["outcome"] = "candidate_missing_rgb_or_depth"
-            _append_covisibility_record(diagnostics, record)
-            continue
-        anchor_uv, current_uv, match_metadata = matched_uv_points(
-            anchor_gray,
-            current_gray,
-            detector,
-            current_keypoints,
-            current_desc_arr,
-            matcher_backend,
-            diagnostics=diagnostics,
-        )
-        record.update(match_metadata)
-        if anchor_uv is None or current_uv is None:
-            if matcher_backend == "loftr" and not match_metadata.get(
-                "loftr_available", True
-            ):
-                record["outcome"] = "loftr_unavailable"
+        views_to_try = [("front", anchor.descriptor)]
+        rear_view = build_rear_view_descriptor(anchor.descriptor)
+        if rear_view is not None:
+            views_to_try.append(("rear", rear_view))
+        for view_name, anchor_descriptor in views_to_try:
+            covisibility = gt_covisibility(anchor_descriptor, current_descriptor)
+            record: dict = {
+                "attempt": int(attempt_index) if attempt_index is not None else None,
+                "anchor_index": int(anchor.index),
+                "anchor_view": view_name,
+                "anchor_distance_from_start_m": float(anchor.distance_from_start_m),
+                "route_remaining_to_start_m": float(anchor.route_remaining_to_start_m),
+                "covisibility": covisibility,
+                "matcher_backend": config["name"],
+                "outcome": "not_evaluated",
+            }
+            anchor_gray = descriptor_rgb_gray(anchor_descriptor)
+            anchor_depth = descriptor_depth(anchor_descriptor)
+            if anchor_gray is None or anchor_depth is None:
+                _diagnostic_inc(diagnostics, "candidate_missing_rgb_or_depth")
+                record["outcome"] = "candidate_missing_rgb_or_depth"
                 _append_covisibility_record(diagnostics, record)
-                return None
-            failure_reason = match_metadata.get(
-                "failure_reason", "candidate_too_few_keypoints"
+                continue
+            anchor_uv, current_uv, match_metadata = matched_uv_points(
+                anchor_gray,
+                current_gray,
+                detector,
+                current_keypoints,
+                current_desc_arr,
+                matcher_backend,
+                diagnostics=diagnostics,
             )
-            _diagnostic_inc(diagnostics, failure_reason)
-            record["outcome"] = failure_reason
-            _append_covisibility_record(diagnostics, record)
-            continue
-        record["matches_2d"] = int(len(anchor_uv))
-        if len(anchor_uv) < config["required_matches"]:
-            _diagnostic_inc(diagnostics, "too_few_2d_matches")
-            record["outcome"] = "too_few_2d_matches"
-            _append_covisibility_record(diagnostics, record)
-            continue
-        anchor_k = descriptor_intrinsics(
-            anchor.descriptor, anchor_gray.shape[1], anchor_gray.shape[0]
-        )
-        anchor_points_all, anchor_valid = backproject_points(
-            anchor_uv, anchor_depth, anchor_k
-        )
-        current_points_all, current_valid = backproject_points(
-            current_uv, current_depth, current_k
-        )
-        valid = sorted(set(anchor_valid).intersection(current_valid))
-        record["depth_valid_matches"] = int(len(valid))
-        if len(valid) < 8:
-            _diagnostic_inc(diagnostics, "too_few_depth_valid_matches")
-            record["outcome"] = "too_few_depth_valid_matches"
-            _append_covisibility_record(diagnostics, record)
-            continue
-        anchor_index_by_match = {
-            match_index: i for i, match_index in enumerate(anchor_valid)
-        }
-        current_index_by_match = {
-            match_index: i for i, match_index in enumerate(current_valid)
-        }
-        anchor_points = np.asarray(
-            [anchor_points_all[anchor_index_by_match[i]] for i in valid], dtype=np.float32
-        )
-        current_points = np.asarray(
-            [current_points_all[current_index_by_match[i]] for i in valid], dtype=np.float32
-        )
-        rotation, translation, inliers = ransac_rigid_transform(
-            anchor_points, current_points, threshold_m=0.35
-        )
-        if rotation is None:
-            _diagnostic_inc(diagnostics, "ransac_failed")
-            record["outcome"] = "ransac_failed"
-            _append_covisibility_record(diagnostics, record)
-            continue
-        inlier_count = int(inliers.sum())
-        record["inlier_count"] = inlier_count
-        if inlier_count < 6:
-            _diagnostic_inc(diagnostics, "too_few_3d_inliers")
-            record["outcome"] = "too_few_3d_inliers"
-            _append_covisibility_record(diagnostics, record)
-            continue
-        residual = np.linalg.norm(
-            (rotation @ anchor_points[inliers].T).T
-            + translation
-            - current_points[inliers],
-            axis=1,
-        )
-        error = float(np.median(residual))
-        record["median_3d_residual_m"] = error
-        confidence = min(1.0, (inlier_count / 30.0) * max(0.0, 1.0 - error / 0.45))
-        if confidence < 0.15:
-            _diagnostic_inc(diagnostics, "low_confidence_pose")
-            record["confidence"] = float(confidence)
-            record["outcome"] = "low_confidence_pose"
-            _append_covisibility_record(diagnostics, record)
-            continue
+            record.update(match_metadata)
+            if anchor_uv is None or current_uv is None:
+                if matcher_backend == "loftr" and not match_metadata.get(
+                    "loftr_available", True
+                ):
+                    record["outcome"] = "loftr_unavailable"
+                    _append_covisibility_record(diagnostics, record)
+                    return None
+                failure_reason = match_metadata.get(
+                    "failure_reason", "candidate_too_few_keypoints"
+                )
+                _diagnostic_inc(diagnostics, failure_reason)
+                record["outcome"] = failure_reason
+                _append_covisibility_record(diagnostics, record)
+                continue
+            record["matches_2d"] = int(len(anchor_uv))
+            if len(anchor_uv) < config["required_matches"]:
+                _diagnostic_inc(diagnostics, "too_few_2d_matches")
+                record["outcome"] = "too_few_2d_matches"
+                _append_covisibility_record(diagnostics, record)
+                continue
+            anchor_k = descriptor_intrinsics(
+                anchor_descriptor, anchor_gray.shape[1], anchor_gray.shape[0]
+            )
+            anchor_points_all, anchor_valid = backproject_points(
+                anchor_uv, anchor_depth, anchor_k
+            )
+            current_points_all, current_valid = backproject_points(
+                current_uv, current_depth, current_k
+            )
+            valid = sorted(set(anchor_valid).intersection(current_valid))
+            record["depth_valid_matches"] = int(len(valid))
+            if len(valid) < 8:
+                _diagnostic_inc(diagnostics, "too_few_depth_valid_matches")
+                record["outcome"] = "too_few_depth_valid_matches"
+                _append_covisibility_record(diagnostics, record)
+                continue
+            anchor_index_by_match = {
+                match_index: i for i, match_index in enumerate(anchor_valid)
+            }
+            current_index_by_match = {
+                match_index: i for i, match_index in enumerate(current_valid)
+            }
+            anchor_points = np.asarray(
+                [anchor_points_all[anchor_index_by_match[i]] for i in valid], dtype=np.float32
+            )
+            current_points = np.asarray(
+                [current_points_all[current_index_by_match[i]] for i in valid], dtype=np.float32
+            )
+            rotation, translation, inliers = ransac_rigid_transform(
+                anchor_points, current_points, threshold_m=0.35
+            )
+            if rotation is None:
+                _diagnostic_inc(diagnostics, "ransac_failed")
+                record["outcome"] = "ransac_failed"
+                _append_covisibility_record(diagnostics, record)
+                continue
+            inlier_count = int(inliers.sum())
+            record["inlier_count"] = inlier_count
+            if inlier_count < 6:
+                _diagnostic_inc(diagnostics, "too_few_3d_inliers")
+                record["outcome"] = "too_few_3d_inliers"
+                _append_covisibility_record(diagnostics, record)
+                continue
+            residual = np.linalg.norm(
+                (rotation @ anchor_points[inliers].T).T
+                + translation
+                - current_points[inliers],
+                axis=1,
+            )
+            error = float(np.median(residual))
+            record["median_3d_residual_m"] = error
+            confidence = min(1.0, (inlier_count / 30.0) * max(0.0, 1.0 - error / 0.45))
+            if confidence < 0.15:
+                _diagnostic_inc(diagnostics, "low_confidence_pose")
+                record["confidence"] = float(confidence)
+                record["outcome"] = "low_confidence_pose"
+                _append_covisibility_record(diagnostics, record)
+                continue
 
-        anchor_origin_in_current_body = camera_point_to_body(
-            translation, current_descriptor
-        )
-        anchor_dtheta = camera_rotation_to_body_yaw(
-            rotation, current_descriptor, anchor.descriptor
-        )
-        candidate = AnchorRelocalization(
-            anchor_index=int(anchor.index),
-            anchor_dx_m=float(anchor_origin_in_current_body[0]),
-            anchor_dy_m=float(anchor_origin_in_current_body[1]),
-            anchor_dtheta_rad=float(anchor_dtheta),
-            confidence=float(confidence),
-            backend=f"feature_depth_{config['name']}_3d3d",
-            inlier_count=inlier_count,
-            reprojection_error_px=None,
-            anchor_heading_reliable=True,
-        )
-        record["confidence"] = float(confidence)
-        record["estimated_anchor_dx_m"] = float(candidate.anchor_dx_m)
-        record["estimated_anchor_dy_m"] = float(candidate.anchor_dy_m)
-        record["estimated_distance_to_anchor_m"] = float(candidate.distance_to_anchor_m)
-        record["estimated_bearing_to_anchor_deg"] = float(candidate.bearing_to_anchor_deg)
-        record["outcome"] = "pose_candidate"
-        _append_covisibility_record(diagnostics, record)
-        score = confidence * math.sqrt(max(1, inlier_count))
-        if best is None or score > best[0]:
-            best = (score, candidate)
+            anchor_origin_in_current_body = camera_point_to_body(
+                translation, current_descriptor
+            )
+            anchor_dtheta = camera_rotation_to_body_yaw(
+                rotation, current_descriptor, anchor_descriptor
+            )
+            candidate = AnchorRelocalization(
+                anchor_index=int(anchor.index),
+                anchor_dx_m=float(anchor_origin_in_current_body[0]),
+                anchor_dy_m=float(anchor_origin_in_current_body[1]),
+                anchor_dtheta_rad=float(anchor_dtheta),
+                confidence=float(confidence),
+                backend=f"feature_depth_{config['name']}_3d3d_{view_name}",
+                inlier_count=inlier_count,
+                reprojection_error_px=None,
+                anchor_heading_reliable=True,
+            )
+            record["confidence"] = float(confidence)
+            record["estimated_anchor_dx_m"] = float(candidate.anchor_dx_m)
+            record["estimated_anchor_dy_m"] = float(candidate.anchor_dy_m)
+            record["estimated_distance_to_anchor_m"] = float(candidate.distance_to_anchor_m)
+            record["estimated_bearing_to_anchor_deg"] = float(candidate.bearing_to_anchor_deg)
+            record["outcome"] = "pose_candidate"
+            _append_covisibility_record(diagnostics, record)
+            score = confidence * math.sqrt(max(1, inlier_count))
+            pose_candidates.append(candidate)
+            if best is None or score > best[0]:
+                best = (score, candidate)
     if best is None:
         _diagnostic_inc(diagnostics, "no_pose_selected")
         return None
     _diagnostic_inc(diagnostics, "successful_estimates")
+    if return_candidates:
+        pose_candidates.sort(
+            key=lambda c: float(c.confidence) * math.sqrt(max(1, int(c.inlier_count or 1))),
+            reverse=True,
+        )
+        return pose_candidates
     return best[1]

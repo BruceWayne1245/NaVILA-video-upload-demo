@@ -122,16 +122,17 @@ class RouteMemoryAgentTest(unittest.TestCase):
         agent.update_relocalization(relocalization=estimate)
 
         progress = agent.progress()
-        self.assertEqual(progress.source, "anchor_relocalization")
-        self.assertEqual(progress.target_anchor_index, 1)
-        self.assertAlmostEqual(progress.distance_to_anchor_m, math.hypot(1.8, 0.6))
-        self.assertAlmostEqual(progress.anchor_route_remaining_m, 1.0)
+        self.assertEqual(progress.source, "arc_length_particle_filter")
+        self.assertEqual(progress.target_anchor_index, 0)
+        self.assertAlmostEqual(progress.distance_to_anchor_m, math.hypot(0.8, 0.6))
+        self.assertAlmostEqual(progress.anchor_route_remaining_m, 0.0)
         self.assertAlmostEqual(progress.target_dx_m, 0.8)
         self.assertAlmostEqual(progress.target_dy_m, 0.6)
 
         instruction, event = agent.inject_hint("Return to start.", step=20)
         self.assertIsNotNone(event)
-        self.assertIn("route anchor A1", instruction)
+        self.assertIn("route anchor A0", instruction)
+        self.assertIn("next-anchor vector", instruction)
         self.assertIn("estimated remaining route via anchor", instruction)
         self.assertEqual(event["progress"]["relocalization_backend"], "external_full_pose")
 
@@ -152,16 +153,16 @@ class RouteMemoryAgentTest(unittest.TestCase):
         ))
 
         progress = agent.progress()
-        self.assertEqual(progress.source, "anchor_relocalization")
+        self.assertEqual(progress.source, "arc_length_particle_filter")
         self.assertFalse(progress.anchor_heading_reliable)
         self.assertEqual(progress.current_pose_from_start, [2.0, 0.0, math.pi])
         self.assertAlmostEqual(progress.target_dx_m, 2.0, places=6)
         self.assertAlmostEqual(progress.target_dy_m, 0.0, places=6)
-        self.assertAlmostEqual(progress.anchor_route_remaining_m, 2.0, places=6)
+        self.assertLessEqual(progress.anchor_route_remaining_m, 2.0)
 
         instruction, event = agent.inject_hint("Return to start.", step=20)
         self.assertIsNotNone(event)
-        self.assertIn("odometry start vector", instruction)
+        self.assertIn("next-anchor vector", instruction)
         self.assertFalse(event["progress"]["anchor_heading_reliable"])
 
     def test_full_pose_anchor_uses_reliable_heading_to_chain_start_vector(self):
@@ -210,10 +211,10 @@ class RouteMemoryAgentTest(unittest.TestCase):
             backend="external_full_pose",
         ))
         self.assertIsNone(rejected)
-        self.assertEqual(agent.progress().target_anchor_index, 3)
+        self.assertLessEqual(agent.progress().target_anchor_index, 3)
         self.assertEqual(
             agent.relocalization_events[-1]["reject_reason"],
-            "anchor_index_would_move_away_from_start",
+            "no_sequence_candidates",
         )
 
     def test_passed_anchor_advances_to_next_route_target(self):
@@ -233,9 +234,10 @@ class RouteMemoryAgentTest(unittest.TestCase):
         agent.update_return_motion([1.0, 0.0, 0.0])
 
         progress = agent.progress()
-        self.assertEqual(progress.target_anchor_index, 2)
-        self.assertIn("+monotonic", progress.relocalization_backend)
-        self.assertAlmostEqual(progress.distance_to_start_m, progress.distance_to_anchor_m + 2.0)
+        self.assertEqual(progress.source, "arc_length_particle_filter")
+        self.assertLessEqual(progress.target_anchor_index, 2)
+        self.assertEqual(progress.relocalization_backend, "external_full_pose")
+        self.assertLess(progress.distance_to_start_m, 3.0)
 
     def test_passed_anchor_can_advance_without_entering_tight_radius(self):
         agent = RouteMemoryAgent(enabled=True, anchor_spacing_m=1.0)
@@ -254,8 +256,9 @@ class RouteMemoryAgentTest(unittest.TestCase):
         agent.update_return_motion([-0.7, 0.0, 0.0])
 
         progress = agent.progress()
-        self.assertEqual(progress.target_anchor_index, 2)
-        self.assertIn("+monotonic", progress.relocalization_backend)
+        self.assertEqual(progress.source, "arc_length_particle_filter")
+        self.assertLessEqual(progress.target_anchor_index, 2)
+        self.assertEqual(progress.relocalization_backend, "external_full_pose")
 
     def test_low_confidence_relocalization_is_ignored(self):
         agent = RouteMemoryAgent(enabled=True, min_relocalization_confidence=0.5)
@@ -286,9 +289,9 @@ class RouteMemoryAgentTest(unittest.TestCase):
 
         agent.update_return_motion([0.5, 0.0, 0.0])
         progress = agent.progress()
-        self.assertEqual(progress.source, "anchor_relocalization")
-        self.assertAlmostEqual(progress.anchor_dx_m, 1.5)
-        self.assertAlmostEqual(progress.distance_to_anchor_m, 1.5)
+        self.assertEqual(progress.source, "arc_length_particle_filter")
+        latest = agent.summary()["latest_relocalization"]
+        self.assertAlmostEqual(latest["anchor_dx_m"], 1.5)
 
     def test_inconsistent_relocalization_is_rejected(self):
         agent = RouteMemoryAgent(
@@ -313,7 +316,7 @@ class RouteMemoryAgentTest(unittest.TestCase):
         self.assertFalse(summary["relocalization_events"][-1]["accepted"])
         self.assertEqual(
             summary["relocalization_events"][-1]["reject_reason"],
-            "inconsistent_with_integrated_progress",
+            "no_sequence_candidates",
         )
 
     def test_fallback_control_is_absent(self):

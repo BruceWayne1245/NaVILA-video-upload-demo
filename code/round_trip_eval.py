@@ -804,6 +804,77 @@ def make_trajectory_record(
     }
 
 
+def route_progress_to_record(progress, configured_source):
+    if progress is None:
+        return None
+    return {
+        "source": progress.source,
+        "configured_source": configured_source,
+        "target_dx_m": progress.target_dx_m,
+        "target_dy_m": progress.target_dy_m,
+        "distance_to_start_m": progress.distance_to_start_m,
+        "bearing_to_start_deg": progress.bearing_to_start_deg,
+        "current_pose_from_start": progress.current_pose_from_start,
+        "return_pose_from_return_start": progress.return_pose_from_return_start,
+        "return_start_pose_from_start": progress.return_start_pose_from_start,
+        "target_anchor_index": progress.target_anchor_index,
+        "anchor_dx_m": progress.anchor_dx_m,
+        "anchor_dy_m": progress.anchor_dy_m,
+        "distance_to_anchor_m": progress.distance_to_anchor_m,
+        "bearing_to_anchor_deg": progress.bearing_to_anchor_deg,
+        "anchor_route_remaining_m": progress.anchor_route_remaining_m,
+        "anchor_heading_reliable": progress.anchor_heading_reliable,
+        "relocalization_confidence": progress.relocalization_confidence,
+        "relocalization_backend": progress.relocalization_backend,
+        "filter_std_m": progress.filter_std_m,
+        "oracle_route_current_s_m": progress.oracle_route_current_s_m,
+        "oracle_route_target_s_m": progress.oracle_route_target_s_m,
+        "oracle_route_lookahead_m": progress.oracle_route_lookahead_m,
+    }
+
+
+def route_progress_alignment_record(primary, shadow):
+    if primary is None or shadow is None:
+        return None
+    primary_anchor = primary.target_anchor_index
+    shadow_anchor = shadow.target_anchor_index
+    anchor_index_error = (
+        None if primary_anchor is None or shadow_anchor is None
+        else int(shadow_anchor) - int(primary_anchor)
+    )
+    bearing_error = None
+    if primary.bearing_to_anchor_deg is not None and shadow.bearing_to_anchor_deg is not None:
+        bearing_error = float(
+            math.degrees(math.atan2(
+                math.sin(math.radians(shadow.bearing_to_anchor_deg - primary.bearing_to_anchor_deg)),
+                math.cos(math.radians(shadow.bearing_to_anchor_deg - primary.bearing_to_anchor_deg)),
+            ))
+        )
+    distance_error = None
+    if primary.distance_to_anchor_m is not None and shadow.distance_to_anchor_m is not None:
+        distance_error = float(shadow.distance_to_anchor_m - primary.distance_to_anchor_m)
+    target_vector_error = None
+    if (
+        primary.target_dx_m is not None and primary.target_dy_m is not None
+        and shadow.target_dx_m is not None and shadow.target_dy_m is not None
+    ):
+        target_vector_error = float(math.hypot(
+            shadow.target_dx_m - primary.target_dx_m,
+            shadow.target_dy_m - primary.target_dy_m,
+        ))
+    return {
+        "primary_source": primary.source,
+        "shadow_source": shadow.source,
+        "anchor_index_error": anchor_index_error,
+        "bearing_to_anchor_error_deg": bearing_error,
+        "distance_to_anchor_error_m": distance_error,
+        "target_vector_error_m": target_vector_error,
+        "shadow_confidence": shadow.relocalization_confidence,
+        "shadow_filter_std_m": shadow.filter_std_m,
+        "shadow_backend": shadow.relocalization_backend,
+    }
+
+
 def _to_numpy_descriptor(value):
     if hasattr(value, "detach"):
         value = value.detach().cpu().numpy()
@@ -912,6 +983,58 @@ def rear_camera_extrinsic_body_from_env(env):
         return None
 
 
+def local_map_descriptor_from_env(env):
+    """Best-effort local map extraction from Isaac sensors.
+
+    Real LiDAR/RayCaster integrations should expose body-frame obstacle points
+    as ``local_map_points_body``.  The fallback below handles common IsaacLab
+    RayCaster data fields and filters ground hits later in ``local_map.py``.
+    """
+    try:
+        sensors = getattr(env.unwrapped.scene, "sensors", {})
+    except Exception:
+        return None
+    sensor = None
+    for name in ("lidar", "local_lidar", "height_scanner", "ray_caster"):
+        try:
+            if name in sensors:
+                sensor = sensors[name]
+                break
+        except Exception:
+            continue
+    if sensor is None:
+        return None
+    hits = None
+    try:
+        data = sensor.data
+        for attr in ("ray_hits_w", "pointcloud_w", "points_w"):
+            value = getattr(data, attr, None)
+            if value is not None:
+                hits = _to_numpy_descriptor(value)
+                break
+    except Exception:
+        hits = None
+    if not isinstance(hits, np.ndarray):
+        return None
+    hits = np.asarray(hits, dtype=np.float32)
+    if hits.ndim == 3:
+        hits = hits[0]
+    if hits.ndim != 2 or hits.shape[1] < 3:
+        return None
+    valid = np.isfinite(hits).all(axis=1)
+    hits = hits[valid]
+    if len(hits) == 0:
+        return None
+    robot_pose = get_robot_pose(env)
+    robot_position = np.asarray(robot_pose[:3], dtype=np.float32)
+    robot_rotation = _quat_wxyz_to_matrix(np.asarray(robot_pose[3:7], dtype=np.float32))
+    points_body = (robot_rotation.T @ (hits[:, :3] - robot_position).T).T.astype(np.float32)
+    return {
+        "local_map_points_body": points_body,
+        "local_map_source": "isaac_sensor",
+    }
+
+
 def route_memory_descriptor_from_infos(infos, env=None):
     observations = infos.get("observations", {}) if isinstance(infos, dict) else {}
     descriptor = {}
@@ -931,6 +1054,13 @@ def route_memory_descriptor_from_infos(infos, env=None):
             descriptor[key] = _to_numpy_descriptor(value)
     elif route_obs is not None:
         descriptor["route_memory_obs"] = _to_numpy_descriptor(route_obs)
+
+    local_map_obs = observations.get("local_map_obs")
+    if isinstance(local_map_obs, dict):
+        for key, value in local_map_obs.items():
+            descriptor[f"local_map_{key}"] = _to_numpy_descriptor(value)
+    elif local_map_obs is not None:
+        descriptor["local_map_obs"] = _to_numpy_descriptor(local_map_obs)
 
     depth_obs = observations.get("depth_obs")
     if isinstance(depth_obs, dict):
@@ -976,6 +1106,9 @@ def route_memory_descriptor_from_infos(infos, env=None):
         if rear_extrinsic is not None:
             descriptor["rear_camera_rotation_body"] = rear_extrinsic["rotation_body_camera"]
             descriptor["rear_camera_position_body"] = rear_extrinsic["position_body"]
+        local_map = local_map_descriptor_from_env(env)
+        if local_map is not None:
+            descriptor.update(local_map)
 
     return descriptor or None
 
@@ -1338,6 +1471,7 @@ def main():
     force_capture_next_image = False
     _gate_vlm_progress = None     # progress used at the last VLM query step
     _last_gate_decision: GateDecision = None  # gate decision from the last VLM query
+    current_route_descriptor = None
     # visualizer = define_markers()
     # simulate environment
     while simulation_app.is_running():
@@ -1355,14 +1489,30 @@ def main():
                             start_pos,
                             route_agent,
                         )
-                        _gate_vlm_progress = progress_override   # capture for stop gate
+                        route_query_progress = (
+                            progress_override
+                            if progress_override is not None else route_agent.progress()
+                        )
+                        route_shadow_progress = (
+                            route_agent.progress()
+                            if progress_override is not None else None
+                        )
+                        _gate_vlm_progress = route_query_progress   # capture for stop gate / action arbiter
                         query_instruction_text, route_hint_event = route_agent.inject_hint(
                             current_instruction_text,
                             num_steps,
-                            progress_override=progress_override,
+                            progress_override=route_query_progress,
                         )
                         if route_hint_event is not None:
                             route_hint_event["source"] = args_cli.route_hint_source
+                            route_hint_event["shadow_progress"] = route_progress_to_record(
+                                route_shadow_progress,
+                                "shadow_non_oracle",
+                            )
+                            route_hint_event["shadow_alignment"] = route_progress_alignment_record(
+                                route_query_progress,
+                                route_shadow_progress,
+                            )
                             phase_events.append({
                                 "step": int(num_steps),
                                 "phase": phase,
@@ -1384,6 +1534,7 @@ def main():
                             robot_position=get_robot_position(env),
                             robot_yaw_rad=pose_yaw(get_robot_pose(env)),
                             topdown_map=topdown_route_map,
+                            local_map_descriptor=current_route_descriptor,
                         )
                         phase_events.append({
                             "step": int(num_steps),
@@ -1567,6 +1718,7 @@ def main():
                 float(vlm_vel_commands[2]) * control_dt,
             ]
             route_descriptor = route_memory_descriptor_from_infos(infos, env)
+            current_route_descriptor = route_descriptor
             if phase in ("outbound", "confirm"):
                 previous_anchor_count = len(route_agent.anchors)
                 route_agent.update_outbound_motion(action_delta, descriptor=route_descriptor)
@@ -1588,35 +1740,20 @@ def main():
                 )
 
         route_memory_progress = None
+        route_memory_shadow_progress = None
+        route_memory_alignment = None
         if args_cli.route_memory and phase == "return":
             progress = route_progress_override(args_cli.route_hint_source, env, start_pos, route_agent)
+            shadow_progress = route_agent.progress() if progress is not None else None
             if progress is None:
                 progress = route_agent.progress()
             if progress is not None:
-                route_memory_progress = {
-                    "source": progress.source,
-                    "configured_source": args_cli.route_hint_source,
-                    "target_dx_m": progress.target_dx_m,
-                    "target_dy_m": progress.target_dy_m,
-                    "distance_to_start_m": progress.distance_to_start_m,
-                    "bearing_to_start_deg": progress.bearing_to_start_deg,
-                    "current_pose_from_start": progress.current_pose_from_start,
-                    "return_pose_from_return_start": progress.return_pose_from_return_start,
-                    "return_start_pose_from_start": progress.return_start_pose_from_start,
-                    "target_anchor_index": progress.target_anchor_index,
-                    "anchor_dx_m": progress.anchor_dx_m,
-                    "anchor_dy_m": progress.anchor_dy_m,
-                    "distance_to_anchor_m": progress.distance_to_anchor_m,
-                    "bearing_to_anchor_deg": progress.bearing_to_anchor_deg,
-                    "anchor_route_remaining_m": progress.anchor_route_remaining_m,
-                    "anchor_heading_reliable": progress.anchor_heading_reliable,
-                    "relocalization_confidence": progress.relocalization_confidence,
-                    "relocalization_backend": progress.relocalization_backend,
-                    "filter_std_m": progress.filter_std_m,
-                    "oracle_route_current_s_m": progress.oracle_route_current_s_m,
-                    "oracle_route_target_s_m": progress.oracle_route_target_s_m,
-                    "oracle_route_lookahead_m": progress.oracle_route_lookahead_m,
-                }
+                route_memory_progress = route_progress_to_record(progress, args_cli.route_hint_source)
+                route_memory_shadow_progress = route_progress_to_record(
+                    shadow_progress,
+                    "shadow_non_oracle",
+                )
+                route_memory_alignment = route_progress_alignment_record(progress, shadow_progress)
 
         _traj_record = make_trajectory_record(
             num_steps,
@@ -1635,6 +1772,10 @@ def main():
             _traj_record["stop_gate"] = _last_gate_decision.as_log_dict()
         if hint_action_arbiter is not None and _last_hint_action_decision is not None:
             _traj_record["hint_action_arbiter"] = _last_hint_action_decision.as_log_dict()
+        if route_memory_shadow_progress is not None:
+            _traj_record["route_memory_shadow"] = route_memory_shadow_progress
+        if route_memory_alignment is not None:
+            _traj_record["route_memory_alignment"] = route_memory_alignment
         trajectory_records.append(_traj_record)
 
         distance_to_start = float(np.linalg.norm(get_robot_position(env)[:2] - start_pos[:2]))
