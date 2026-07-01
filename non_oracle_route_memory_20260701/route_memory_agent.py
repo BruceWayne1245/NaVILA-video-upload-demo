@@ -200,6 +200,18 @@ class ArcLengthParticleFilter:
         ]
         self._normalize()
 
+    def seed(self, observed_s_m: float, confidence: float = 1.0, sigma_m: float = 0.35) -> None:
+        observed_s = min(self.total_length_m, max(0.0, float(observed_s_m)))
+        confidence = min(1.0, max(0.0, float(confidence)))
+        sigma = max(0.10, float(sigma_m))
+        inv_two_sigma2 = 1.0 / (2.0 * sigma * sigma)
+        floor = max(0.0, 1.0 - confidence)
+        self.weights = [
+            floor + confidence * math.exp(-((p - observed_s) ** 2) * inv_two_sigma2)
+            for p in self.particles
+        ]
+        self._normalize()
+
     def estimate(self) -> float:
         return float(sum(p * w for p, w in zip(self.particles, self.weights)))
 
@@ -301,7 +313,7 @@ class RouteMemoryAgent:
         # VIO bridge: suppress visual observations in the corridor dead zone;
         # only accept updates when the filter is confident OR near a path feature
         # (a turn or doorway where geometry disambiguates position along the route).
-        self.vio_bridge_enabled: bool = False
+        self.vio_bridge_enabled: bool = True
         self.vio_bridge_std_threshold_m: float = 2.5
         self.vio_bridge_feature_radius_m: float = 2.0
         self._feature_anchor_indices: set = set()
@@ -367,11 +379,24 @@ class RouteMemoryAgent:
         self._return_start_pose_from_start = list(self._outbound_pose_from_start)
         self._return_pose_from_return_start = [0.0, 0.0, 0.0]
         self._arc_length_filter = ArcLengthParticleFilter(total_length_m=self._outbound_distance_m)
+        self._arc_length_filter.seed(self._outbound_distance_m, confidence=1.0, sigma_m=0.35)
         self._arc_observation = None
-        self._sequence_observation = None
+        final_anchor_index = self.anchors[-1].index if self.anchors else 0
+        self._sequence_observation = SequenceArcObservation(
+            observed_s_m=float(self._outbound_distance_m),
+            confidence=1.0,
+            sigma_m=0.35,
+            anchor_index=int(final_anchor_index),
+            backend="return_start_prior",
+            source="return_start_prior",
+            selected_score=1.0,
+            candidate_count=1,
+            expected_s_m=float(self._outbound_distance_m),
+            motion_error_m=0.0,
+        )
         self._sequence_observation_history = []
         self._distance_since_sequence_observation_m = 0.0
-        self._sequence_current_s_m = None
+        self._sequence_current_s_m = float(self._outbound_distance_m)
         self._return_started = True
         self._return_update_count = 0
         self._force_next_relocalization = True

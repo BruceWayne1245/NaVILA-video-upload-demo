@@ -171,11 +171,13 @@ parser.add_argument("--route_fallback", action="store_true", default=False, help
 parser.add_argument(
     "--vio_bridge",
     action="store_true",
-    default=False,
+    default=True,
     help="Enable VIO bridge: suppress visual particle-filter updates in the corridor dead zone "
          "(filter std > vio_bridge_std_m) away from path feature anchors (corners/doorways).",
 )
+parser.add_argument("--no_vio_bridge", action="store_false", dest="vio_bridge", help=argparse.SUPPRESS)
 parser.add_argument("--vio_bridge_std_m", type=float, default=2.5, help=argparse.SUPPRESS)
+parser.add_argument("--vio_bridge_feature_radius_m", type=float, default=2.0, help=argparse.SUPPRESS)
 parser.add_argument(
     "--stop_gate",
     action="store_true",
@@ -1399,6 +1401,7 @@ def main():
     )
     route_agent.vio_bridge_enabled = bool(getattr(args_cli, "vio_bridge", False))
     route_agent.vio_bridge_std_threshold_m = float(getattr(args_cli, "vio_bridge_std_m", 2.5))
+    route_agent.vio_bridge_feature_radius_m = float(getattr(args_cli, "vio_bridge_feature_radius_m", 2.0))
     stop_gate = None
     if getattr(args_cli, "stop_gate", False):
         stop_gate = ReturnStopGate(

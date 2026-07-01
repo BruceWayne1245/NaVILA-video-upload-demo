@@ -144,6 +144,32 @@ class RouteMemoryAgentTest(unittest.TestCase):
         self.assertEqual(calls, [{"kind": "return_start"}])
         self.assertEqual(agent.summary()["latest_relocalization"]["backend"], "forced_first")
 
+    def test_return_start_prior_rejects_first_alias_observation(self):
+        agent = RouteMemoryAgent(enabled=True, anchor_spacing_m=1.0)
+        for _ in range(10):
+            agent.update_outbound_motion([1.0, 0.0, 0.0])
+        agent.finalize_outbound()
+
+        rejected = agent.update_relocalization(relocalization=AnchorRelocalization(
+            anchor_index=4,
+            anchor_dx_m=0.0,
+            anchor_dy_m=0.0,
+            anchor_dtheta_rad=0.0,
+            confidence=1.0,
+            backend="aliased_first_frame",
+            inlier_count=30,
+        ))
+
+        self.assertIsNone(rejected)
+        summary = agent.summary()
+        self.assertIsNone(summary["latest_relocalization"])
+        self.assertEqual(summary["sequence_observation"]["source"], "return_start_prior")
+        self.assertEqual(summary["relocalization_events"][-1]["reject_reason"], "sequence_candidate_score_too_low")
+
+    def test_vio_bridge_defaults_enabled(self):
+        agent = RouteMemoryAgent(enabled=True)
+        self.assertTrue(agent.vio_bridge_enabled)
+
     def test_full_pose_anchor_relocalization_overrides_integrated_start_hint(self):
         agent = RouteMemoryAgent(enabled=True, anchor_spacing_m=1.0)
         agent.update_outbound_motion([1.0, 0.0, 0.0])

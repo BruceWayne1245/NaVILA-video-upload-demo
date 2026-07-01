@@ -2186,6 +2186,8 @@ The second issue is target-vector orientation quality. Even when the anchor inde
 
 Follow-up code change: the hard default `8` relocalization-window cap has been removed. `--route_relocalization_window=0` now means search all descriptor-bearing anchors, while positive values still provide an explicit cap for debugging or runtime control. Candidate order is still outbound-end-first, so a later expected-progress ordering pass is still useful.
 
+Follow-up anti-aliasing change: return now seeds the route-progress filter and sequence prior at `s=total_length` when `finalize_outbound()` starts Return. This means the first visual relocalization is no longer allowed to set progress from an unconstrained state; a first-frame corridor alias several meters behind the return start receives a large sequence-continuity penalty and is rejected unless it is consistent with the known return-start position. VIO bridge is also enabled by default (`--no_vio_bridge` disables it) so uncertain visual observations in corridor dead zones are suppressed unless they land near feature anchors such as turns/doorways.
+
 Artifacts:
 
 ```text

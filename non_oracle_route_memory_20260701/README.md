@@ -24,6 +24,8 @@ Main return-start fixes included here:
 - The first return update forces relocalization instead of waiting for the normal interval.
 - Oracle direct-route target-anchor selection and route-memory target selection now share the same lookahead helper, reducing code-induced anchor-index mismatch.
 - The relocalization candidate window default is now unlimited (`--route_relocalization_window=0`); pass a positive value only when an explicit cap is desired.
+- Return starts with a seeded route-progress prior at `s=total_length`, so the first visual relocalization is checked against the known return-start position instead of freely choosing an aliased corridor anchor.
+- VIO bridge is enabled by default; `--no_vio_bridge` disables it, and `--vio_bridge_feature_radius_m` controls how close a visual observation must be to a turn/doorway feature anchor when the filter is uncertain.
 
 Known remaining non-oracle limitations:
 
