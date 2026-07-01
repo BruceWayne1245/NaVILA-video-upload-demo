@@ -661,7 +661,7 @@ def _append_covisibility_record(diagnostics: Optional[dict], record: dict) -> No
 def feature_depth_anchor_relocalization(
     current_descriptor: object,
     anchors: list,
-    max_candidates: int = 8,
+    max_candidates: Optional[int] = None,
     diagnostics: Optional[dict] = None,
     matcher_backend: str = "orb",
     return_candidates: bool = False,
@@ -718,8 +718,12 @@ def feature_depth_anchor_relocalization(
     candidates = [
         anchor for anchor in reversed(anchors) if isinstance(anchor.descriptor, dict)
     ]
-    _diagnostic_inc(diagnostics, "candidate_anchors", len(candidates[:max_candidates]))
-    for anchor in candidates[:max_candidates]:
+    if max_candidates is not None and max_candidates > 0:
+        candidates_to_search = candidates[:max_candidates]
+    else:
+        candidates_to_search = candidates
+    _diagnostic_inc(diagnostics, "candidate_anchors", len(candidates_to_search))
+    for anchor in candidates_to_search:
         views_to_try = [("front", anchor.descriptor)]
         rear_view = build_rear_view_descriptor(anchor.descriptor)
         if rear_view is not None:

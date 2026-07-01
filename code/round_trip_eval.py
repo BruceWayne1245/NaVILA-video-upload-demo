@@ -165,7 +165,7 @@ parser.add_argument(
     default="none",
     help=argparse.SUPPRESS,
 )
-parser.add_argument("--route_relocalization_window", type=int, default=8, help=argparse.SUPPRESS)
+parser.add_argument("--route_relocalization_window", type=int, default=0, help=argparse.SUPPRESS)
 parser.add_argument("--route_relocalization_interval_updates", type=int, default=25, help=argparse.SUPPRESS)
 parser.add_argument("--route_fallback", action="store_true", default=False, help=argparse.SUPPRESS)
 parser.add_argument(

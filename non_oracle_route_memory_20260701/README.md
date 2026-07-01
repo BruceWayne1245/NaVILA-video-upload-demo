@@ -23,9 +23,10 @@ Main return-start fixes included here:
 - `finalize_outbound()` now preserves the final outbound descriptor and metadata, so the return-start anchor is matchable by the non-oracle relocalizer.
 - The first return update forces relocalization instead of waiting for the normal interval.
 - Oracle direct-route target-anchor selection and route-memory target selection now share the same lookahead helper, reducing code-induced anchor-index mismatch.
+- The relocalization candidate window default is now unlimited (`--route_relocalization_window=0`); pass a positive value only when an explicit cap is desired.
 
 Known remaining non-oracle limitations:
 
-- LoFTR candidate search is still biased toward the last anchors because it searches a fixed reversed candidate slice; late-return localization can stay stuck around middle/end anchors.
+- LoFTR candidate search is still ordered from the outbound end backward. The fixed 8-anchor cap has been removed, but long routes may still need expected-progress candidate ordering for speed and stability.
 - Bearing and target-vector estimates are noisy even when the anchor index is correct, mainly from pose projection/yaw error.
 - The next implementation step should use an expected-progress candidate window plus stronger progress hysteresis.

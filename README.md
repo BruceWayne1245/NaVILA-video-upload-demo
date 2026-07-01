@@ -2184,6 +2184,8 @@ The return-start mismatch is fixed: the non-oracle shadow now receives a matchab
 
 The second issue is target-vector orientation quality. Even when the anchor index is correct or close, projected bearing can differ by tens of degrees because `_project_estimate_to_anchor()` amplifies pose/yaw errors. The next non-oracle fix should replace the fixed reversed candidate slice with an expected-progress candidate window plus global fallback, then add progress hysteresis and extra diagnostics for high-bearing-error steps.
 
+Follow-up code change: the hard default `8` relocalization-window cap has been removed. `--route_relocalization_window=0` now means search all descriptor-bearing anchors, while positive values still provide an explicit cap for debugging or runtime control. Candidate order is still outbound-end-first, so a later expected-progress ordering pass is still useful.
+
 Artifacts:
 
 ```text
