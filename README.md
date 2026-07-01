@@ -2225,6 +2225,88 @@ non_oracle_route_memory_20260701/
 
 ---
 
+### Update: LiDAR Local-Map Relocalization Backend
+
+**Date:** 2026-07-01  
+**Current code status:** RGB-D/LoFTR remains available, but a new LiDAR local-map relocalization backend has been added for non-oracle shadow evaluation.
+
+The attempted `aliasgate+tangent` experiment was reverted after testing. It preserved oracle episode success, but the non-oracle shadow hint quality became much worse: same-anchor bearing median rose from about `16 deg` to about `76 deg`, and same-anchor vector median rose from about `0.49 m` to about `1.52 m`. The failure mode was traced to the route-tangent fusion producing incorrect shadow `dx/dy` directions, sometimes nearly opposite the oracle vector. The repository and live scripts were restored to the pre-experiment state before starting the LiDAR work.
+
+New LiDAR/local-map implementation:
+
+- `relocalization.py`
+  - Added `descriptor_local_map_points()` to read `local_map_points_body`, `lidar_points_body`, `scan_points_body`, or `height_scan_points_body`.
+  - Added 2-D voxel downsampling and point-to-point ICP scan matching.
+  - Added `local_map_anchor_relocalization()`, which compares the current local map against saved anchor local maps and returns standard `AnchorRelocalization` candidates.
+  - ICP searches multiple initial yaw hypotheses at 15-degree spacing, including reverse-facing return views.
+- `round_trip_eval.py`
+  - Added `--route_relocalization_backend=lidar_local_map`.
+  - This backend uses the same route-memory/PF/hint pipeline as LoFTR, so oracle-shadow evaluation remains directly comparable.
+- `tests/test_geometry_pipeline.py`
+  - Added a synthetic local-map test that recovers anchor `dx/dy/yaw` from a transformed LiDAR point cloud and rejects a distractor anchor.
+
+Validation before live sync:
+
+```text
+tests/test_geometry_pipeline.py     22 tests OK
+tests/test_route_memory_agent.py    21 tests OK
+tests/test_local_map.py              2 tests OK
+py_compile relocalization.py round_trip_eval.py OK
+```
+
+Live script backup before sync:
+
+```text
+/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/backup_lidar_local_map_relocalization_20260701/
+├── relocalization.py
+└── round_trip_eval.py
+```
+
+LiDAR local-map oracle-shadow smoke run:
+
+**Run tag:** `oracle_shadow_lidar_localmap_680_994_187_20260701`  
+**Purpose:** Run the same three diagnostic episodes (`187`, `680`, `994`) with oracle hints still driving VLM behavior, while the non-oracle shadow relocalizer uses LiDAR local-map ICP instead of RGB-D/LoFTR.
+
+Important flags:
+
+```text
+--route_memory
+--route_hint_mode=compact
+--route_hint_source=oracle
+--route_relocalization_backend=lidar_local_map
+--route_relocalization_interval_updates=25
+--oracle_align_return_yaw_to_anchor_segment
+--stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0
+--topdown_route_map
+--hint_action_arbiter
+```
+
+Episode results:
+
+| Episode | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Per-step records |
+|---:|:---:|:---:|:---:|---:|---:|---:|
+| 187 | True | True | True | 1.761 m | 0.265 m | 5102 |
+| 680 | True | True | True | 1.377 m | 0.242 m | 4252 |
+| 994 | True | True | True | 1.148 m | 1.105 m | 4227 |
+
+These success values are oracle-primary results. The next step is to analyze the LiDAR shadow per-step records against the previous LoFTR shadow run:
+
+- `oracle_shadow_loftr_aliasfix_680_994_187_20260701`
+- `oracle_shadow_lidar_localmap_680_994_187_20260701`
+
+The key comparison should use both:
+
+- oracle-alignment error: direct shadow hint vs oracle hint.
+- same-anchor error: only steps where shadow and oracle selected the same target anchor, to isolate local-map pose/direction quality from anchor-selection lag.
+
+Open technical risks:
+
+- ICP can still alias in geometrically repetitive corridors; local-map confidence, residual, and multi-candidate ambiguity should be used as gates before allowing PF updates.
+- The current implementation is a conservative first pass using 2-D point-to-point ICP. It does not yet use occupancy-grid correlation, multi-frame scan accumulation, or feature-anchor-specific acceptance rules.
+- Runtime scales with number of searched anchors. `--route_relocalization_window=0` still searches all anchors, which is useful for diagnostics but may need expected-progress candidate ordering for long routes.
+
+---
+
 ## Key Differences vs RTX 5090 (Blackwell) Setup
 
 This deployment is significantly simpler than running on a Blackwell GPU:

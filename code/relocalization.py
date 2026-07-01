@@ -352,6 +352,156 @@ def ransac_rigid_transform(
 
 
 # ---------------------------------------------------------------------------
+# 2-D local-map / LiDAR scan matching
+# ---------------------------------------------------------------------------
+
+def descriptor_local_map_points(descriptor: object) -> Optional[np.ndarray]:
+    """Return local LiDAR/map points in body coordinates as an Nx2 array."""
+    if not isinstance(descriptor, dict):
+        return None
+    for key in (
+        "local_map_points_body",
+        "lidar_points_body",
+        "scan_points_body",
+        "height_scan_points_body",
+    ):
+        points = descriptor.get(key)
+        if points is None:
+            continue
+        arr = np.asarray(points, dtype=np.float32)
+        if arr.ndim == 3 and arr.shape[0] == 1:
+            arr = arr[0]
+        if arr.ndim != 2 or arr.shape[1] < 2 or arr.shape[0] == 0:
+            continue
+        finite = np.isfinite(arr).all(axis=1)
+        arr = arr[finite]
+        if arr.shape[0] == 0:
+            continue
+        if arr.shape[1] >= 3:
+            z = arr[:, 2]
+            obstacle = (z >= -0.20) & (z <= 1.80)
+            if int(obstacle.sum()) >= 12:
+                arr = arr[obstacle]
+        return np.asarray(arr[:, :2], dtype=np.float32)
+    return None
+
+
+def voxel_downsample_2d(points: np.ndarray, voxel_size_m: float = 0.12, max_points: int = 256) -> np.ndarray:
+    points = np.asarray(points, dtype=np.float32)
+    if points.ndim != 2 or points.shape[1] < 2 or len(points) == 0:
+        return np.empty((0, 2), dtype=np.float32)
+    voxel = max(1e-3, float(voxel_size_m))
+    keys = np.round(points[:, :2] / voxel).astype(np.int32)
+    _, first = np.unique(keys, axis=0, return_index=True)
+    down = points[np.sort(first), :2]
+    if len(down) > max_points:
+        idx = np.linspace(0, len(down) - 1, int(max_points)).astype(np.int32)
+        down = down[idx]
+    return np.asarray(down, dtype=np.float32)
+
+
+def _rotation_2d(theta: float) -> np.ndarray:
+    c = math.cos(float(theta))
+    s = math.sin(float(theta))
+    return np.asarray([[c, -s], [s, c]], dtype=np.float32)
+
+
+def _rigid_transform_2d(source_points: np.ndarray, target_points: np.ndarray) -> tuple[Optional[float], Optional[np.ndarray]]:
+    source = np.asarray(source_points, dtype=np.float32)
+    target = np.asarray(target_points, dtype=np.float32)
+    if len(source) < 3 or len(target) < 3:
+        return None, None
+    source_centroid = source.mean(axis=0)
+    target_centroid = target.mean(axis=0)
+    source_centered = source - source_centroid
+    target_centered = target - target_centroid
+    covariance = source_centered.T @ target_centered
+    try:
+        u, _, vt = np.linalg.svd(covariance)
+    except np.linalg.LinAlgError:
+        return None, None
+    rotation = vt.T @ u.T
+    if np.linalg.det(rotation) < 0:
+        vt[-1, :] *= -1
+        rotation = vt.T @ u.T
+    theta = math.atan2(float(rotation[1, 0]), float(rotation[0, 0]))
+    translation = target_centroid - rotation @ source_centroid
+    return float(theta), np.asarray(translation, dtype=np.float32)
+
+
+def _nearest_neighbor_2d(source_points: np.ndarray, target_points: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    source = np.asarray(source_points, dtype=np.float32)
+    target = np.asarray(target_points, dtype=np.float32)
+    nearest = np.zeros((len(source),), dtype=np.int32)
+    distances = np.full((len(source),), float("inf"), dtype=np.float32)
+    chunk = 128
+    for start in range(0, len(source), chunk):
+        end = min(len(source), start + chunk)
+        diff = source[start:end, None, :] - target[None, :, :]
+        dist2 = np.sum(diff * diff, axis=2)
+        idx = np.argmin(dist2, axis=1)
+        nearest[start:end] = idx.astype(np.int32)
+        distances[start:end] = np.sqrt(dist2[np.arange(end - start), idx]).astype(np.float32)
+    return nearest, distances
+
+
+def _apply_transform_2d(points: np.ndarray, theta: float, translation: np.ndarray) -> np.ndarray:
+    return (points @ _rotation_2d(theta).T + np.asarray(translation, dtype=np.float32)).astype(np.float32)
+
+
+def icp_rigid_transform_2d(
+    source_points: np.ndarray,
+    target_points: np.ndarray,
+    *,
+    initial_theta: float = 0.0,
+    max_iterations: int = 24,
+    correspondence_threshold_m: float = 0.45,
+) -> Optional[dict]:
+    """Align ``source`` to ``target`` with point-to-point 2-D ICP."""
+    source = np.asarray(source_points, dtype=np.float32)
+    target = np.asarray(target_points, dtype=np.float32)
+    if len(source) < 12 or len(target) < 12:
+        return None
+    theta = float(initial_theta)
+    rotation = _rotation_2d(theta)
+    translation = target.mean(axis=0) - rotation @ source.mean(axis=0)
+    threshold = float(correspondence_threshold_m)
+    prev_error = float("inf")
+    inliers = None
+    distances = None
+    for _ in range(int(max_iterations)):
+        transformed = _apply_transform_2d(source, theta, translation)
+        nearest, distances = _nearest_neighbor_2d(transformed, target)
+        inliers = distances < threshold
+        if int(inliers.sum()) < 8:
+            return None
+        theta_delta, translation_delta = _rigid_transform_2d(
+            transformed[inliers], target[nearest[inliers]]
+        )
+        if theta_delta is None or translation_delta is None:
+            return None
+        theta = float(theta + theta_delta)
+        translation = (_rotation_2d(theta_delta) @ translation + translation_delta).astype(np.float32)
+        error = float(np.median(distances[inliers]))
+        if abs(prev_error - error) < 1e-4:
+            break
+        prev_error = error
+    transformed = _apply_transform_2d(source, theta, translation)
+    nearest, distances = _nearest_neighbor_2d(transformed, target)
+    inliers = distances < threshold
+    if int(inliers.sum()) < 8:
+        return None
+    return {
+        "theta": float(math.atan2(math.sin(theta), math.cos(theta))),
+        "translation": np.asarray(translation, dtype=np.float32),
+        "median_residual_m": float(np.median(distances[inliers])),
+        "mean_residual_m": float(np.mean(distances[inliers])),
+        "inlier_count": int(inliers.sum()),
+        "overlap_ratio": float(int(inliers.sum()) / max(1, min(len(source), len(target)))),
+    }
+
+
+# ---------------------------------------------------------------------------
 # GT covisibility check (uses Isaac world-frame camera poses stored in descriptors)
 # ---------------------------------------------------------------------------
 
@@ -657,6 +807,138 @@ def _append_covisibility_record(diagnostics: Optional[dict], record: dict) -> No
 # ---------------------------------------------------------------------------
 # Main relocalization entry point
 # ---------------------------------------------------------------------------
+
+def local_map_anchor_relocalization(
+    current_descriptor: object,
+    anchors: list,
+    max_candidates: Optional[int] = None,
+    diagnostics: Optional[dict] = None,
+    return_candidates: bool = False,
+) -> Optional[object]:
+    """Relocalize against saved route anchors using LiDAR/local-map scan matching."""
+    from route_memory_agent import AnchorRelocalization
+
+    _diagnostic_inc(diagnostics, "attempts")
+    _diagnostic_inc(diagnostics, "local_map_attempts")
+    if diagnostics is not None:
+        diagnostics["matcher_backend"] = "local_map_icp"
+    current_points = descriptor_local_map_points(current_descriptor)
+    if current_points is None:
+        _diagnostic_inc(diagnostics, "missing_current_local_map")
+        return None
+    current_points = voxel_downsample_2d(current_points)
+    if len(current_points) < 12:
+        _diagnostic_inc(diagnostics, "too_few_current_local_map_points")
+        return None
+
+    candidates = [
+        anchor for anchor in reversed(anchors) if isinstance(anchor.descriptor, dict)
+    ]
+    if max_candidates is not None and max_candidates > 0:
+        candidates_to_search = candidates[:max_candidates]
+    else:
+        candidates_to_search = candidates
+    _diagnostic_inc(diagnostics, "candidate_anchors", len(candidates_to_search))
+
+    yaw_initializers = [math.radians(float(deg)) for deg in range(-180, 180, 15)]
+    pose_candidates = []
+    best = None
+    attempt_index = diagnostics.get("attempts", 0) if diagnostics is not None else None
+    for anchor in candidates_to_search:
+        anchor_points = descriptor_local_map_points(anchor.descriptor)
+        record = {
+            "attempt": int(attempt_index) if attempt_index is not None else None,
+            "anchor_index": int(anchor.index),
+            "anchor_distance_from_start_m": float(anchor.distance_from_start_m),
+            "route_remaining_to_start_m": float(anchor.route_remaining_to_start_m),
+            "matcher_backend": "local_map_icp",
+            "outcome": "not_evaluated",
+        }
+        if anchor_points is None:
+            _diagnostic_inc(diagnostics, "candidate_missing_local_map")
+            record["outcome"] = "candidate_missing_local_map"
+            _append_covisibility_record(diagnostics, record)
+            continue
+        anchor_points = voxel_downsample_2d(anchor_points)
+        record["anchor_points"] = int(len(anchor_points))
+        record["current_points"] = int(len(current_points))
+        if len(anchor_points) < 12:
+            _diagnostic_inc(diagnostics, "too_few_anchor_local_map_points")
+            record["outcome"] = "too_few_anchor_local_map_points"
+            _append_covisibility_record(diagnostics, record)
+            continue
+        best_icp = None
+        for yaw in yaw_initializers:
+            result = icp_rigid_transform_2d(
+                anchor_points,
+                current_points,
+                initial_theta=yaw,
+                max_iterations=16,
+                correspondence_threshold_m=0.45,
+            )
+            if result is None:
+                continue
+            score = (
+                result["overlap_ratio"]
+                * max(0.0, 1.0 - result["median_residual_m"] / 0.45)
+                * math.sqrt(max(1, result["inlier_count"]))
+            )
+            if best_icp is None or score > best_icp[0]:
+                best_icp = (score, result)
+        if best_icp is None:
+            _diagnostic_inc(diagnostics, "local_map_icp_failed")
+            record["outcome"] = "local_map_icp_failed"
+            _append_covisibility_record(diagnostics, record)
+            continue
+        score, result = best_icp
+        overlap = float(result["overlap_ratio"])
+        residual = float(result["median_residual_m"])
+        inlier_count = int(result["inlier_count"])
+        confidence = min(1.0, overlap * max(0.0, 1.0 - residual / 0.45) * 1.5)
+        record.update({
+            "inlier_count": inlier_count,
+            "overlap_ratio": overlap,
+            "median_residual_m": residual,
+            "mean_residual_m": float(result["mean_residual_m"]),
+            "confidence": float(confidence),
+            "estimated_anchor_dx_m": float(result["translation"][0]),
+            "estimated_anchor_dy_m": float(result["translation"][1]),
+            "estimated_anchor_dtheta_deg": float(math.degrees(result["theta"])),
+        })
+        if inlier_count < 12 or overlap < 0.12 or confidence < 0.15:
+            _diagnostic_inc(diagnostics, "low_confidence_local_map_pose")
+            record["outcome"] = "low_confidence_local_map_pose"
+            _append_covisibility_record(diagnostics, record)
+            continue
+        candidate = AnchorRelocalization(
+            anchor_index=int(anchor.index),
+            anchor_dx_m=float(result["translation"][0]),
+            anchor_dy_m=float(result["translation"][1]),
+            anchor_dtheta_rad=float(result["theta"]),
+            confidence=float(confidence),
+            backend="local_map_icp",
+            inlier_count=inlier_count,
+            reprojection_error_px=None,
+            anchor_heading_reliable=True,
+        )
+        record["estimated_distance_to_anchor_m"] = float(candidate.distance_to_anchor_m)
+        record["estimated_bearing_to_anchor_deg"] = float(candidate.bearing_to_anchor_deg)
+        record["outcome"] = "pose_candidate"
+        _append_covisibility_record(diagnostics, record)
+        pose_candidates.append(candidate)
+        if best is None or score > best[0]:
+            best = (score, candidate)
+    if best is None:
+        _diagnostic_inc(diagnostics, "no_pose_selected")
+        return None
+    _diagnostic_inc(diagnostics, "successful_estimates")
+    pose_candidates.sort(
+        key=lambda c: float(c.confidence) * math.sqrt(max(1, int(c.inlier_count or 1))),
+        reverse=True,
+    )
+    if return_candidates:
+        return pose_candidates
+    return pose_candidates[0]
 
 def feature_depth_anchor_relocalization(
     current_descriptor: object,

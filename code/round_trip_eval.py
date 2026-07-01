@@ -44,6 +44,7 @@ from relocalization import (
     feature_depth_anchor_relocalization,
     feature_matcher_config as _feature_matcher_config,
     gt_covisibility,
+    local_map_anchor_relocalization,
     loftr_match_points as _loftr_match_points,
     matched_uv_points as _matched_uv_points,
     quat_wxyz_to_matrix as _quat_wxyz_to_matrix,
@@ -161,7 +162,7 @@ parser.add_argument("--route_anchor_spacing_m", type=float, default=1.0, help=ar
 parser.add_argument("--route_min_relocalization_confidence", type=float, default=0.35, help=argparse.SUPPRESS)
 parser.add_argument(
     "--route_relocalization_backend",
-    choices=("none", "oracle_anchor", "feature_depth", "sift_depth", "loftr_depth"),
+    choices=("none", "oracle_anchor", "feature_depth", "sift_depth", "loftr_depth", "lidar_local_map"),
     default="none",
     help=argparse.SUPPRESS,
 )
@@ -1387,6 +1388,15 @@ def main():
             matcher_backend=matcher_backend,
             return_candidates=True,
         )
+    elif args_cli.route_relocalization_backend == "lidar_local_map":
+        route_relocalizer = lambda descriptor, anchors: local_map_anchor_relocalization(
+            descriptor,
+            anchors,
+            max_candidates=args_cli.route_relocalization_window,
+            diagnostics=route_relocalization_diagnostics,
+            return_candidates=True,
+        )
+    relocalization_interval_backends = set(feature_relocalization_backends) | {"lidar_local_map"}
     route_agent = RouteMemoryAgent(
         enabled=args_cli.route_memory,
         hint_mode=args_cli.route_hint_mode,
@@ -1394,7 +1404,7 @@ def main():
         min_relocalization_confidence=args_cli.route_min_relocalization_confidence,
         relocalization_interval_updates=(
             args_cli.route_relocalization_interval_updates
-            if args_cli.route_relocalization_backend in feature_relocalization_backends
+            if args_cli.route_relocalization_backend in relocalization_interval_backends
             else 1
         ),
         relocalizer=route_relocalizer,

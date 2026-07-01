@@ -20,10 +20,12 @@ from relocalization import (
     camera_point_to_body,
     camera_rotation_to_body_yaw,
     descriptor_depth,
+    local_map_anchor_relocalization,
     quat_wxyz_to_matrix,
     ransac_rigid_transform,
     rigid_transform_3d,
 )
+from route_memory_agent import RouteAnchor
 
 
 # ---------------------------------------------------------------------------
@@ -627,6 +629,66 @@ class TestFullPipelineSynthetic(unittest.TestCase):
             failures, [],
             "Pipeline anchor position does not match oracle for:\n" + "\n".join(failures),
         )
+
+
+class TestLocalMapRelocalizationSynthetic(unittest.TestCase):
+    def test_lidar_local_map_recovers_anchor_pose_in_current_body(self):
+        anchor_points = np.asarray(
+            [
+                [-1.2, -0.8], [-0.6, -0.8], [0.0, -0.8], [0.6, -0.8], [1.2, -0.8],
+                [-1.2, 0.2], [-0.6, 0.2], [0.0, 0.2], [0.6, 0.2], [1.2, 0.2],
+                [-0.9, 1.1], [-0.2, 1.4], [0.7, 1.3],
+                [1.4, -0.3], [1.6, 0.4], [1.7, 1.1],
+                [-1.5, 0.6], [-1.7, 1.0], [-1.8, 1.4],
+                [0.2, -1.4], [0.9, -1.6], [1.5, -1.5],
+            ],
+            dtype=np.float32,
+        )
+        theta = math.radians(155.0)
+        translation = np.asarray([1.35, -0.55], dtype=np.float32)
+        rot = np.asarray(
+            [[math.cos(theta), -math.sin(theta)], [math.sin(theta), math.cos(theta)]],
+            dtype=np.float32,
+        )
+        current_points = (anchor_points @ rot.T + translation).astype(np.float32)
+        current_points = np.concatenate(
+            [
+                current_points,
+                np.asarray([[2.2, 1.7], [-2.0, -1.8], [2.4, -1.5]], dtype=np.float32),
+            ],
+            axis=0,
+        )
+        distractor_points = anchor_points * np.asarray([1.0, -1.0], dtype=np.float32) + 3.0
+        anchors = [
+            RouteAnchor(
+                index=0,
+                pose_from_start=[0.0, 0.0, 0.0],
+                distance_from_start_m=0.0,
+                route_remaining_to_start_m=0.0,
+                descriptor={"local_map_points_body": distractor_points},
+            ),
+            RouteAnchor(
+                index=1,
+                pose_from_start=[1.0, 0.0, 0.0],
+                distance_from_start_m=1.0,
+                route_remaining_to_start_m=1.0,
+                descriptor={"local_map_points_body": anchor_points},
+            ),
+        ]
+
+        result = local_map_anchor_relocalization(
+            {"local_map_points_body": current_points},
+            anchors,
+            return_candidates=False,
+        )
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.anchor_index, 1)
+        self.assertEqual(result.backend, "local_map_icp")
+        self.assertAlmostEqual(result.anchor_dx_m, float(translation[0]), delta=0.10)
+        self.assertAlmostEqual(result.anchor_dy_m, float(translation[1]), delta=0.10)
+        self.assertAlmostEqual(_angle_diff(result.anchor_dtheta_rad, theta), 0.0, delta=math.radians(5.0))
+        self.assertGreaterEqual(result.confidence, 0.5)
 
 
 if __name__ == "__main__":
