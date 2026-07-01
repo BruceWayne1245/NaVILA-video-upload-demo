@@ -104,6 +104,46 @@ class RouteMemoryAgentTest(unittest.TestCase):
         self.assertAlmostEqual(summary["anchors"][0]["route_remaining_to_start_m"], 0.0)
         self.assertAlmostEqual(summary["anchors"][-1]["route_remaining_to_start_m"], 2.1)
 
+    def test_finalize_outbound_saves_final_descriptor(self):
+        agent = RouteMemoryAgent(enabled=True, anchor_spacing_m=1.0)
+        agent.update_outbound_motion([0.5, 0.0, 0.0])
+        agent.finalize_outbound(
+            descriptor={"kind": "final_rgbd"},
+            metadata={"world_pose": [1.0, 2.0, 0.0]},
+        )
+
+        final_anchor = agent.summary()["anchors"][-1]
+        self.assertEqual(final_anchor["metadata"]["event"], "outbound_final")
+        self.assertEqual(final_anchor["metadata"]["world_pose"], [1.0, 2.0, 0.0])
+        self.assertEqual(final_anchor["descriptor"], {"kind": "final_rgbd"})
+
+    def test_first_return_update_forces_relocalization_before_interval(self):
+        calls = []
+
+        def relocalizer(descriptor, anchors):
+            calls.append(descriptor)
+            return AnchorRelocalization(
+                anchor_index=1,
+                anchor_dx_m=0.0,
+                anchor_dy_m=0.0,
+                anchor_dtheta_rad=0.0,
+                confidence=1.0,
+                backend="forced_first",
+            )
+
+        agent = RouteMemoryAgent(
+            enabled=True,
+            anchor_spacing_m=1.0,
+            relocalization_interval_updates=25,
+            relocalizer=relocalizer,
+        )
+        agent.update_outbound_motion([1.0, 0.0, 0.0], descriptor={"kind": "anchor"})
+        agent.finalize_outbound()
+        agent.update_return_motion([0.0, 0.0, 0.0], local_descriptor={"kind": "return_start"})
+
+        self.assertEqual(calls, [{"kind": "return_start"}])
+        self.assertEqual(agent.summary()["latest_relocalization"]["backend"], "forced_first")
+
     def test_full_pose_anchor_relocalization_overrides_integrated_start_hint(self):
         agent = RouteMemoryAgent(enabled=True, anchor_spacing_m=1.0)
         agent.update_outbound_motion([1.0, 0.0, 0.0])

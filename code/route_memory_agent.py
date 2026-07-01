@@ -293,6 +293,7 @@ class RouteMemoryAgent:
         self.sequence_max_anchor_distance_m = max(6.0, 4.0 * self.anchor_spacing_m)
         self._target_anchor_index: Optional[int] = None
         self._target_anchor_min_distance_m: Optional[float] = None
+        self._force_next_relocalization = False
         self.anchor_pass_radius_m = 0.8
         self.anchor_pass_hysteresis_m = 0.6
         self.anchor_pass_max_min_distance_m = max(2.0 * self.anchor_spacing_m, self.anchor_pass_radius_m)
@@ -352,9 +353,16 @@ class RouteMemoryAgent:
         self._return_update_count += 1
         self.update_relocalization(local_descriptor=local_descriptor, relocalization=relocalization)
 
-    def finalize_outbound(self) -> None:
+    def finalize_outbound(
+        self,
+        descriptor: Optional[object] = None,
+        metadata: Optional[dict] = None,
+    ) -> None:
         if self.enabled and (not self.anchors or self.anchors[-1].distance_from_start_m < self._outbound_distance_m):
-            self._append_anchor(descriptor=None, metadata={"event": "outbound_final"})
+            final_metadata = {"event": "outbound_final"}
+            if metadata:
+                final_metadata.update(dict(metadata))
+            self._append_anchor(descriptor=descriptor, metadata=final_metadata)
         self._finalize_anchor_route_lengths()
         self._return_start_pose_from_start = list(self._outbound_pose_from_start)
         self._return_pose_from_return_start = [0.0, 0.0, 0.0]
@@ -365,6 +373,8 @@ class RouteMemoryAgent:
         self._distance_since_sequence_observation_m = 0.0
         self._sequence_current_s_m = None
         self._return_started = True
+        self._return_update_count = 0
+        self._force_next_relocalization = True
         self._compute_feature_anchors()
 
     def _compute_feature_anchors(self, heading_change_threshold_deg: float = 15.0) -> None:
@@ -404,11 +414,17 @@ class RouteMemoryAgent:
             return None
         estimates = self._coerce_relocalizations(relocalization)
         if not estimates and self.relocalizer is not None:
-            if self._return_update_count % self.relocalization_interval_updates != 0:
+            if (
+                not self._force_next_relocalization
+                and self._return_update_count % self.relocalization_interval_updates != 0
+            ):
                 return None
+            self._force_next_relocalization = False
             estimates = self._coerce_relocalizations(
                 self.relocalizer(local_descriptor, self.anchors)
             )
+        elif estimates:
+            self._force_next_relocalization = False
         estimates = [
             estimate for estimate in estimates
             if estimate.confidence >= self.min_relocalization_confidence
@@ -994,16 +1010,31 @@ class RouteMemoryAgent:
                 best_route_distance = route_distance
         return float(max(0.0, min(self._outbound_distance_m, best_route_distance)))
 
-    def _target_anchor_for_remaining_distance(self, remaining_m: float) -> Optional[RouteAnchor]:
+    def target_anchor_for_route_position(
+        self,
+        route_s_m: float,
+        *,
+        require_world_pose: bool = False,
+    ) -> Optional[RouteAnchor]:
         if not self.anchors:
             return None
-        eligible = [
+        route_s = float(route_s_m)
+        candidates = [
             anchor for anchor in self.anchors
-            if anchor.distance_from_start_m <= remaining_m + 1e-6
+            if not require_world_pose or anchor.metadata.get("world_pose") is not None
+        ]
+        if not candidates:
+            return None
+        eligible = [
+            anchor for anchor in candidates
+            if anchor.distance_from_start_m <= route_s + 1e-6
         ]
         if eligible:
             return max(eligible, key=lambda anchor: anchor.distance_from_start_m)
-        return self.anchors[0]
+        return min(candidates, key=lambda anchor: anchor.distance_from_start_m)
+
+    def _target_anchor_for_remaining_distance(self, remaining_m: float) -> Optional[RouteAnchor]:
+        return self.target_anchor_for_route_position(remaining_m)
 
     def _arc_length_progress(self) -> Optional[RelativeStartProgress]:
         if self._arc_length_filter is None:

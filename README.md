@@ -2098,6 +2098,129 @@ The trajectory JSONL contains 3927 per-step records (2075 outbound + 0 confirm-p
 
 ---
 
+### Run: `oracle_shadow_loftr_v4_30_return_anchor_fix_20260701`
+
+**Date:** 2026-07-01  
+**Suffix/tag:** `oracle_shadow_loftr_v4_30_return_anchor_fix_20260701`  
+**Purpose:** Run the selected 30 v4 baseline episodes with oracle hints still driving the VLM, while the non-oracle LoFTR route-memory pipeline runs in shadow and records per-step anchor/distance/bearing diagnostics.
+
+Code changes in this snapshot:
+
+- `finalize_outbound()` now stores the final outbound descriptor and metadata instead of creating an unmatchable descriptor-less final anchor.
+- Return start forces the first relocalization update immediately instead of waiting up to `route_relocalization_interval_updates=25`.
+- Oracle direct-route anchor selection and route-memory anchor selection now use the same lookahead helper, removing the code-level source of a one-anchor target mismatch.
+- The oracle-shadow logging path records non-oracle shadow anchor, route-progress, vector, bearing, and alignment fields while the VLM continues to receive oracle hints.
+
+Run configuration:
+
+```bash
+RUN_TAG=oracle_shadow_loftr_v4_30_return_anchor_fix_20260701 \
+  ./code/run_oracle_shadow_loftr_v4_30_batch_20260701.sh
+```
+
+Important flags:
+
+```text
+--route_memory
+--route_hint_mode=compact
+--route_hint_source=oracle
+--route_relocalization_backend=loftr_depth
+--route_relocalization_interval_updates=25
+--oracle_align_return_yaw_to_anchor_segment
+--stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0
+--topdown_route_map
+--hint_action_arbiter
+```
+
+Batch result:
+
+| Metric | Value |
+|---|---:|
+| Total episodes | 30 |
+| Normal eval completions | 28 |
+| VLM startup timeouts (`exit_code=98`) | 2 |
+| Outbound successes among normal completions | 11 / 28 |
+| Return successes among outbound successes | 10 / 11 |
+| Round-trip successes among outbound successes | 10 / 11 |
+
+VLM startup timeouts:
+
+```text
+367, 995
+```
+
+Outbound-success episodes:
+
+```text
+4, 368, 993, 187, 5, 678, 679, 680, 994, 1038, 1040
+```
+
+Round-trip-success episodes:
+
+```text
+4, 368, 993, 187, 678, 679, 680, 994, 1038, 1040
+```
+
+The only outbound-success return failure was episode `5`.
+
+Successful trajectory records:
+
+| Episode | Round trip | Final distance to start | Outbound stop distance to goal | Per-step records |
+|---:|:---:|---:|---:|---:|
+| 4 | True | 1.118 m | 1.532 m | 2727 |
+| 368 | True | 1.335 m | 0.451 m | 3552 |
+| 993 | True | 1.392 m | 0.522 m | 4452 |
+| 187 | True | 1.832 m | 0.113 m | 5402 |
+| 678 | True | 1.529 m | 0.208 m | 4227 |
+| 679 | True | 1.772 m | 0.302 m | 4027 |
+| 680 | True | 1.552 m | 2.595 m | 4877 |
+| 994 | True | 1.164 m | 1.076 m | 4352 |
+| 1038 | True | 2.265 m | 1.514 m | 3352 |
+| 1040 | True | 2.326 m | 0.993 m | 3727 |
+
+Current diagnosis of the non-oracle shadow pipeline:
+
+The return-start mismatch is fixed: the non-oracle shadow now receives a matchable final outbound anchor and can relocalize on the first return update. The remaining dominant non-oracle failure mode is later in Return. The current LoFTR relocalizer searches a fixed reversed candidate slice near the outbound end anchors, so long routes can remain locked to middle/end anchors after the robot has progressed closer to the start. This shows up as target-anchor lag and large bearing/vector errors late in return.
+
+The second issue is target-vector orientation quality. Even when the anchor index is correct or close, projected bearing can differ by tens of degrees because `_project_estimate_to_anchor()` amplifies pose/yaw errors. The next non-oracle fix should replace the fixed reversed candidate slice with an expected-progress candidate window plus global fallback, then add progress hysteresis and extra diagnostics for high-bearing-error steps.
+
+Artifacts:
+
+```text
+artifacts/oracle_shadow_loftr_v4_30_return_anchor_fix_20260701_success10/
+├── README.md
+├── summary.tsv
+├── per_step/
+│   ├── ep4_output_7.jsonl
+│   ├── ep368_output_602.jsonl
+│   ├── ep993_output_1698.jsonl
+│   ├── ep187_output_280.jsonl
+│   ├── ep678_output_1164.jsonl
+│   ├── ep679_output_1165.jsonl
+│   ├── ep680_output_1166.jsonl
+│   ├── ep994_output_1699.jsonl
+│   ├── ep1038_output_1758.jsonl
+│   └── ep1040_output_1760.jsonl
+├── measurements/
+└── route_maps/
+```
+
+Non-oracle code snapshot:
+
+```text
+non_oracle_route_memory_20260701/
+├── README.md
+├── route_memory_agent.py
+├── relocalization.py
+├── local_map.py
+├── hint_action_arbiter.py
+├── round_trip_eval.py
+├── run_oracle_shadow_loftr_v4_30_batch_20260701.sh
+└── tests/
+```
+
+---
+
 ## Key Differences vs RTX 5090 (Blackwell) Setup
 
 This deployment is significantly simpler than running on a Blackwell GPU:

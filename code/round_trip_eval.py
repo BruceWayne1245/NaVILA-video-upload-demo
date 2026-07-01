@@ -642,23 +642,15 @@ def direct_oracle_route_anchor_progress(env, start_pos, route_agent):
     # Return follows the outbound route in reverse. Use the simulator/global
     # route position to pick an anchor ahead along that reverse route, not the
     # nearest/sideways anchor that can make the VLM spin in place.
-    target_lookahead_m = max(1.0, float(getattr(route_agent, "anchor_spacing_m", 1.0)))
+    target_lookahead_m = max(
+        1.0,
+        float(getattr(route_agent, "route_progress_lookahead_m", getattr(route_agent, "anchor_spacing_m", 1.0))),
+    )
     target_s = max(0.0, current_s - target_lookahead_m)
-    eligible = [
-        anchor for anchor in route_agent.anchors
-        if anchor.metadata.get("world_pose") is not None
-        and anchor.distance_from_start_m <= target_s + 1e-6
-    ]
-    if eligible:
-        target_anchor = max(eligible, key=lambda anchor: anchor.distance_from_start_m)
-    else:
-        target_anchor = next(
-            (
-                anchor for anchor in route_agent.anchors
-                if anchor.metadata.get("world_pose") is not None
-            ),
-            None,
-        )
+    target_anchor = route_agent.target_anchor_for_route_position(
+        target_s,
+        require_world_pose=True,
+    )
     if target_anchor is None:
         return direct_oracle_start_progress(env, start_pos)
 
@@ -1654,7 +1646,13 @@ def main():
                     phase = "return"
                     return_start_step = num_steps
                     previous_anchor_count = len(route_agent.anchors)
-                    route_agent.finalize_outbound()
+                    route_agent.finalize_outbound(
+                        descriptor=current_route_descriptor,
+                        metadata={
+                            "world_pose": [float(x) for x in get_robot_pose(env)],
+                            "world_pose_source": "isaac_oracle_for_relocalization_eval",
+                        },
+                    )
                     if args_cli.route_memory and len(route_agent.anchors) > previous_anchor_count:
                         route_agent.update_latest_anchor_metadata({
                             "world_pose": [float(x) for x in get_robot_pose(env)],
