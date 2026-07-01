@@ -16,7 +16,7 @@ Included files:
 summary.tsv      Full 30-episode batch summary.
 per_step/        Per-step trajectory JSONL for the 10 round-trip successes.
 measurements/    Measurement JSON for the same 10 episodes.
-route_maps/      Route map metadata JSON for the same 10 episodes.
+route_maps/      Route map metadata JSON plus route/occupancy PNGs for the same 10 episodes.
 ```
 
 Successful round-trip episodes:
@@ -35,3 +35,8 @@ Successful round-trip episodes:
 | 1040 | `per_step/ep1040_output_1760.jsonl` | 3727 | 2.326 m |
 
 Total per-step records: 40695.
+
+Each successful episode has two trajectory images under `route_maps/`:
+
+- `*_routes.png`: top-down route overlay.
+- `*_occupancy.png`: top-down occupancy map.

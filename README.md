@@ -2202,7 +2202,7 @@ artifacts/oracle_shadow_loftr_v4_30_return_anchor_fix_20260701_success10/
 │   ├── ep1038_output_1758.jsonl
 │   └── ep1040_output_1760.jsonl
 ├── measurements/
-└── route_maps/
+└── route_maps/      # map metadata plus routes/occupancy PNGs
 ```
 
 Non-oracle code snapshot:
