@@ -43,6 +43,7 @@ from relocalization import (
     descriptor_rgb_gray as _descriptor_rgb_gray,
     feature_depth_anchor_relocalization,
     feature_matcher_config as _feature_matcher_config,
+    fused_anchor_relocalization,
     gt_covisibility,
     local_map_anchor_relocalization,
     loftr_match_points as _loftr_match_points,
@@ -163,7 +164,7 @@ parser.add_argument("--route_anchor_spacing_m", type=float, default=1.0, help=ar
 parser.add_argument("--route_min_relocalization_confidence", type=float, default=0.35, help=argparse.SUPPRESS)
 parser.add_argument(
     "--route_relocalization_backend",
-    choices=("none", "oracle_anchor", "feature_depth", "sift_depth", "loftr_depth", "lidar_local_map", "scan_context"),
+    choices=("none", "oracle_anchor", "feature_depth", "sift_depth", "loftr_depth", "lidar_local_map", "scan_context", "fused"),
     default="none",
     help=argparse.SUPPRESS,
 )
@@ -985,19 +986,39 @@ def local_map_descriptor_from_env(env):
     Real LiDAR/RayCaster integrations should expose body-frame obstacle points
     as ``local_map_points_body``.  The fallback below handles common IsaacLab
     RayCaster data fields and filters ground hits later in ``local_map.py``.
+
+    2026-07-02 fix: the scene's actual room-mapping sensor is registered as
+    ``lidar_sensor`` (32-channel, 360-degree horizontal FOV, ~2880 rays/scan --
+    see go2_matterport_vision_cfg.py) but this lookup never included that exact
+    name, only "lidar"/"local_lidar"/"ray_caster"/"height_scanner". Confirmed
+    via a live diagnostic run that this silently fell through to
+    "height_scanner" instead -- a small downward-facing 1.6x1.0 m gait/terrain
+    RayCaster (~160 rays, meant for locomotion, mounted 20 m above the robot
+    and cast straight down) that was never intended for room-scale geometry.
+    Every LiDAR-based anchor-matching backend this project has built
+    (local_map_icp, Scan Context and everything layered on top of them) has
+    therefore been running on a ~2 m-radius, ~560-point foot-terrain scan
+    instead of the intended room-scale LiDAR. ``lidar_sensor`` now takes
+    priority; ``height_scanner`` is kept only as a last-resort fallback for
+    scene configs that genuinely lack a dedicated LiDAR sensor.
     """
     try:
         sensors = getattr(env.unwrapped.scene, "sensors", {})
     except Exception:
         return None
     sensor = None
-    for name in ("lidar", "local_lidar", "height_scanner", "ray_caster"):
+    sensor_name_used = None
+    for name in ("lidar_sensor", "lidar", "local_lidar", "ray_caster", "height_scanner"):
         try:
             if name in sensors:
                 sensor = sensors[name]
+                sensor_name_used = name
                 break
         except Exception:
             continue
+    if not getattr(local_map_descriptor_from_env, "_diag_sensor_printed", False):
+        print(f"[DIAG] local_map_descriptor_from_env: using sensor name='{sensor_name_used}' (available: {list(sensors.keys())})")
+        local_map_descriptor_from_env._diag_sensor_printed = True
     if sensor is None:
         return None
     hits = None
@@ -1025,6 +1046,17 @@ def local_map_descriptor_from_env(env):
     robot_position = np.asarray(robot_pose[:3], dtype=np.float32)
     robot_rotation = _quat_wxyz_to_matrix(np.asarray(robot_pose[3:7], dtype=np.float32))
     points_body = (robot_rotation.T @ (hits[:, :3] - robot_position).T).T.astype(np.float32)
+    if not getattr(local_map_descriptor_from_env, "_diag_points_printed", False):
+        xy = points_body[:, :2]
+        z = points_body[:, 2]
+        print(
+            f"[DIAG] local_map_descriptor_from_env: points_body count={len(points_body)} "
+            f"x_range=({float(xy[:,0].min()):.2f},{float(xy[:,0].max()):.2f}) "
+            f"y_range=({float(xy[:,1].min()):.2f},{float(xy[:,1].max()):.2f}) "
+            f"z_range=({float(z.min()):.2f},{float(z.max()):.2f}) "
+            f"radius_max={float(np.hypot(xy[:,0], xy[:,1]).max()):.2f}"
+        )
+        local_map_descriptor_from_env._diag_points_printed = True
     return {
         "local_map_points_body": points_body,
         "local_map_source": "isaac_sensor",
@@ -1418,7 +1450,23 @@ def main():
             return_candidates=True,
             dead_reckoning_yaw_rad=route_agent.current_absolute_pose_from_start()[2],
         )
-    relocalization_interval_backends = set(feature_relocalization_backends) | {"lidar_local_map", "scan_context"}
+    elif args_cli.route_relocalization_backend == "fused":
+        # Cross-validates LoFTR (RGB-D) against Scan Context (LiDAR) each
+        # relocalization attempt instead of trusting either alone -- see
+        # relocalization.fused_anchor_relocalization docstring for the
+        # agreement policy and the literature/failure-mode reasoning behind
+        # combining the two. Both backends' own descriptor/window/dead-
+        # reckoning-yaw arguments are threaded through unchanged; this option
+        # only adds the cross-check on top.
+        route_relocalizer = lambda descriptor, anchors: fused_anchor_relocalization(
+            descriptor,
+            anchors,
+            max_candidates=args_cli.route_relocalization_window,
+            diagnostics=route_relocalization_diagnostics,
+            return_candidates=True,
+            dead_reckoning_yaw_rad=route_agent.current_absolute_pose_from_start()[2],
+        )
+    relocalization_interval_backends = set(feature_relocalization_backends) | {"lidar_local_map", "scan_context", "fused"}
     route_agent = RouteMemoryAgent(
         enabled=args_cli.route_memory,
         hint_mode=args_cli.route_hint_mode,

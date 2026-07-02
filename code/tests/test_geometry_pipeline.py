@@ -11,6 +11,7 @@ Run with:
 
 import math
 import unittest
+from unittest import mock
 
 import numpy as np
 
@@ -19,13 +20,14 @@ from relocalization import (
     camera_point_to_body,
     camera_rotation_to_body_yaw,
     corridor_degeneracy_ratio,
+    fused_anchor_relocalization,
     local_map_anchor_relocalization,
     quat_wxyz_to_matrix,
     ransac_rigid_transform,
     rigid_transform_3d,
     scan_context_anchor_relocalization,
 )
-from route_memory_agent import RouteAnchor, wrap_angle
+from route_memory_agent import AnchorRelocalization, RouteAnchor, wrap_angle
 from scan_context import build_scan_context, column_shift_similarity, shift_to_yaw_rad
 
 
@@ -732,7 +734,20 @@ class TestLocalMapHeadingConsistencyGate(unittest.TestCase):
             [self.true_dx, self.true_dy], dtype=np.float32
         )
         self.current_descriptor = {"local_map_points_body": current_points}
-        self.true_absolute_yaw = wrap_angle(self.anchor_pose_from_start[2] + self.true_dtheta)
+        # NOTE (2026-07-02, found via a large-rotation regression check): the
+        # correct relationship, re-derived from the ICP source/target
+        # convention (icp_rigid_transform_2d(anchor_points, current_points)
+        # finds theta such that current = R(theta) @ anchor + t), is
+        # current_absolute_yaw = anchor_absolute_yaw - dtheta, NOT +dtheta.
+        # This file previously used "+" here; it happened to still pass
+        # because true_dtheta was small enough (0.2 rad) that the resulting
+        # ~23-degree reference error stayed under the 90-degree gate
+        # tolerance by coincidence -- a large-angle synthetic case (110 deg)
+        # exposed it directly (implied_yaw landed nowhere near either the
+        # "+"-convention reference or its flip). The gate implementation
+        # itself was already correct; only this test's own ground-truth
+        # convention was wrong.
+        self.true_absolute_yaw = wrap_angle(self.anchor_pose_from_start[2] - self.true_dtheta)
         self.flipped_absolute_yaw = wrap_angle(self.true_absolute_yaw + math.pi)
 
     def test_gate_follows_true_yaw_reference(self):
@@ -763,6 +778,31 @@ class TestLocalMapHeadingConsistencyGate(unittest.TestCase):
         result = local_map_anchor_relocalization(self.current_descriptor, [self.anchor])
         self.assertIsNotNone(result)
 
+    def test_gate_discriminates_at_large_rotation_angle(self):
+        """2026-07-02: the small true_dtheta (0.2 rad ~= 11 deg) used by the
+        other tests in this class left a ~23-degree reference-sign error
+        undetected (both the true and flipped hypotheses still landed on the
+        correct side of the 90-degree tolerance by coincidence). A large,
+        unambiguous rotation (110 deg, not near 0 or 180) is a much stronger
+        check that true/flipped discrimination is correct at scale, not just
+        for small angles."""
+        anchor_pose_from_start = [1.0, 2.0, 0.5]
+        true_dtheta = math.radians(110.0)
+        rect = _rectangle_outline_points()
+        anchor = RouteAnchor(
+            index=0, pose_from_start=anchor_pose_from_start, distance_from_start_m=5.0,
+            route_remaining_to_start_m=5.0, descriptor={"local_map_points_body": rect},
+        )
+        current_points = _rotate_2d(rect, true_dtheta) + np.array([0.3, 0.15], dtype=np.float32)
+        current_descriptor = {"local_map_points_body": current_points}
+        true_absolute_yaw = wrap_angle(anchor_pose_from_start[2] - true_dtheta)
+
+        result = local_map_anchor_relocalization(
+            current_descriptor, [anchor], dead_reckoning_yaw_rad=true_absolute_yaw
+        )
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(wrap_angle(result.anchor_dtheta_rad - true_dtheta), 0.0, delta=0.1)
+
     def test_gate_rejects_anchor_when_no_seed_is_consistent(self):
         """With zero tolerance, a reference a few degrees off the true solution's
         own (slightly noisy) ICP estimate must reject the anchor outright rather
@@ -789,6 +829,42 @@ def _l_shape_points(offset=(0.0, 0.0)) -> np.ndarray:
     arm2 = np.stack([np.zeros(40), np.linspace(0.5, 4.0, 40)], axis=1)
     pts = np.concatenate([arm1, arm2], axis=0).astype(np.float32)
     return pts + np.array(offset, dtype=np.float32)
+
+
+def _point_at_cell(
+    ring: int, sector: int, num_rings: int = 20, num_sectors: int = 60,
+    max_radius_m: float = 6.0, height: float = 1.0,
+    radial_jitter: float = 0.0, sector_frac: float = 0.5,
+) -> list:
+    """A single (x, y, z) point landing at a specific (ring, sector) Scan
+    Context cell (optionally offset radially and/or within the sector's
+    angular span), for tests that need exact control over which grid cells
+    end up occupied (e.g. scattered vs. connected regions)."""
+    r = (ring + 0.5) * max_radius_m / num_rings + radial_jitter
+    theta = (sector + sector_frac) * 2.0 * math.pi / num_sectors
+    return [r * math.cos(theta), r * math.sin(theta), height]
+
+
+def _points_at_cell(ring: int, sector: int, count: int = 16, **kwargs) -> list:
+    """``count`` distinct points inside the same cell (spread across a small
+    grid of radial x within-sector-angle jitter, never crossing into a
+    neighboring ring or sector) with > voxel_downsample_2d's default 0.12 m
+    spacing between combinations so enough of them survive its dedup as
+    separate points. scan_context_anchor_relocalization requires >= 12 raw
+    (and >= 12 post-voxel-downsample) points as a basic "is this real data"
+    sanity floor, well above what a test targeting a handful of specific grid
+    cells would naturally produce with single points; a plain 1-D radial-only
+    spread doesn't reliably clear this for small cell counts (2026-07-02:
+    found via a test that lost points to voxel-downsample dedup), so this
+    spreads jitter across two axes instead."""
+    radial_vals = np.linspace(-0.13, 0.13, 5)
+    frac_vals = np.linspace(0.15, 0.85, 5)
+    combos = [(r, f) for r in radial_vals for f in frac_vals]
+    return [
+        _point_at_cell(ring, sector, radial_jitter=combos[i % len(combos)][0],
+                        sector_frac=combos[i % len(combos)][1], **kwargs)
+        for i in range(count)
+    ]
 
 
 def _straight_corridor_points() -> np.ndarray:
@@ -885,6 +961,85 @@ class TestScanContextAnchorRelocalization(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertEqual(result.anchor_index, 0)
 
+    def test_diffuse_scattered_match_is_rejected_despite_high_similarity(self):
+        """2026-07-02: a winner whose agreement is scattered thinly across the
+        grid (no single connected chunk) must be rejected even if its average
+        column similarity is high -- this is the actual ep994 "wide plausible
+        basin" mechanism: a big generic area can score well on average without
+        any real, spatially coherent match. Six isolated matching cells, each
+        10 sectors apart (nowhere near adjacent), score a perfect 1.0 average
+        similarity (every non-empty column matches exactly) but the largest
+        connected region is a single cell."""
+        current_points = np.array(
+            [pt for s in (0, 10, 20, 30, 40, 50) for pt in _points_at_cell(5, s)],
+            dtype=np.float32,
+        )
+        anchor_points = current_points.copy()  # identical scattered cells
+        anchor = self._anchor(0, anchor_points)
+        current_descriptor = {"local_map_points_body": current_points}
+        diagnostics: dict = {}
+
+        result = scan_context_anchor_relocalization(
+            current_descriptor, [anchor], diagnostics=diagnostics
+        )
+
+        self.assertIsNone(result)
+        self.assertAlmostEqual(diagnostics.get("last_scan_context_best_similarity"), 1.0, places=5)
+        self.assertEqual(diagnostics.get("last_scan_context_best_region_size"), 1)
+        self.assertEqual(diagnostics.get("scan_context_diffuse_match"), 1)
+
+    def test_concentrated_match_with_same_similarity_is_accepted(self):
+        """Counterpart to the diffuse-match test above: the same six-cell
+        count, but placed as one contiguous block, must be accepted -- proving
+        the new gate discriminates on connectivity specifically, not just on
+        having "fewer" occupied cells."""
+        current_points = np.array(
+            [pt for s in range(0, 6) for pt in _points_at_cell(5, s)], dtype=np.float32
+        )
+        anchor_points = current_points.copy()
+        anchor = self._anchor(0, anchor_points)
+        current_descriptor = {"local_map_points_body": current_points}
+        diagnostics: dict = {}
+
+        result = scan_context_anchor_relocalization(
+            current_descriptor, [anchor], diagnostics=diagnostics
+        )
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.anchor_index, 0)
+        self.assertEqual(diagnostics.get("last_scan_context_best_region_size"), 6)
+
+    def test_height_profile_distinguishes_candidates_with_identical_footprint(self):
+        """2026-07-02: two candidate anchors share the exact same xy occupancy
+        footprint (same cells occupied) but have opposite height profiles --
+        binary occupancy (this project's original Scan Context simplification)
+        cannot tell them apart at all; the restored max-height-per-cell
+        encoding (closer to Kim & Kim 2018) must prefer the one whose height
+        profile actually matches the current view."""
+        near_ring, far_ring, sector = 3, 12, 20
+        current_points = np.array(
+            _points_at_cell(near_ring, sector, height=0.1)
+            + _points_at_cell(far_ring, sector, height=1.7),
+            dtype=np.float32,
+        )
+        matching_anchor_points = current_points.copy()
+        reversed_anchor_points = np.array(
+            _points_at_cell(near_ring, sector, height=1.7)
+            + _points_at_cell(far_ring, sector, height=0.1),
+            dtype=np.float32,
+        )
+        anchor_match = self._anchor(0, matching_anchor_points)
+        anchor_reversed = self._anchor(1, reversed_anchor_points)
+        current_descriptor = {"local_map_points_body": current_points}
+
+        result = scan_context_anchor_relocalization(
+            current_descriptor, [anchor_match, anchor_reversed],
+            min_connected_region_cells=1,
+        )
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.anchor_index, 0)
+
 
 class TestScanContextHeadingConsistencyGate(unittest.TestCase):
     """2026-07-02 fix: Scan Context's own column-shift search spans the full
@@ -912,7 +1067,20 @@ class TestScanContextHeadingConsistencyGate(unittest.TestCase):
             [self.true_dx, self.true_dy], dtype=np.float32
         )
         self.current_descriptor = {"local_map_points_body": current_points}
-        self.true_absolute_yaw = wrap_angle(self.anchor_pose_from_start[2] + self.true_dtheta)
+        # NOTE (2026-07-02, found via a large-rotation regression check): the
+        # correct relationship, re-derived from the ICP source/target
+        # convention (icp_rigid_transform_2d(anchor_points, current_points)
+        # finds theta such that current = R(theta) @ anchor + t), is
+        # current_absolute_yaw = anchor_absolute_yaw - dtheta, NOT +dtheta.
+        # This file previously used "+" here; it happened to still pass
+        # because true_dtheta was small enough (0.2 rad) that the resulting
+        # ~23-degree reference error stayed under the 90-degree gate
+        # tolerance by coincidence -- a large-angle synthetic case (110 deg)
+        # exposed it directly (implied_yaw landed nowhere near either the
+        # "+"-convention reference or its flip). The gate implementation
+        # itself was already correct; only this test's own ground-truth
+        # convention was wrong.
+        self.true_absolute_yaw = wrap_angle(self.anchor_pose_from_start[2] - self.true_dtheta)
         self.flipped_absolute_yaw = wrap_angle(self.true_absolute_yaw + math.pi)
 
     def test_gate_follows_true_yaw_reference(self):
@@ -939,6 +1107,108 @@ class TestScanContextHeadingConsistencyGate(unittest.TestCase):
         return a valid candidate."""
         result = scan_context_anchor_relocalization(self.current_descriptor, [self.anchor])
         self.assertIsNotNone(result)
+
+    def test_gate_discriminates_at_large_rotation_angle(self):
+        """2026-07-02: same rationale as
+        TestLocalMapHeadingConsistencyGate.test_gate_discriminates_at_large_rotation_angle
+        -- this class's small true_dtheta (0.2 rad) left a ~23-degree
+        reference-sign error undetected. This is also a regression check for
+        the seed-coverage fix: the first real batch
+        (scan_context_p3_flipfix_187_680_994_20260702) still showed ~170+ deg
+        bearing errors after the narrow +/-20-degree dual-hypothesis seeding
+        was replaced by a full 24-seed sweep against the selected anchor."""
+        anchor_pose_from_start = [1.0, 2.0, 0.5]
+        true_dtheta = math.radians(110.0)
+        rect = _rectangle_outline_points()
+        anchor = RouteAnchor(
+            index=0, pose_from_start=anchor_pose_from_start, distance_from_start_m=5.0,
+            route_remaining_to_start_m=5.0, descriptor={"local_map_points_body": rect},
+        )
+        current_points = _rotate_2d(rect, true_dtheta) + np.array([0.3, 0.15], dtype=np.float32)
+        current_descriptor = {"local_map_points_body": current_points}
+        true_absolute_yaw = wrap_angle(anchor_pose_from_start[2] - true_dtheta)
+
+        result = scan_context_anchor_relocalization(
+            current_descriptor, [anchor], dead_reckoning_yaw_rad=true_absolute_yaw
+        )
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(wrap_angle(result.anchor_dtheta_rad - true_dtheta), 0.0, delta=0.1)
+
+
+# ---------------------------------------------------------------------------
+# RGB-D + LiDAR fusion (2026-07-02)
+# ---------------------------------------------------------------------------
+# These test the *orchestration/agreement* logic in fused_anchor_relocalization
+# in isolation from the two underlying backends it combines (each of which
+# already has its own dedicated tests above and in test_loftr_matching.py).
+# Mocking the two backend calls is the right tool here specifically because
+# what's under test is "does the fusion policy combine two independent
+# results correctly," not "does LoFTR/Scan Context individually work" --
+# constructing a real RGB-D scene just to exercise the merge logic would test
+# the wrong thing and be needlessly fragile.
+
+class TestFusedAnchorRelocalization(unittest.TestCase):
+    def test_agreement_fuses_both_estimates_with_boosted_confidence(self):
+        rgbd = AnchorRelocalization(
+            anchor_index=3, anchor_dx_m=1.0, anchor_dy_m=0.5, anchor_dtheta_rad=0.10,
+            confidence=0.6, backend="loftr", inlier_count=20,
+        )
+        lidar = AnchorRelocalization(
+            anchor_index=3, anchor_dx_m=1.05, anchor_dy_m=0.55, anchor_dtheta_rad=0.14,
+            confidence=0.7, backend="scan_context", inlier_count=30,
+        )
+        with mock.patch("relocalization.feature_depth_anchor_relocalization", return_value=rgbd), \
+             mock.patch("relocalization.scan_context_anchor_relocalization", return_value=lidar):
+            result = fused_anchor_relocalization({}, [])
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.anchor_index, 3)
+        self.assertEqual(result.backend, "fused_loftr_scan_context")
+        self.assertAlmostEqual(result.anchor_dx_m, 1.0269, places=3)
+        self.assertGreater(result.confidence, max(rgbd.confidence, lidar.confidence))
+
+    def test_disagreement_on_anchor_identity_yields_no_candidate(self):
+        rgbd = AnchorRelocalization(anchor_index=3, anchor_dx_m=1.0, anchor_dy_m=0.5, confidence=0.6, backend="loftr")
+        lidar = AnchorRelocalization(anchor_index=7, anchor_dx_m=1.0, anchor_dy_m=0.5, confidence=0.6, backend="scan_context")
+        diagnostics: dict = {}
+        with mock.patch("relocalization.feature_depth_anchor_relocalization", return_value=rgbd), \
+             mock.patch("relocalization.scan_context_anchor_relocalization", return_value=lidar):
+            result = fused_anchor_relocalization({}, [], diagnostics=diagnostics)
+
+        self.assertIsNone(result)
+        self.assertEqual(diagnostics.get("fused_disagreement_different_anchor"), 1)
+
+    def test_disagreement_on_pose_for_same_anchor_yields_no_candidate(self):
+        rgbd = AnchorRelocalization(anchor_index=3, anchor_dx_m=1.0, anchor_dy_m=0.5, anchor_dtheta_rad=0.0, confidence=0.6, backend="loftr")
+        lidar = AnchorRelocalization(anchor_index=3, anchor_dx_m=4.0, anchor_dy_m=0.5, anchor_dtheta_rad=0.0, confidence=0.6, backend="scan_context")
+        diagnostics: dict = {}
+        with mock.patch("relocalization.feature_depth_anchor_relocalization", return_value=rgbd), \
+             mock.patch("relocalization.scan_context_anchor_relocalization", return_value=lidar):
+            result = fused_anchor_relocalization({}, [], diagnostics=diagnostics)
+
+        self.assertIsNone(result)
+        self.assertEqual(diagnostics.get("fused_disagreement_same_anchor_different_pose"), 1)
+
+    def test_single_source_lidar_only_is_used_at_reduced_confidence(self):
+        """LoFTR fails (e.g. zero covisibility, camera facing the wrong way
+        during return) but Scan Context, being omnidirectional, still
+        succeeds -- exactly the complementary-failure-mode scenario that
+        motivated fusing the two backends in the first place."""
+        lidar = AnchorRelocalization(anchor_index=5, anchor_dx_m=2.0, anchor_dy_m=-1.0, confidence=0.8, backend="scan_context")
+        with mock.patch("relocalization.feature_depth_anchor_relocalization", return_value=None), \
+             mock.patch("relocalization.scan_context_anchor_relocalization", return_value=lidar):
+            result = fused_anchor_relocalization({}, [])
+
+        self.assertIsNotNone(result)
+        self.assertEqual(result.anchor_index, 5)
+        self.assertEqual(result.backend, "scan_context+fused_single")
+        self.assertLess(result.confidence, lidar.confidence)
+
+    def test_both_backends_silent_yields_no_candidate(self):
+        with mock.patch("relocalization.feature_depth_anchor_relocalization", return_value=None), \
+             mock.patch("relocalization.scan_context_anchor_relocalization", return_value=None):
+            result = fused_anchor_relocalization({}, [])
+        self.assertIsNone(result)
 
 
 if __name__ == "__main__":

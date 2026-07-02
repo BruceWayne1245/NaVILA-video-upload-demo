@@ -1,14 +1,14 @@
 """2-D Scan Context descriptor (Kim & Kim, IROS 2018) adapted for the local-map
 point clouds already used by ``relocalization.py``'s ICP backend.
 
-The original Scan Context bins a 3-D LiDAR scan into a polar grid (rings x
-sectors) and stores the maximum point height per cell. Our local-map point
-clouds are already height-filtered down to an obstacle band before we ever see
-them (see ``descriptor_local_map_points`` in relocalization.py, which keeps
-only points with ``z in [-0.20, 1.80]`` and drops the z coordinate entirely),
-so there is no per-point height left to encode. This variant stores binary
-occupancy per cell instead, which is the standard adaptation for 2-D/height-
-filtered scans.
+2026-07-02: switched to the original paper's max-height-per-cell encoding.
+Local-map point clouds were previously read via ``descriptor_local_map_points``
+(relocalization.py), which drops the z coordinate entirely, leaving nothing to
+encode but binary occupancy -- a real simplification versus the paper. Callers
+should now build the descriptor from ``descriptor_local_map_points_xyz``
+instead, which retains height. ``build_scan_context`` still degrades
+gracefully to a flat (uninformative) height channel for any 2-D-only input,
+so it remains usable standalone/in tests without requiring height data.
 
 Kept in a separate module (depends only on numpy) so it can be unit-tested
 without Isaac Sim, matching relocalization.py's own convention.
@@ -27,12 +27,25 @@ def build_scan_context(
     num_rings: int = 20,
     num_sectors: int = 60,
     max_radius_m: float = 6.0,
+    height_min_m: float = -0.20,
+    height_max_m: float = 1.80,
 ) -> np.ndarray:
-    """Bin a body-frame 2-D point cloud into a polar occupancy grid.
+    """Bin a body-frame point cloud into a polar grid, storing the *maximum*
+    point height per (ring, sector) cell -- the original Kim & Kim (2018)
+    encoding, restored 2026-07-02 (this project initially used binary
+    occupancy per cell because the point clouds it had access to had already
+    been stripped of height; see module docstring).
 
     Row = radial ring (0 = closest to sensor origin), column = angular sector
-    (0 = +x/forward axis, increasing counter-clockwise). Cell value is 1.0 if
-    any point falls in that (ring, sector), else 0.0.
+    (0 = +x/forward axis, increasing counter-clockwise). Height values are
+    normalized to [0, 1] over [height_min_m, height_max_m] (the same obstacle
+    band descriptor_local_map_points_xyz already filters to in
+    relocalization.py), matching that existing convention rather than
+    introducing a second one.
+
+    If ``points`` has only 2 columns (no height available), every present
+    cell gets value 1.0 -- the old binary-occupancy behavior -- so this
+    function still degrades gracefully rather than requiring height data.
     """
     grid = np.zeros((num_rings, num_sectors), dtype=np.float32)
     points = np.asarray(points, dtype=np.float64)
@@ -40,16 +53,26 @@ def build_scan_context(
         return grid
     xs = points[:, 0]
     ys = points[:, 1]
+    if points.shape[1] >= 3:
+        height_span = max(1e-6, float(height_max_m) - float(height_min_m))
+        cell_values = np.clip((points[:, 2] - float(height_min_m)) / height_span, 0.0, 1.0)
+    else:
+        cell_values = np.ones_like(xs)
     r = np.hypot(xs, ys)
     theta = np.mod(np.arctan2(ys, xs), 2.0 * math.pi)
-    valid = (r <= max_radius_m) & np.isfinite(r) & np.isfinite(theta)
+    valid = (r <= max_radius_m) & np.isfinite(r) & np.isfinite(theta) & np.isfinite(cell_values)
     r = r[valid]
     theta = theta[valid]
+    cell_values = cell_values[valid]
     if len(r) == 0:
         return grid
     ring_idx = np.clip((r / max_radius_m * num_rings).astype(np.int32), 0, num_rings - 1)
     sector_idx = np.clip((theta / (2.0 * math.pi) * num_sectors).astype(np.int32), 0, num_sectors - 1)
-    grid[ring_idx, sector_idx] = 1.0
+    # Scatter-max reduction: np.maximum.at handles repeated (ring, sector)
+    # indices correctly (keeps the tallest point per cell), unlike a plain
+    # fancy-index assignment which would just keep whichever point happened
+    # to be written last.
+    np.maximum.at(grid, (ring_idx, sector_idx), cell_values.astype(np.float32))
     return grid
 
 
@@ -103,6 +126,124 @@ def column_shift_similarity(sc_a: np.ndarray, sc_b: np.ndarray) -> tuple[float, 
             best_similarity = similarity
             best_shift = shift
     return float(best_similarity), int(best_shift)
+
+
+def _largest_connected_region_in_mask(agree: np.ndarray) -> int:
+    """Size of the largest 4-connected True region in a boolean grid, with the
+    column (sector) axis treated as circular. Shared core of
+    largest_connected_agreement_region and column_shift_search_with_region."""
+    num_rings, num_sectors = agree.shape
+    visited = np.zeros_like(agree, dtype=bool)
+    best_size = 0
+    for r0 in range(num_rings):
+        for c0 in range(num_sectors):
+            if not agree[r0, c0] or visited[r0, c0]:
+                continue
+            stack = [(r0, c0)]
+            visited[r0, c0] = True
+            size = 0
+            while stack:
+                r, c = stack.pop()
+                size += 1
+                for dr, dc in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                    nr = r + dr
+                    nc = (c + dc) % num_sectors  # circular sector axis
+                    if nr < 0 or nr >= num_rings:
+                        continue
+                    if agree[nr, nc] and not visited[nr, nc]:
+                        visited[nr, nc] = True
+                        stack.append((nr, nc))
+            best_size = max(best_size, size)
+    return int(best_size)
+
+
+def largest_connected_agreement_region(
+    sc_a: np.ndarray,
+    sc_b: np.ndarray,
+    shift: int,
+    height_tolerance: float = 0.15,
+    presence_threshold: float = 0.05,
+) -> int:
+    """Size (cell count) of the largest spatially-contiguous region where
+    ``sc_a`` and ``sc_b`` (rotated by ``shift`` sectors) agree.
+
+    2026-07-02, motivated directly by the ep994 diagnosis: a big open area
+    (or any other large, generic feature) can make the *average* column
+    similarity look decent across a wide span of true positions -- lots of
+    small, scattered cells each agree a little, but no single coherent chunk
+    of geometry actually lines up. A genuine revisit of the same physical
+    place instead produces one large, spatially *connected* patch of
+    agreement. This distinguishes "concentrated" from "diffuse" matches (see
+    ROVER, arXiv 2508.13488) the same way point-cloud registration literature
+    uses maximum-clique spatial-consistency filtering (PointDSC, CVPR 2021)
+    to reject correspondences that don't form one coherent group.
+
+    Two cells "agree" if both are present (value above ``presence_threshold``,
+    i.e. not empty space) and their heights differ by no more than
+    ``height_tolerance``. Connectivity is 4-neighbor, with the sector
+    (column) axis treated as circular -- sector ``num_sectors - 1`` is
+    adjacent to sector ``0``, matching the polar grid's actual topology
+    (an ordinary flood fill would incorrectly treat the two edges of the
+    grid as unconnected).
+    """
+    shifted_b = np.roll(sc_b, shift, axis=1)
+    agree = (
+        (sc_a > presence_threshold)
+        & (shifted_b > presence_threshold)
+        & (np.abs(sc_a - shifted_b) <= height_tolerance)
+    )
+    return _largest_connected_region_in_mask(agree)
+
+
+def column_shift_search_with_region(
+    sc_a: np.ndarray,
+    sc_b: np.ndarray,
+    height_tolerance: float = 0.15,
+    presence_threshold: float = 0.05,
+) -> tuple[float, int, int]:
+    """Like column_shift_similarity, but picks the shift that maximizes a
+    connectivity-aware score instead of raw average column similarity alone.
+
+    2026-07-02: average column similarity has a real blind spot for sparse
+    point clouds -- a column with only one occupied ring has cosine
+    similarity exactly 1.0 against any other single-occupied-ring column
+    *regardless of which ring or what height value*, since cosine similarity
+    is direction-only and a single-nonzero-entry vector's "direction" is
+    fully determined by which index is nonzero, not its value. This produces
+    near-ties across many shifts for sparse scans, and picking the shift by
+    raw similarity alone can land on one with terrible (even zero) actual
+    spatial connectivity -- defeating the point of adding
+    largest_connected_agreement_region if it's only ever checked *after* an
+    already-committed similarity-best shift that was never a good candidate
+    to begin with. Denser real point clouds are less prone to this exact
+    degeneracy, but there's no reason to leave it as a latent trap: search
+    for the best shift using both signals jointly instead of sequentially.
+
+    Returns (similarity, shift, region_size) for the shift maximizing
+    similarity * (region_size / grid_cells).
+    """
+    num_rings, num_sectors = sc_a.shape
+    grid_cells = float(num_rings * num_sectors)
+    best_combined = -1.0
+    best_similarity = 0.0
+    best_shift = 0
+    best_region = 0
+    for shift in range(num_sectors):
+        shifted = np.roll(sc_b, shift, axis=1)
+        similarity = _mean_column_cosine_similarity(sc_a, shifted)
+        agree = (
+            (sc_a > presence_threshold)
+            & (shifted > presence_threshold)
+            & (np.abs(sc_a - shifted) <= height_tolerance)
+        )
+        region = _largest_connected_region_in_mask(agree)
+        combined = similarity * (region / grid_cells)
+        if combined > best_combined:
+            best_combined = combined
+            best_similarity = similarity
+            best_shift = shift
+            best_region = region
+    return float(best_similarity), int(best_shift), int(best_region)
 
 
 def shift_to_yaw_rad(shift: int, num_sectors: int) -> float:

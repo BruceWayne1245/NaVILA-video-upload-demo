@@ -12,7 +12,13 @@ from typing import Optional
 
 import numpy as np
 
-from scan_context import build_scan_context, column_shift_similarity, shift_to_yaw_rad
+from scan_context import (
+    build_scan_context,
+    column_shift_search_with_region,
+    column_shift_similarity,
+    largest_connected_agreement_region,
+    shift_to_yaw_rad,
+)
 
 try:
     import cv2
@@ -357,8 +363,11 @@ def ransac_rigid_transform(
 # 2-D local-map / LiDAR scan matching
 # ---------------------------------------------------------------------------
 
-def descriptor_local_map_points(descriptor: object) -> Optional[np.ndarray]:
-    """Return local LiDAR/map points in body coordinates as an Nx2 array."""
+def _descriptor_local_map_points_raw(descriptor: object) -> Optional[np.ndarray]:
+    """Shared extraction + height-band filtering for descriptor_local_map_points
+    and descriptor_local_map_points_xyz. Returns the filtered array with all
+    original columns intact (x, y, and z when present) -- callers slice down
+    to what they actually need."""
     if not isinstance(descriptor, dict):
         return None
     for key in (
@@ -384,8 +393,36 @@ def descriptor_local_map_points(descriptor: object) -> Optional[np.ndarray]:
             obstacle = (z >= -0.20) & (z <= 1.80)
             if int(obstacle.sum()) >= 12:
                 arr = arr[obstacle]
-        return np.asarray(arr[:, :2], dtype=np.float32)
+        return arr
     return None
+
+
+def descriptor_local_map_points(descriptor: object) -> Optional[np.ndarray]:
+    """Return local LiDAR/map points in body coordinates as an Nx2 array.
+    Used by the 2-D ICP registration path (local_map_icp and Scan Context's
+    refinement step), which has no use for height."""
+    arr = _descriptor_local_map_points_raw(descriptor)
+    if arr is None:
+        return None
+    return np.asarray(arr[:, :2], dtype=np.float32)
+
+
+def descriptor_local_map_points_xyz(descriptor: object) -> Optional[np.ndarray]:
+    """Like descriptor_local_map_points but retains the height (z) column when
+    the source data has one, for Scan Context's height-encoded cells (2026-07-02:
+    closer to the original Kim & Kim 2018 max-height-per-cell encoding, instead
+    of this project's earlier binary-occupancy simplification). Pads a zero
+    height column when the source truly has no z, so callers always get a
+    consistent Nx3 array -- degrades gracefully to a flat/uninformative height
+    channel rather than erroring out."""
+    arr = _descriptor_local_map_points_raw(descriptor)
+    if arr is None:
+        return None
+    if arr.shape[1] >= 3:
+        return np.asarray(arr[:, :3], dtype=np.float32)
+    xy = np.asarray(arr[:, :2], dtype=np.float32)
+    z = np.zeros((xy.shape[0], 1), dtype=np.float32)
+    return np.concatenate([xy, z], axis=1)
 
 
 def voxel_downsample_2d(points: np.ndarray, voxel_size_m: float = 0.12, max_points: int = 256) -> np.ndarray:
@@ -1073,9 +1110,9 @@ def scan_context_anchor_relocalization(
     max_candidates: Optional[int] = None,
     diagnostics: Optional[dict] = None,
     return_candidates: bool = False,
-    min_similarity: float = 0.3,
-    min_similarity_margin: float = 0.05,
-    icp_refine_yaw_search_deg: float = 20.0,
+    min_similarity: float = 0.2,
+    min_connected_region_cells: int = 3,
+    min_combined_score_margin_ratio: float = 1.15,
     dead_reckoning_yaw_rad: Optional[float] = None,
     heading_consistency_max_error_rad: float = math.radians(90.0),
 ) -> Optional[object]:
@@ -1091,33 +1128,57 @@ def scan_context_anchor_relocalization(
     self-reinforce through the SeqSLAM continuity check, which only compares
     against its own possibly-already-wrong history). Scan Context instead
     compares the *global* occupancy pattern against every candidate at once
-    and only proceeds when the winner clearly beats the runner-up
-    (min_similarity_margin) -- an ambiguous scene correctly returns no
-    candidate (widening the particle filter) instead of committing to
-    whichever candidate happened to edge out the others.
+    and only proceeds when the winner clearly beats the runner-up -- an
+    ambiguous scene correctly returns no candidate (widening the particle
+    filter) instead of committing to whichever candidate happened to edge out
+    the others.
 
     ICP is still used for the final metric offset (Scan Context alone does not
     give a translation), but only as a narrow refinement seeded by Scan
     Context's own yaw estimate against the ONE selected anchor, not a blind
     24-seed search across every candidate.
 
-    ``min_similarity``/``min_similarity_margin`` defaults are provisional --
-    tuned on synthetic point clouds only; the first real batch
-    (scan_context_p3_187_680_994_20260702) showed the original, stricter
-    defaults (0.5 / 0.1) rejected essentially every step on 2 of 3 episodes,
-    so these were loosened. Still needs validation against real similarity-
-    score distributions once diagnostics are inspected on a live run.
+    2026-07-02, second revision (closer to Kim & Kim 2018 + spatial
+    consistency): two follow-up problems surfaced after the first fix batch,
+    diagnosed by directly checking correct_anchor% (not just bearing error)
+    across three validation batches -- it never rose above the pre-P3
+    baseline (3.9-6.4%, vs. local_map_icp+P1+P2's 7.8-9.6%), meaning Scan
+    Context's core anchor-*identity* mechanism itself hadn't demonstrated any
+    improvement yet, independent of the orientation-flip issue below.
+      1. Cell values were binary occupancy, not the original paper's
+         max-height-per-cell -- descriptor_local_map_points_xyz now preserves
+         height (previously dropped for the 2-D-only ICP path) and
+         build_scan_context bins it properly, restoring real discriminative
+         power the binary simplification had thrown away.
+      2. Average column similarity alone rewards "diffuse" matches (many
+         small scattered patches of agreement across a big open area) exactly
+         as much as "concentrated" ones (one large coherent chunk of matching
+         geometry) -- likely why loosening min_similarity_margin for coverage
+         in the first fix directly hurt accuracy. largest_connected_agreement_
+         region now finds the largest spatially-contiguous agreeing patch
+         (circular on the sector axis); a real revisit should produce one
+         large connected region, not scattered pixel-sized agreement. Ranking
+         and the ambiguity-margin check now use combined_score = similarity *
+         connected_region_fraction, not raw similarity alone.
+    All three of min_similarity / min_connected_region_cells /
+    min_combined_score_margin_ratio remain provisional -- no real
+    similarity/region-size distributions have been inspected yet. Note the
+    shift search itself now optimizes combined_score, not raw similarity, so
+    the winning shift can (and, on a real synthetic check, does) report a
+    *lower* raw similarity than the old pure-similarity search would have --
+    it traded some similarity for a shift with actual spatial coherence.
+    min_similarity was lowered from 0.3 to 0.2 accordingly; still a guess.
 
-    ``dead_reckoning_yaw_rad`` (2026-07-02 fix): Scan Context's own
-    column-shift search spans the full 360 degrees, so -- like
-    local_map_icp's un-gated yaw search before the P1 fix -- it is just as
-    vulnerable to locking onto a 180-degree-flipped orientation in
-    corridor-like/symmetric geometry (confirmed on the first real batch: ep994
-    bearing error sat at a stable ~178 deg for many consecutive steps, not
-    scattered noise). The narrow ICP refinement below now seeds from *both*
-    Scan Context's best shift and its diametric opposite, then -- exactly like
-    P1 -- walks the ranked results and keeps the first whose implied absolute
-    orientation agrees with the caller's own non-oracle dead-reckoning yaw.
+    ``dead_reckoning_yaw_rad``: separately, Scan Context's own column-shift
+    search spans the full 360 degrees, so like local_map_icp's un-gated yaw
+    search before the P1 fix, it is vulnerable to locking onto a
+    180-degree-flipped orientation in corridor-like/symmetric geometry. NOTE
+    (2026-07-02): this reference (route_agent.current_absolute_pose_from_
+    start()) was found to drift by up to ~160 degrees during outbound in real
+    data, undermining this gate independently of the two fixes above -- not
+    yet re-addressed here (see the ongoing investigation into a
+    local/relative consistency reference instead of this global accumulated
+    one).
     """
     from route_memory_agent import AnchorRelocalization, compose_pose, inverse_delta, wrap_angle
 
@@ -1136,15 +1197,26 @@ def scan_context_anchor_relocalization(
     if diagnostics is not None:
         diagnostics["matcher_backend"] = "scan_context"
 
-    current_points = descriptor_local_map_points(current_descriptor)
-    if current_points is None:
+    current_points_xyz = descriptor_local_map_points_xyz(current_descriptor)
+    if current_points_xyz is None:
         _diagnostic_inc(diagnostics, "missing_current_local_map")
         return None
-    current_points = voxel_downsample_2d(current_points)
-    if len(current_points) < 12:
+    if len(current_points_xyz) < 12:
         _diagnostic_inc(diagnostics, "too_few_current_local_map_points")
         return None
-    current_sc = build_scan_context(current_points)
+    current_sc = build_scan_context(current_points_xyz)
+    num_rings, num_sectors = current_sc.shape
+    grid_cells = float(num_rings * num_sectors)
+
+    # Still needed for the ICP refinement step, which only ever registers in
+    # 2-D -- not downsampled for the Scan Context grid above, since voxel
+    # downsampling would pick an arbitrary point per voxel and could discard
+    # exactly the tallest point max-height encoding is trying to keep.
+    current_points = descriptor_local_map_points(current_descriptor)
+    current_points = voxel_downsample_2d(current_points) if current_points is not None else None
+    if current_points is None or len(current_points) < 12:
+        _diagnostic_inc(diagnostics, "too_few_current_local_map_points")
+        return None
 
     candidates = [
         anchor for anchor in reversed(anchors) if isinstance(anchor.descriptor, dict)
@@ -1155,55 +1227,76 @@ def scan_context_anchor_relocalization(
         candidates_to_search = candidates
     _diagnostic_inc(diagnostics, "candidate_anchors", len(candidates_to_search))
 
-    scored: list[tuple[float, int, object, np.ndarray]] = []
+    scored: list[tuple[float, float, int, int, object, np.ndarray]] = []
+    # each entry: (combined_score, raw_similarity, region_size, shift, anchor, anchor_points_2d_for_icp)
     for anchor in candidates_to_search:
-        anchor_points = descriptor_local_map_points(anchor.descriptor)
-        if anchor_points is None:
+        anchor_points_xyz = descriptor_local_map_points_xyz(anchor.descriptor)
+        if anchor_points_xyz is None or len(anchor_points_xyz) < 12:
             _diagnostic_inc(diagnostics, "candidate_missing_local_map")
             continue
-        anchor_points = voxel_downsample_2d(anchor_points)
-        if len(anchor_points) < 12:
+        anchor_points_2d = descriptor_local_map_points(anchor.descriptor)
+        if anchor_points_2d is None:
+            continue
+        anchor_points_2d = voxel_downsample_2d(anchor_points_2d)
+        if len(anchor_points_2d) < 12:
             _diagnostic_inc(diagnostics, "too_few_anchor_local_map_points")
             continue
-        anchor_sc = build_scan_context(anchor_points)
-        similarity, shift = column_shift_similarity(current_sc, anchor_sc)
-        scored.append((similarity, shift, anchor, anchor_points))
+        anchor_sc = build_scan_context(anchor_points_xyz)
+        similarity, shift, region_size = column_shift_search_with_region(current_sc, anchor_sc)
+        combined_score = float(similarity) * (region_size / grid_cells)
+        scored.append((combined_score, similarity, region_size, shift, anchor, anchor_points_2d))
 
     if not scored:
         _diagnostic_inc(diagnostics, "no_scan_context_candidates")
         return None
 
     scored.sort(key=lambda item: item[0], reverse=True)
-    best_similarity, best_shift, best_anchor, best_anchor_points = scored[0]
+    best_combined, best_similarity, best_region_size, best_shift, best_anchor, best_anchor_points = scored[0]
 
     if diagnostics is not None:
         diagnostics["last_scan_context_best_similarity"] = float(best_similarity)
-        diagnostics["last_scan_context_runner_up_similarity"] = (
+        diagnostics["last_scan_context_best_region_size"] = int(best_region_size)
+        diagnostics["last_scan_context_runner_up_combined_score"] = (
             float(scored[1][0]) if len(scored) > 1 else None
         )
 
     if best_similarity < min_similarity:
         _diagnostic_inc(diagnostics, "scan_context_similarity_too_low")
         return None
-    if len(scored) > 1 and (best_similarity - scored[1][0]) < min_similarity_margin:
-        # Ambiguous: winner doesn't clearly beat the runner-up -- this is
-        # exactly the "wide plausible basin" case from the ep994 diagnosis.
-        # Correctly report no candidate rather than guessing.
+    if best_region_size < min_connected_region_cells:
+        # The winner's agreement is scattered across the grid rather than one
+        # coherent chunk -- exactly the "diffuse match" failure mode from the
+        # ep994 diagnosis. Correctly report no candidate rather than trusting
+        # a high average similarity that isn't backed by real local structure.
+        _diagnostic_inc(diagnostics, "scan_context_diffuse_match")
+        return None
+    if len(scored) > 1 and scored[1][0] > 0 and (best_combined / scored[1][0]) < min_combined_score_margin_ratio:
+        # Ambiguous: winner doesn't clearly beat the runner-up on the
+        # connectedness-aware score -- the "wide plausible basin" case from
+        # the ep994 diagnosis. Correctly report no candidate rather than
+        # guessing.
         _diagnostic_inc(diagnostics, "scan_context_ambiguous_margin")
         return None
 
     num_sectors = current_sc.shape[1]
     primary_seed = shift_to_yaw_rad(best_shift, num_sectors)
-    opposite_seed = wrap_angle(primary_seed + math.pi)
 
-    seed_span_rad = math.radians(icp_refine_yaw_search_deg)
-    num_refine_seeds_per_hypothesis = 5
-    refine_seeds = []
-    for base_seed in (primary_seed, opposite_seed):
-        refine_seeds.extend(
-            base_seed + seed_span_rad * (2.0 * i / (num_refine_seeds_per_hypothesis - 1) - 1.0)
-            for i in range(num_refine_seeds_per_hypothesis)
-        )
+    # 2026-07-02, second fix: a narrow +/-20-degree search around Scan
+    # Context's best shift and its exact diametric opposite was validated on a
+    # clean synthetic 180-degree-symmetric shape but failed on the first real
+    # batch (scan_context_p3_flipfix_187_680_994_20260702 still showed a
+    # stable ~170-174 deg bearing error on "same anchor" steps). The sign
+    # convention and P1-style consistency-check logic below are correct (both
+    # re-derived and unit-tested against the synthetic case); the problem was
+    # seed *coverage* -- real, noisier point clouds can put Scan Context's own
+    # best_shift estimate more than 20 degrees from the true optimum in either
+    # basin, so neither narrow window ever contained it, leaving the
+    # consistency check to pick the least-bad of a bad set. Fall back to the
+    # same full-360-degree, 24-seed sweep local_map_icp already uses (proven
+    # robust there) against just this one Scan-Context-selected anchor --
+    # still far cheaper than local_map_icp's original design, which ran this
+    # same sweep against every candidate anchor instead of just one.
+    refine_seeds = [math.radians(float(deg)) for deg in range(-180, 180, 15)]
 
     icp_results = []
     for yaw in refine_seeds:
@@ -1290,6 +1383,160 @@ def scan_context_anchor_relocalization(
         anchor_heading_reliable=True,
     )
     _diagnostic_inc(diagnostics, "successful_estimates")
+    if return_candidates:
+        return [candidate]
+    return candidate
+
+
+def fused_anchor_relocalization(
+    current_descriptor: object,
+    anchors: list,
+    max_candidates: Optional[int] = None,
+    diagnostics: Optional[dict] = None,
+    return_candidates: bool = False,
+    dead_reckoning_yaw_rad: Optional[float] = None,
+    rgbd_matcher_backend: str = "loftr",
+    agreement_max_heading_disagreement_rad: float = math.radians(30.0),
+    agreement_max_position_disagreement_m: float = 0.75,
+    single_source_confidence_penalty: float = 0.8,
+) -> Optional[object]:
+    """Cross-validate LoFTR (RGB-D) and Scan Context (LiDAR) relocalization
+    against each other instead of trusting either in isolation.
+
+    2026-07-02: every anchor's descriptor already carries RGB, depth, and
+    LiDAR/local-map data together (route_memory_descriptor_from_infos in
+    round_trip_eval.py packages all of them per anchor unconditionally) --
+    the two backends have simply never looked at each other's answer before
+    now. Literature grounding (see the RGB-D+LiDAR fusion research checked
+    before implementing this): corridor-repetition geometric ambiguity is
+    exactly where visual texture provides "crucial distinguishing
+    information" that pure geometry lacks, and conversely LiDAR is immune to
+    LoFTR's covisibility=0% failure when the camera faces the wrong way
+    during return (LiDAR has no field-of-view restriction). The two
+    backends' failure modes are largely disjoint, which is the precondition
+    for cross-validation actually helping rather than just averaging two
+    unreliable answers.
+
+    Agreement policy:
+      - Both backends silent -> no candidate.
+      - Only one backend produces a candidate (e.g. LoFTR has zero
+        covisibility this step but LiDAR, being omnidirectional, doesn't) ->
+        use it, but at reduced (single_source_confidence_penalty) confidence,
+        since it's uncorroborated.
+      - Both produce a candidate for a *different* anchor, or the *same*
+        anchor with a pose disagreement beyond the tolerances below -> treat
+        as genuinely ambiguous and report no candidate, the same "don't guess
+        when independent signals disagree" policy already used by Scan
+        Context's own ambiguity-margin check and Design 2's large-jump
+        confirmation gate.
+      - Both agree (same anchor, pose within tolerance) -> confidence-weighted
+        circular/linear fusion of the two independent estimates, confidence
+        boosted since two independent modalities corroborate each other.
+
+    Side benefit worth noting: LoFTR's own orientation estimate comes purely
+    from the current pair of RGB-D frames, not from any accumulated
+    dead-reckoning chain -- unlike dead_reckoning_yaw_rad (found 2026-07-02 to
+    drift by up to ~160 degrees during outbound), so an agreeing LoFTR
+    estimate is a meaningful independent cross-check on Scan Context's own
+    orientation even though the underlying dead-reckoning-based heading gate
+    inside scan_context_anchor_relocalization is not itself fixed by this.
+    """
+    from route_memory_agent import AnchorRelocalization, circular_weighted_mean, wrap_angle
+
+    _diagnostic_inc(diagnostics, "attempts")
+    _diagnostic_inc(diagnostics, "fused_attempts")
+    if diagnostics is not None:
+        diagnostics["matcher_backend"] = "fused"
+
+    rgbd_diag: Optional[dict] = {} if diagnostics is not None else None
+    lidar_diag: Optional[dict] = {} if diagnostics is not None else None
+
+    rgbd_result = feature_depth_anchor_relocalization(
+        current_descriptor,
+        anchors,
+        max_candidates=max_candidates,
+        diagnostics=rgbd_diag,
+        matcher_backend=rgbd_matcher_backend,
+    )
+    lidar_result = scan_context_anchor_relocalization(
+        current_descriptor,
+        anchors,
+        max_candidates=max_candidates,
+        diagnostics=lidar_diag,
+        dead_reckoning_yaw_rad=dead_reckoning_yaw_rad,
+    )
+    if diagnostics is not None:
+        diagnostics["fused_rgbd_diagnostics"] = rgbd_diag
+        diagnostics["fused_lidar_diagnostics"] = lidar_diag
+
+    def _single_source(result, label: str):
+        _diagnostic_inc(diagnostics, f"fused_{label}_only")
+        candidate = AnchorRelocalization(
+            anchor_index=result.anchor_index,
+            anchor_dx_m=result.anchor_dx_m,
+            anchor_dy_m=result.anchor_dy_m,
+            anchor_dtheta_rad=result.anchor_dtheta_rad,
+            confidence=float(result.confidence) * single_source_confidence_penalty,
+            backend=f"{result.backend}+fused_single",
+            inlier_count=result.inlier_count,
+            reprojection_error_px=result.reprojection_error_px,
+            anchor_heading_reliable=result.anchor_heading_reliable,
+        )
+        if return_candidates:
+            return [candidate]
+        return candidate
+
+    if rgbd_result is None and lidar_result is None:
+        _diagnostic_inc(diagnostics, "fused_both_failed")
+        return None
+    if rgbd_result is None:
+        return _single_source(lidar_result, "lidar")
+    if lidar_result is None:
+        return _single_source(rgbd_result, "rgbd")
+
+    if rgbd_result.anchor_index != lidar_result.anchor_index:
+        _diagnostic_inc(diagnostics, "fused_disagreement_different_anchor")
+        return None
+
+    heading_disagreement = abs(
+        wrap_angle(rgbd_result.anchor_dtheta_rad - lidar_result.anchor_dtheta_rad)
+    )
+    position_disagreement = math.hypot(
+        rgbd_result.anchor_dx_m - lidar_result.anchor_dx_m,
+        rgbd_result.anchor_dy_m - lidar_result.anchor_dy_m,
+    )
+    if (
+        heading_disagreement > agreement_max_heading_disagreement_rad
+        or position_disagreement > agreement_max_position_disagreement_m
+    ):
+        _diagnostic_inc(diagnostics, "fused_disagreement_same_anchor_different_pose")
+        return None
+
+    rgbd_weight = max(1e-6, float(rgbd_result.confidence))
+    lidar_weight = max(1e-6, float(lidar_result.confidence))
+    fused_dx = (rgbd_result.anchor_dx_m * rgbd_weight + lidar_result.anchor_dx_m * lidar_weight) / (
+        rgbd_weight + lidar_weight
+    )
+    fused_dy = (rgbd_result.anchor_dy_m * rgbd_weight + lidar_result.anchor_dy_m * lidar_weight) / (
+        rgbd_weight + lidar_weight
+    )
+    fused_dtheta = circular_weighted_mean(
+        [(rgbd_result.anchor_dtheta_rad, rgbd_weight), (lidar_result.anchor_dtheta_rad, lidar_weight)]
+    )
+    fused_confidence = min(1.0, 0.5 * (rgbd_weight + lidar_weight) + 0.15)
+
+    candidate = AnchorRelocalization(
+        anchor_index=rgbd_result.anchor_index,
+        anchor_dx_m=float(fused_dx),
+        anchor_dy_m=float(fused_dy),
+        anchor_dtheta_rad=float(fused_dtheta) if fused_dtheta is not None else float(lidar_result.anchor_dtheta_rad),
+        confidence=float(fused_confidence),
+        backend="fused_loftr_scan_context",
+        inlier_count=(rgbd_result.inlier_count or 0) + (lidar_result.inlier_count or 0),
+        reprojection_error_px=rgbd_result.reprojection_error_px,
+        anchor_heading_reliable=True,
+    )
+    _diagnostic_inc(diagnostics, "fused_agreement")
     if return_candidates:
         return [candidate]
     return candidate
