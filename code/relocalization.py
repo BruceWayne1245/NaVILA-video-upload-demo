@@ -12,6 +12,8 @@ from typing import Optional
 
 import numpy as np
 
+from scan_context import build_scan_context, column_shift_similarity, shift_to_yaw_rad
+
 try:
     import cv2
 except Exception:  # pragma: no cover - exercised only in minimal test envs
@@ -449,6 +451,61 @@ def _apply_transform_2d(points: np.ndarray, theta: float, translation: np.ndarra
     return (points @ _rotation_2d(theta).T + np.asarray(translation, dtype=np.float32)).astype(np.float32)
 
 
+def corridor_degeneracy_ratio(points: np.ndarray, k: int = 8) -> Optional[float]:
+    """Estimate how geometrically constrained a 2-D local-map point cloud is for ICP.
+
+    Point-to-point ICP's translation update is only well-conditioned along
+    directions where the surface normal varies; a straight corridor (parallel
+    walls) has normals clustered along a single axis, so translation along the
+    corridor is almost unconstrained no matter how many points are sampled.
+
+    For each point we estimate a local surface normal from a k-nearest-neighbor
+    patch (the eigenvector of the patch covariance with the *smaller*
+    eigenvalue — the point spread is thin across a locally-planar wall and wide
+    along it). Normals are accumulated into a sign-invariant scatter matrix
+    ``mean(n @ n.T)`` (this cancels the +/-n ambiguity of a normal direction
+    automatically, since ``n @ n.T == (-n) @ (-n).T``). The eigenvalue ratio
+    ``lambda_min / lambda_max`` of that scatter matrix is near 0 when every
+    local normal points along the same axis (degenerate corridor) and closer to
+    1 when normals span multiple directions (corners, doorways, clutter).
+
+    Returns ``None`` if there are too few points to estimate normals.
+    """
+    points = np.asarray(points, dtype=np.float64)
+    if points.ndim != 2 or points.shape[1] < 2:
+        return None
+    n = len(points)
+    k = max(3, int(k))
+    if n < k + 1:
+        return None
+    xy = points[:, :2]
+    diff = xy[:, None, :] - xy[None, :, :]
+    dist2 = np.einsum("ijk,ijk->ij", diff, diff)
+    np.fill_diagonal(dist2, np.inf)
+    neighbor_idx = np.argpartition(dist2, k, axis=1)[:, :k]
+
+    scatter = np.zeros((2, 2), dtype=np.float64)
+    valid = 0
+    for i in range(n):
+        patch = xy[neighbor_idx[i]]
+        patch = patch - patch.mean(axis=0)
+        cov = (patch.T @ patch) / max(1, len(patch) - 1)
+        eigvals, eigvecs = np.linalg.eigh(cov)
+        normal = eigvecs[:, 0]
+        norm = float(np.linalg.norm(normal))
+        if norm < 1e-9:
+            continue
+        normal = normal / norm
+        scatter += np.outer(normal, normal)
+        valid += 1
+    if valid == 0:
+        return None
+    scatter /= valid
+    eigvals = np.linalg.eigvalsh(scatter)
+    lam_min, lam_max = float(eigvals[0]), float(eigvals[1])
+    return lam_min / (lam_max + 1e-6)
+
+
 def icp_rigid_transform_2d(
     source_points: np.ndarray,
     target_points: np.ndarray,
@@ -814,9 +871,29 @@ def local_map_anchor_relocalization(
     max_candidates: Optional[int] = None,
     diagnostics: Optional[dict] = None,
     return_candidates: bool = False,
+    dead_reckoning_yaw_rad: Optional[float] = None,
+    corridor_degeneracy_skip_threshold: float = 0.15,
+    heading_consistency_max_error_rad: float = math.radians(90.0),
 ) -> Optional[object]:
-    """Relocalize against saved route anchors using LiDAR/local-map scan matching."""
-    from route_memory_agent import AnchorRelocalization
+    """Relocalize against saved route anchors using LiDAR/local-map scan matching.
+
+    ``dead_reckoning_yaw_rad``, when provided, is the caller's own non-oracle
+    action-integrated absolute yaw (radians, relative to the outbound-start
+    frame) at the current step (e.g.
+    ``RouteMemoryAgent.current_absolute_pose_from_start()[2]``). It is used only
+    as a cross-check (P1 heading-consistency gate); passing ``None`` preserves
+    the previous behavior (always accept the top-scoring ICP yaw seed).
+    """
+    from route_memory_agent import AnchorRelocalization, compose_pose, inverse_delta, wrap_angle
+
+    def _implied_absolute_yaw(anchor_pose_from_start, dx: float, dy: float, dtheta: float) -> float:
+        # Mirrors RouteMemoryAgent._project_estimate_to_anchor's frame composition:
+        # (dx, dy, dtheta) is "anchor pose as seen from current", so inverting it and
+        # composing onto the anchor's own absolute pose yields current's absolute pose.
+        source_pose_from_current = [float(dx), float(dy), float(dtheta)]
+        current_pose_from_source = inverse_delta(source_pose_from_current)
+        current_pose_from_start = compose_pose(anchor_pose_from_start, current_pose_from_source)
+        return wrap_angle(current_pose_from_start[2])
 
     _diagnostic_inc(diagnostics, "attempts")
     _diagnostic_inc(diagnostics, "local_map_attempts")
@@ -867,7 +944,20 @@ def local_map_anchor_relocalization(
             record["outcome"] = "too_few_anchor_local_map_points"
             _append_covisibility_record(diagnostics, record)
             continue
-        best_icp = None
+
+        # P2: skip ICP entirely for anchors whose local geometry cannot constrain
+        # translation along at least one axis (e.g. a straight corridor slice).
+        degeneracy_ratio = corridor_degeneracy_ratio(anchor_points)
+        record["corridor_degeneracy_ratio"] = (
+            float(degeneracy_ratio) if degeneracy_ratio is not None else None
+        )
+        if degeneracy_ratio is not None and degeneracy_ratio < corridor_degeneracy_skip_threshold:
+            _diagnostic_inc(diagnostics, "corridor_degenerate_anchor_skipped")
+            record["outcome"] = "corridor_degenerate_anchor_skipped"
+            _append_covisibility_record(diagnostics, record)
+            continue
+
+        icp_results = []
         for yaw in yaw_initializers:
             result = icp_rigid_transform_2d(
                 anchor_points,
@@ -883,14 +973,49 @@ def local_map_anchor_relocalization(
                 * max(0.0, 1.0 - result["median_residual_m"] / 0.45)
                 * math.sqrt(max(1, result["inlier_count"]))
             )
-            if best_icp is None or score > best_icp[0]:
-                best_icp = (score, result)
-        if best_icp is None:
+            icp_results.append((score, result))
+        if not icp_results:
             _diagnostic_inc(diagnostics, "local_map_icp_failed")
             record["outcome"] = "local_map_icp_failed"
             _append_covisibility_record(diagnostics, record)
             continue
-        score, result = best_icp
+        icp_results.sort(key=lambda item: item[0], reverse=True)
+
+        # P1: walk the yaw seeds best-score-first and take the first one whose
+        # implied absolute orientation is consistent with dead reckoning, instead
+        # of blindly trusting the top score (which corridor symmetry can make a
+        # 180-degree-flipped solution win by a hair).
+        score = result = None
+        heading_error_rad = None
+        rejected_flip_count = 0
+        for candidate_score, candidate_result in icp_results:
+            if dead_reckoning_yaw_rad is None:
+                score, result = candidate_score, candidate_result
+                break
+            implied_yaw = _implied_absolute_yaw(
+                anchor.pose_from_start,
+                candidate_result["translation"][0],
+                candidate_result["translation"][1],
+                candidate_result["theta"],
+            )
+            error = abs(wrap_angle(implied_yaw - dead_reckoning_yaw_rad))
+            if error > heading_consistency_max_error_rad:
+                rejected_flip_count += 1
+                continue
+            score, result = candidate_score, candidate_result
+            heading_error_rad = error
+            break
+        if result is None:
+            _diagnostic_inc(diagnostics, "heading_consistency_rejected")
+            record["outcome"] = "heading_consistency_rejected"
+            record["rejected_flip_candidates"] = rejected_flip_count
+            _append_covisibility_record(diagnostics, record)
+            continue
+        if rejected_flip_count:
+            record["rejected_flip_candidates"] = rejected_flip_count
+        if heading_error_rad is not None:
+            record["heading_consistency_error_rad"] = float(heading_error_rad)
+
         overlap = float(result["overlap_ratio"])
         residual = float(result["median_residual_m"])
         inlier_count = int(result["inlier_count"])
@@ -920,6 +1045,7 @@ def local_map_anchor_relocalization(
             inlier_count=inlier_count,
             reprojection_error_px=None,
             anchor_heading_reliable=True,
+            degeneracy_ratio=(float(degeneracy_ratio) if degeneracy_ratio is not None else None),
         )
         record["estimated_distance_to_anchor_m"] = float(candidate.distance_to_anchor_m)
         record["estimated_bearing_to_anchor_deg"] = float(candidate.bearing_to_anchor_deg)
@@ -939,6 +1065,235 @@ def local_map_anchor_relocalization(
     if return_candidates:
         return pose_candidates
     return pose_candidates[0]
+
+
+def scan_context_anchor_relocalization(
+    current_descriptor: object,
+    anchors: list,
+    max_candidates: Optional[int] = None,
+    diagnostics: Optional[dict] = None,
+    return_candidates: bool = False,
+    min_similarity: float = 0.3,
+    min_similarity_margin: float = 0.05,
+    icp_refine_yaw_search_deg: float = 20.0,
+    dead_reckoning_yaw_rad: Optional[float] = None,
+    heading_consistency_max_error_rad: float = math.radians(90.0),
+) -> Optional[object]:
+    """P3: relocalize using Scan Context global-descriptor similarity to pick
+    *which* anchor, then a narrow local ICP search only against that one
+    anchor to refine the metric (dx, dy, dtheta).
+
+    Rationale (see 2026-07-02 ep994 diagnosis): local_map_icp's per-candidate
+    score (overlap ratio, residual) measures how well the current scan
+    registers against ONE anchor in isolation; in open/large-feature areas a
+    wrong anchor several meters away can register just as well as the correct
+    one across a wide span of true positions ("sticky" false matches that
+    self-reinforce through the SeqSLAM continuity check, which only compares
+    against its own possibly-already-wrong history). Scan Context instead
+    compares the *global* occupancy pattern against every candidate at once
+    and only proceeds when the winner clearly beats the runner-up
+    (min_similarity_margin) -- an ambiguous scene correctly returns no
+    candidate (widening the particle filter) instead of committing to
+    whichever candidate happened to edge out the others.
+
+    ICP is still used for the final metric offset (Scan Context alone does not
+    give a translation), but only as a narrow refinement seeded by Scan
+    Context's own yaw estimate against the ONE selected anchor, not a blind
+    24-seed search across every candidate.
+
+    ``min_similarity``/``min_similarity_margin`` defaults are provisional --
+    tuned on synthetic point clouds only; the first real batch
+    (scan_context_p3_187_680_994_20260702) showed the original, stricter
+    defaults (0.5 / 0.1) rejected essentially every step on 2 of 3 episodes,
+    so these were loosened. Still needs validation against real similarity-
+    score distributions once diagnostics are inspected on a live run.
+
+    ``dead_reckoning_yaw_rad`` (2026-07-02 fix): Scan Context's own
+    column-shift search spans the full 360 degrees, so -- like
+    local_map_icp's un-gated yaw search before the P1 fix -- it is just as
+    vulnerable to locking onto a 180-degree-flipped orientation in
+    corridor-like/symmetric geometry (confirmed on the first real batch: ep994
+    bearing error sat at a stable ~178 deg for many consecutive steps, not
+    scattered noise). The narrow ICP refinement below now seeds from *both*
+    Scan Context's best shift and its diametric opposite, then -- exactly like
+    P1 -- walks the ranked results and keeps the first whose implied absolute
+    orientation agrees with the caller's own non-oracle dead-reckoning yaw.
+    """
+    from route_memory_agent import AnchorRelocalization, compose_pose, inverse_delta, wrap_angle
+
+    def _implied_absolute_yaw(anchor_pose_from_start, dx: float, dy: float, dtheta: float) -> float:
+        # Same frame composition as local_map_anchor_relocalization's P1 gate:
+        # (dx, dy, dtheta) is "anchor pose as seen from current", so inverting
+        # it and composing onto the anchor's own absolute pose yields current's
+        # absolute pose.
+        source_pose_from_current = [float(dx), float(dy), float(dtheta)]
+        current_pose_from_source = inverse_delta(source_pose_from_current)
+        current_pose_from_start = compose_pose(anchor_pose_from_start, current_pose_from_source)
+        return wrap_angle(current_pose_from_start[2])
+
+    _diagnostic_inc(diagnostics, "attempts")
+    _diagnostic_inc(diagnostics, "scan_context_attempts")
+    if diagnostics is not None:
+        diagnostics["matcher_backend"] = "scan_context"
+
+    current_points = descriptor_local_map_points(current_descriptor)
+    if current_points is None:
+        _diagnostic_inc(diagnostics, "missing_current_local_map")
+        return None
+    current_points = voxel_downsample_2d(current_points)
+    if len(current_points) < 12:
+        _diagnostic_inc(diagnostics, "too_few_current_local_map_points")
+        return None
+    current_sc = build_scan_context(current_points)
+
+    candidates = [
+        anchor for anchor in reversed(anchors) if isinstance(anchor.descriptor, dict)
+    ]
+    if max_candidates is not None and max_candidates > 0:
+        candidates_to_search = candidates[:max_candidates]
+    else:
+        candidates_to_search = candidates
+    _diagnostic_inc(diagnostics, "candidate_anchors", len(candidates_to_search))
+
+    scored: list[tuple[float, int, object, np.ndarray]] = []
+    for anchor in candidates_to_search:
+        anchor_points = descriptor_local_map_points(anchor.descriptor)
+        if anchor_points is None:
+            _diagnostic_inc(diagnostics, "candidate_missing_local_map")
+            continue
+        anchor_points = voxel_downsample_2d(anchor_points)
+        if len(anchor_points) < 12:
+            _diagnostic_inc(diagnostics, "too_few_anchor_local_map_points")
+            continue
+        anchor_sc = build_scan_context(anchor_points)
+        similarity, shift = column_shift_similarity(current_sc, anchor_sc)
+        scored.append((similarity, shift, anchor, anchor_points))
+
+    if not scored:
+        _diagnostic_inc(diagnostics, "no_scan_context_candidates")
+        return None
+
+    scored.sort(key=lambda item: item[0], reverse=True)
+    best_similarity, best_shift, best_anchor, best_anchor_points = scored[0]
+
+    if diagnostics is not None:
+        diagnostics["last_scan_context_best_similarity"] = float(best_similarity)
+        diagnostics["last_scan_context_runner_up_similarity"] = (
+            float(scored[1][0]) if len(scored) > 1 else None
+        )
+
+    if best_similarity < min_similarity:
+        _diagnostic_inc(diagnostics, "scan_context_similarity_too_low")
+        return None
+    if len(scored) > 1 and (best_similarity - scored[1][0]) < min_similarity_margin:
+        # Ambiguous: winner doesn't clearly beat the runner-up -- this is
+        # exactly the "wide plausible basin" case from the ep994 diagnosis.
+        # Correctly report no candidate rather than guessing.
+        _diagnostic_inc(diagnostics, "scan_context_ambiguous_margin")
+        return None
+
+    num_sectors = current_sc.shape[1]
+    primary_seed = shift_to_yaw_rad(best_shift, num_sectors)
+    opposite_seed = wrap_angle(primary_seed + math.pi)
+
+    seed_span_rad = math.radians(icp_refine_yaw_search_deg)
+    num_refine_seeds_per_hypothesis = 5
+    refine_seeds = []
+    for base_seed in (primary_seed, opposite_seed):
+        refine_seeds.extend(
+            base_seed + seed_span_rad * (2.0 * i / (num_refine_seeds_per_hypothesis - 1) - 1.0)
+            for i in range(num_refine_seeds_per_hypothesis)
+        )
+
+    icp_results = []
+    for yaw in refine_seeds:
+        result = icp_rigid_transform_2d(
+            best_anchor_points,
+            current_points,
+            initial_theta=yaw,
+            max_iterations=16,
+            correspondence_threshold_m=0.45,
+        )
+        if result is None:
+            continue
+        score = (
+            result["overlap_ratio"]
+            * max(0.0, 1.0 - result["median_residual_m"] / 0.45)
+            * math.sqrt(max(1, result["inlier_count"]))
+        )
+        icp_results.append((score, result))
+
+    if not icp_results:
+        # Scan Context is confident about *identity* but the narrow ICP
+        # refinement couldn't lock a metric offset -- report the anchor with an
+        # unreliable heading rather than nothing, matching the existing
+        # low-confidence fallback pattern used elsewhere (e.g. LoFTR).
+        _diagnostic_inc(diagnostics, "scan_context_icp_refine_failed")
+        candidate = AnchorRelocalization(
+            anchor_index=int(best_anchor.index),
+            anchor_dx_m=0.0,
+            anchor_dy_m=0.0,
+            anchor_dtheta_rad=float(primary_seed),
+            confidence=float(best_similarity),
+            backend="scan_context_identity_only",
+            inlier_count=None,
+            reprojection_error_px=None,
+            anchor_heading_reliable=False,
+        )
+        if return_candidates:
+            return [candidate]
+        return candidate
+
+    icp_results.sort(key=lambda item: item[0], reverse=True)
+    score = result = None
+    rejected_flip_count = 0
+    for candidate_score, candidate_result in icp_results:
+        if dead_reckoning_yaw_rad is None:
+            score, result = candidate_score, candidate_result
+            break
+        implied_yaw = _implied_absolute_yaw(
+            best_anchor.pose_from_start,
+            candidate_result["translation"][0],
+            candidate_result["translation"][1],
+            candidate_result["theta"],
+        )
+        error = abs(wrap_angle(implied_yaw - dead_reckoning_yaw_rad))
+        if error > heading_consistency_max_error_rad:
+            rejected_flip_count += 1
+            continue
+        score, result = candidate_score, candidate_result
+        break
+    if result is None:
+        _diagnostic_inc(diagnostics, "scan_context_heading_consistency_rejected")
+        return None
+    if diagnostics is not None and rejected_flip_count:
+        diagnostics["last_scan_context_rejected_flip_count"] = rejected_flip_count
+
+    overlap = float(result["overlap_ratio"])
+    residual = float(result["median_residual_m"])
+    inlier_count = int(result["inlier_count"])
+    icp_confidence = min(1.0, overlap * max(0.0, 1.0 - residual / 0.45) * 1.5)
+    combined_confidence = float(min(1.0, 0.5 * best_similarity + 0.5 * icp_confidence))
+    if inlier_count < 12 or overlap < 0.12 or combined_confidence < 0.15:
+        _diagnostic_inc(diagnostics, "low_confidence_scan_context_pose")
+        return None
+
+    candidate = AnchorRelocalization(
+        anchor_index=int(best_anchor.index),
+        anchor_dx_m=float(result["translation"][0]),
+        anchor_dy_m=float(result["translation"][1]),
+        anchor_dtheta_rad=float(result["theta"]),
+        confidence=combined_confidence,
+        backend="scan_context",
+        inlier_count=inlier_count,
+        reprojection_error_px=None,
+        anchor_heading_reliable=True,
+    )
+    _diagnostic_inc(diagnostics, "successful_estimates")
+    if return_candidates:
+        return [candidate]
+    return candidate
+
 
 def feature_depth_anchor_relocalization(
     current_descriptor: object,

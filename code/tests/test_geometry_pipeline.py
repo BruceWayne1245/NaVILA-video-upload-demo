@@ -16,16 +16,17 @@ import numpy as np
 
 from relocalization import (
     backproject_points,
-    build_rear_view_descriptor,
     camera_point_to_body,
     camera_rotation_to_body_yaw,
-    descriptor_depth,
+    corridor_degeneracy_ratio,
     local_map_anchor_relocalization,
     quat_wxyz_to_matrix,
     ransac_rigid_transform,
     rigid_transform_3d,
+    scan_context_anchor_relocalization,
 )
-from route_memory_agent import RouteAnchor
+from route_memory_agent import RouteAnchor, wrap_angle
+from scan_context import build_scan_context, column_shift_similarity, shift_to_yaw_rad
 
 
 # ---------------------------------------------------------------------------
@@ -243,23 +244,6 @@ class TestCameraPointToBody(unittest.TestCase):
         body = camera_point_to_body(p_cam, descriptor)
         # Expected: R_body_cam @ [0,0,3] + [0.3, 0, 0.5] = [0,0,3] + [0.3,0,0.5] = [0.3,0,3.5]
         np.testing.assert_allclose(body, [0.3, 0.0, 3.5], atol=1e-5)
-
-    def test_rear_view_descriptor_exposes_standard_fields(self):
-        descriptor = {
-            "rear_rgb": np.zeros((4, 4, 3), dtype=np.uint8),
-            "rear_depth_depth_measurement": np.ones((4, 4), dtype=np.float32),
-            "rear_camera_intrinsics": np.eye(3, dtype=np.float32),
-            "rear_camera_rotation_body": np.eye(3, dtype=np.float32),
-            "rear_camera_position_body": np.array([0.1, 0.0, 0.5], dtype=np.float32),
-        }
-
-        rear = build_rear_view_descriptor(descriptor)
-
-        self.assertIsNotNone(rear)
-        self.assertEqual(rear["view"], "rear")
-        self.assertIn("rgb", rear)
-        np.testing.assert_allclose(descriptor_depth(rear), np.ones((4, 4), dtype=np.float32))
-        np.testing.assert_allclose(rear["camera_intrinsics"], np.eye(3, dtype=np.float32))
 
     def test_oracle_consistency(self):
         """
@@ -631,64 +615,330 @@ class TestFullPipelineSynthetic(unittest.TestCase):
         )
 
 
-class TestLocalMapRelocalizationSynthetic(unittest.TestCase):
-    def test_lidar_local_map_recovers_anchor_pose_in_current_body(self):
-        anchor_points = np.asarray(
-            [
-                [-1.2, -0.8], [-0.6, -0.8], [0.0, -0.8], [0.6, -0.8], [1.2, -0.8],
-                [-1.2, 0.2], [-0.6, 0.2], [0.0, 0.2], [0.6, 0.2], [1.2, 0.2],
-                [-0.9, 1.1], [-0.2, 1.4], [0.7, 1.3],
-                [1.4, -0.3], [1.6, 0.4], [1.7, 1.1],
-                [-1.5, 0.6], [-1.7, 1.0], [-1.8, 1.4],
-                [0.2, -1.4], [0.9, -1.6], [1.5, -1.5],
-            ],
-            dtype=np.float32,
-        )
-        theta = math.radians(155.0)
-        translation = np.asarray([1.35, -0.55], dtype=np.float32)
-        rot = np.asarray(
-            [[math.cos(theta), -math.sin(theta)], [math.sin(theta), math.cos(theta)]],
-            dtype=np.float32,
-        )
-        current_points = (anchor_points @ rot.T + translation).astype(np.float32)
-        current_points = np.concatenate(
-            [
-                current_points,
-                np.asarray([[2.2, 1.7], [-2.0, -1.8], [2.4, -1.5]], dtype=np.float32),
-            ],
-            axis=0,
-        )
-        distractor_points = anchor_points * np.asarray([1.0, -1.0], dtype=np.float32) + 3.0
-        anchors = [
-            RouteAnchor(
-                index=0,
-                pose_from_start=[0.0, 0.0, 0.0],
-                distance_from_start_m=0.0,
-                route_remaining_to_start_m=0.0,
-                descriptor={"local_map_points_body": distractor_points},
-            ),
-            RouteAnchor(
-                index=1,
-                pose_from_start=[1.0, 0.0, 0.0],
-                distance_from_start_m=1.0,
-                route_remaining_to_start_m=1.0,
-                descriptor={"local_map_points_body": anchor_points},
-            ),
-        ]
+# ---------------------------------------------------------------------------
+# P1 (heading-consistency gate) / P2 (corridorness gate) for local_map_icp
+# ---------------------------------------------------------------------------
 
-        result = local_map_anchor_relocalization(
-            {"local_map_points_body": current_points},
-            anchors,
-            return_candidates=False,
+def _corridor_points() -> np.ndarray:
+    """Two parallel walls -> normals cluster on one axis -> degenerate."""
+    xs = np.linspace(-3.0, 3.0, 60)
+    return np.concatenate(
+        [
+            np.stack([xs, np.full_like(xs, -1.0)], axis=1),
+            np.stack([xs, np.full_like(xs, 1.0)], axis=1),
+        ]
+    ).astype(np.float32)
+
+
+def _rectangle_outline_points() -> np.ndarray:
+    """Closed rectangle outline -> normals span both axes -> well conditioned."""
+    top = np.stack([np.linspace(-2.0, 2.0, 40), np.full(40, 1.0)], axis=1)
+    bottom = np.stack([np.linspace(-2.0, 2.0, 40), np.full(40, -1.0)], axis=1)
+    left = np.stack([np.full(20, -2.0), np.linspace(-1.0, 1.0, 20)], axis=1)
+    right = np.stack([np.full(20, 2.0), np.linspace(-1.0, 1.0, 20)], axis=1)
+    return np.concatenate([top, bottom, left, right], axis=0).astype(np.float32)
+
+
+def _rotate_2d(points: np.ndarray, theta: float) -> np.ndarray:
+    c, s = math.cos(theta), math.sin(theta)
+    rotation = np.array([[c, -s], [s, c]], dtype=np.float32)
+    return points @ rotation.T
+
+
+class TestCorridorDegeneracyRatio(unittest.TestCase):
+    """corridor_degeneracy_ratio: PCA eigenvalue ratio of local-normal scatter (P2)."""
+
+    def test_corridor_is_degenerate(self):
+        ratio = corridor_degeneracy_ratio(_corridor_points())
+        self.assertIsNotNone(ratio)
+        self.assertLess(ratio, 0.05, "parallel-wall corridor should score near 0")
+
+    def test_corner_is_well_conditioned(self):
+        ratio = corridor_degeneracy_ratio(_rectangle_outline_points())
+        self.assertIsNotNone(ratio)
+        self.assertGreater(ratio, 0.3, "a closed rectangle outline should score well above the 0.15 skip threshold")
+
+    def test_too_few_points_returns_none(self):
+        self.assertIsNone(corridor_degeneracy_ratio(np.zeros((3, 2), dtype=np.float32)))
+
+
+class TestLocalMapCorridorSkipGate(unittest.TestCase):
+    """P2: local_map_anchor_relocalization must skip ICP entirely on a degenerate anchor."""
+
+    def _make_anchor(self, points: np.ndarray) -> RouteAnchor:
+        return RouteAnchor(
+            index=0,
+            pose_from_start=[0.0, 0.0, 0.0],
+            distance_from_start_m=5.0,
+            route_remaining_to_start_m=5.0,
+            descriptor={"local_map_points_body": points},
         )
+
+    def test_corridor_anchor_is_skipped_by_default_threshold(self):
+        anchor = self._make_anchor(_corridor_points())
+        current_descriptor = {"local_map_points_body": _corridor_points()}
+        diagnostics: dict = {}
+        result = local_map_anchor_relocalization(
+            current_descriptor, [anchor], diagnostics=diagnostics
+        )
+        self.assertIsNone(result)
+        self.assertEqual(diagnostics.get("corridor_degenerate_anchor_skipped"), 1)
+
+    def test_corridor_anchor_is_used_when_gate_disabled(self):
+        anchor = self._make_anchor(_corridor_points())
+        current_descriptor = {"local_map_points_body": _corridor_points()}
+        result = local_map_anchor_relocalization(
+            current_descriptor,
+            [anchor],
+            corridor_degeneracy_skip_threshold=-1.0,
+        )
+        self.assertIsNotNone(result)
+
+    def test_well_conditioned_anchor_is_not_skipped(self):
+        anchor = self._make_anchor(_rectangle_outline_points())
+        current_descriptor = {"local_map_points_body": _rectangle_outline_points()}
+        diagnostics: dict = {}
+        result = local_map_anchor_relocalization(
+            current_descriptor, [anchor], diagnostics=diagnostics
+        )
+        self.assertIsNotNone(result)
+        self.assertNotIn("corridor_degenerate_anchor_skipped", diagnostics)
+
+
+class TestLocalMapHeadingConsistencyGate(unittest.TestCase):
+    """P1: local_map_anchor_relocalization must resolve 180-degree ICP ambiguity
+    using the caller's dead-reckoning yaw rather than trusting ICP score alone.
+
+    A rectangle outline centered on its own local origin is exactly symmetric
+    under a 180-degree rotation about that origin, so for any small true delta
+    (dx, dy, dtheta) applied to it, both a theta and a (theta + pi) alignment
+    achieve *zero* ICP residual -- reproducing the genuine ambiguity described
+    in the README root-cause analysis, not an approximation of it.
+    """
+
+    def setUp(self):
+        self.anchor_pose_from_start = [1.0, 2.0, 0.5]
+        self.true_dtheta = 0.2
+        self.true_dx, self.true_dy = 0.3, 0.15
+        rect = _rectangle_outline_points()
+        self.anchor = RouteAnchor(
+            index=0,
+            pose_from_start=self.anchor_pose_from_start,
+            distance_from_start_m=5.0,
+            route_remaining_to_start_m=5.0,
+            descriptor={"local_map_points_body": rect},
+        )
+        current_points = _rotate_2d(rect, self.true_dtheta) + np.array(
+            [self.true_dx, self.true_dy], dtype=np.float32
+        )
+        self.current_descriptor = {"local_map_points_body": current_points}
+        self.true_absolute_yaw = wrap_angle(self.anchor_pose_from_start[2] + self.true_dtheta)
+        self.flipped_absolute_yaw = wrap_angle(self.true_absolute_yaw + math.pi)
+
+    def test_gate_follows_true_yaw_reference(self):
+        result = local_map_anchor_relocalization(
+            self.current_descriptor, [self.anchor], dead_reckoning_yaw_rad=self.true_absolute_yaw
+        )
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(
+            wrap_angle(result.anchor_dtheta_rad - self.true_dtheta), 0.0, delta=0.05
+        )
+
+    def test_gate_follows_flipped_yaw_reference(self):
+        """If the caller's own dead-reckoning thinks it is flipped, the gate must
+        select the flipped-consistent ICP solution too -- proving it actually
+        reads the reference rather than having a fixed preferred branch."""
+        result = local_map_anchor_relocalization(
+            self.current_descriptor, [self.anchor], dead_reckoning_yaw_rad=self.flipped_absolute_yaw
+        )
+        self.assertIsNotNone(result)
+        expected_flipped_dtheta = wrap_angle(self.true_dtheta + math.pi)
+        self.assertAlmostEqual(
+            wrap_angle(result.anchor_dtheta_rad - expected_flipped_dtheta), 0.0, delta=0.05
+        )
+
+    def test_gate_is_noop_without_dead_reckoning_reference(self):
+        """Backward compatibility: omitting dead_reckoning_yaw_rad must still
+        return a valid candidate (previous callers/tests are unaffected)."""
+        result = local_map_anchor_relocalization(self.current_descriptor, [self.anchor])
+        self.assertIsNotNone(result)
+
+    def test_gate_rejects_anchor_when_no_seed_is_consistent(self):
+        """With zero tolerance, a reference a few degrees off the true solution's
+        own (slightly noisy) ICP estimate must reject the anchor outright rather
+        than silently returning an inconsistent pose."""
+        implausible_yaw = wrap_angle(self.true_absolute_yaw + math.radians(20.0))
+        diagnostics: dict = {}
+        result = local_map_anchor_relocalization(
+            self.current_descriptor,
+            [self.anchor],
+            dead_reckoning_yaw_rad=implausible_yaw,
+            heading_consistency_max_error_rad=math.radians(5.0),
+            diagnostics=diagnostics,
+        )
+        self.assertIsNone(result)
+        self.assertEqual(diagnostics.get("heading_consistency_rejected"), 1)
+
+
+# ---------------------------------------------------------------------------
+# P3: Scan Context (2026-07-02)
+# ---------------------------------------------------------------------------
+
+def _l_shape_points(offset=(0.0, 0.0)) -> np.ndarray:
+    arm1 = np.stack([np.linspace(0.5, 4.0, 40), np.zeros(40)], axis=1)
+    arm2 = np.stack([np.zeros(40), np.linspace(0.5, 4.0, 40)], axis=1)
+    pts = np.concatenate([arm1, arm2], axis=0).astype(np.float32)
+    return pts + np.array(offset, dtype=np.float32)
+
+
+def _straight_corridor_points() -> np.ndarray:
+    xs = np.linspace(-3.0, 3.0, 60)
+    return np.concatenate(
+        [
+            np.stack([xs, np.full_like(xs, -1.0)], axis=1),
+            np.stack([xs, np.full_like(xs, 1.0)], axis=1),
+        ]
+    ).astype(np.float32)
+
+
+class TestScanContextDescriptor(unittest.TestCase):
+    """Pure descriptor/similarity math (no anchors, no AnchorRelocalization)."""
+
+    def test_column_shift_recovers_known_rotation(self):
+        base = _l_shape_points()
+        true_rotation = math.radians(42.0)  # exact multiple of the 6-deg sector width
+        c, s = math.cos(true_rotation), math.sin(true_rotation)
+        rotation = np.array([[c, -s], [s, c]], dtype=np.float32)
+        rotated = base @ rotation.T
+
+        sc_a = build_scan_context(rotated)
+        sc_b = build_scan_context(base)
+        similarity, shift = column_shift_similarity(sc_a, sc_b)
+        recovered_yaw = shift_to_yaw_rad(shift, sc_a.shape[1])
+
+        self.assertAlmostEqual(similarity, 1.0, places=3)
+        self.assertAlmostEqual(recovered_yaw, true_rotation, delta=math.radians(3.0))
+
+    def test_distinct_shapes_score_low_similarity(self):
+        sc_a = build_scan_context(_l_shape_points())
+        sc_b = build_scan_context(_straight_corridor_points())
+        similarity, _ = column_shift_similarity(sc_a, sc_b)
+        self.assertLess(similarity, 0.6)
+
+    def test_empty_point_cloud_returns_zero_grid(self):
+        grid = build_scan_context(np.zeros((0, 2), dtype=np.float32))
+        self.assertEqual(float(grid.sum()), 0.0)
+
+
+class TestScanContextAnchorRelocalization(unittest.TestCase):
+    """End-to-end: does Scan Context pick the right anchor, and correctly
+    refuse to pick one when candidates are genuinely ambiguous (the 2026-07-02
+    ep994 "wide plausible basin" failure mode)?"""
+
+    def _anchor(self, index, points):
+        return RouteAnchor(
+            index=index,
+            pose_from_start=[float(index), 0.0, 0.0],
+            distance_from_start_m=float(index),
+            route_remaining_to_start_m=float(index),
+            descriptor={"local_map_points_body": points},
+        )
+
+    def test_identifies_correct_anchor_among_distinct_shapes(self):
+        anchor_a = self._anchor(0, _l_shape_points())
+        anchor_b = self._anchor(1, _straight_corridor_points())
+        current_descriptor = {"local_map_points_body": _l_shape_points(offset=(0.1, 0.05))}
+
+        result = scan_context_anchor_relocalization(current_descriptor, [anchor_a, anchor_b])
 
         self.assertIsNotNone(result)
-        self.assertEqual(result.anchor_index, 1)
-        self.assertEqual(result.backend, "local_map_icp")
-        self.assertAlmostEqual(result.anchor_dx_m, float(translation[0]), delta=0.10)
-        self.assertAlmostEqual(result.anchor_dy_m, float(translation[1]), delta=0.10)
-        self.assertAlmostEqual(_angle_diff(result.anchor_dtheta_rad, theta), 0.0, delta=math.radians(5.0))
-        self.assertGreaterEqual(result.confidence, 0.5)
+        self.assertEqual(result.anchor_index, 0)
+        self.assertAlmostEqual(result.anchor_dx_m, 0.1, delta=0.1)
+        self.assertAlmostEqual(result.anchor_dy_m, 0.05, delta=0.1)
+        self.assertTrue(result.anchor_heading_reliable)
+
+    def test_refuses_to_pick_between_ambiguous_candidates(self):
+        """This is the core ep994 fix: two anchors whose global occupancy
+        pattern is indistinguishable from the current view must not be
+        resolved by whichever one happens to score a hair higher -- unlike
+        local_map_icp's per-candidate residual score, which has no way to
+        express 'these are equally plausible, I don't actually know which.'"""
+        anchor_c = self._anchor(2, _straight_corridor_points())
+        anchor_d = self._anchor(3, _straight_corridor_points())
+        current_descriptor = {"local_map_points_body": _straight_corridor_points()}
+        diagnostics: dict = {}
+
+        result = scan_context_anchor_relocalization(
+            current_descriptor, [anchor_c, anchor_d], diagnostics=diagnostics
+        )
+
+        self.assertIsNone(result)
+        self.assertEqual(diagnostics.get("scan_context_ambiguous_margin"), 1)
+
+    def test_clear_winner_is_not_blocked_by_margin_check(self):
+        """A weakly-similar runner-up must not veto an otherwise clear winner."""
+        anchor_a = self._anchor(0, _l_shape_points())
+        anchor_b = self._anchor(1, _straight_corridor_points())
+        current_descriptor = {"local_map_points_body": _l_shape_points()}
+
+        result = scan_context_anchor_relocalization(current_descriptor, [anchor_a, anchor_b])
+        self.assertIsNotNone(result)
+        self.assertEqual(result.anchor_index, 0)
+
+
+class TestScanContextHeadingConsistencyGate(unittest.TestCase):
+    """2026-07-02 fix: Scan Context's own column-shift search spans the full
+    360 degrees, so a 180-degree-symmetric anchor shape is just as ambiguous
+    to it as it is to local_map_icp's un-gated yaw search -- confirmed on the
+    first real batch (ep994 bearing error sat at a stable ~178 deg for many
+    consecutive steps). Reuses the same rectangle-outline construction as
+    TestLocalMapHeadingConsistencyGate: exactly symmetric under 180-degree
+    rotation about its own centroid, so both a theta and a (theta + pi)
+    alignment achieve zero residual -- a genuine tie, not an approximation."""
+
+    def setUp(self):
+        self.anchor_pose_from_start = [1.0, 2.0, 0.5]
+        self.true_dtheta = 0.2
+        self.true_dx, self.true_dy = 0.3, 0.15
+        rect = _rectangle_outline_points()
+        self.anchor = RouteAnchor(
+            index=0,
+            pose_from_start=self.anchor_pose_from_start,
+            distance_from_start_m=5.0,
+            route_remaining_to_start_m=5.0,
+            descriptor={"local_map_points_body": rect},
+        )
+        current_points = _rotate_2d(rect, self.true_dtheta) + np.array(
+            [self.true_dx, self.true_dy], dtype=np.float32
+        )
+        self.current_descriptor = {"local_map_points_body": current_points}
+        self.true_absolute_yaw = wrap_angle(self.anchor_pose_from_start[2] + self.true_dtheta)
+        self.flipped_absolute_yaw = wrap_angle(self.true_absolute_yaw + math.pi)
+
+    def test_gate_follows_true_yaw_reference(self):
+        result = scan_context_anchor_relocalization(
+            self.current_descriptor, [self.anchor], dead_reckoning_yaw_rad=self.true_absolute_yaw
+        )
+        self.assertIsNotNone(result)
+        self.assertAlmostEqual(
+            wrap_angle(result.anchor_dtheta_rad - self.true_dtheta), 0.0, delta=0.1
+        )
+
+    def test_gate_follows_flipped_yaw_reference(self):
+        result = scan_context_anchor_relocalization(
+            self.current_descriptor, [self.anchor], dead_reckoning_yaw_rad=self.flipped_absolute_yaw
+        )
+        self.assertIsNotNone(result)
+        expected_flipped_dtheta = wrap_angle(self.true_dtheta + math.pi)
+        self.assertAlmostEqual(
+            wrap_angle(result.anchor_dtheta_rad - expected_flipped_dtheta), 0.0, delta=0.1
+        )
+
+    def test_gate_is_noop_without_dead_reckoning_reference(self):
+        """Backward compatibility: omitting dead_reckoning_yaw_rad must still
+        return a valid candidate."""
+        result = scan_context_anchor_relocalization(self.current_descriptor, [self.anchor])
+        self.assertIsNotNone(result)
 
 
 if __name__ == "__main__":

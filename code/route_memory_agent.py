@@ -18,6 +18,27 @@ def wrap_angle(angle: float) -> float:
     return math.atan2(math.sin(angle), math.cos(angle))
 
 
+def circular_weighted_mean(pairs: Iterable[tuple[float, float]]) -> Optional[float]:
+    """Confidence-weighted circular mean of (angle_rad, weight) pairs.
+
+    Ordinary weighted averaging of angles breaks across the +/-pi wraparound
+    (e.g. mean of -179 deg and +179 deg should be 180 deg, not 0 deg); summing
+    on the unit circle and taking atan2 of the resultant handles this correctly.
+    """
+    sin_sum = 0.0
+    cos_sum = 0.0
+    weight_sum = 0.0
+    for angle, weight in pairs:
+        if weight <= 0.0:
+            continue
+        sin_sum += weight * math.sin(angle)
+        cos_sum += weight * math.cos(angle)
+        weight_sum += weight
+    if weight_sum <= 1e-9:
+        return None
+    return math.atan2(sin_sum, cos_sum)
+
+
 def compose_pose(pose: Iterable[float], delta: Iterable[float]) -> list[float]:
     """Compose an SE(2) pose with a body-frame motion delta."""
     x, y, theta = [float(v) for v in pose]
@@ -94,6 +115,16 @@ class RouteAnchor:
     route_remaining_to_start_m: float = 0.0
     descriptor: Optional[object] = None
     metadata: dict = field(default_factory=dict)
+    # Relative-edge pose graph (2026-07-02): the body-frame delta from the
+    # previous anchor to this one, recorded once at creation time. Reprojecting
+    # between two nearby anchors should compose only the short chain of these
+    # edges between them (see RouteMemoryAgent._compose_edges_between), not
+    # difference their two pose_from_start values -- the latter each carry the
+    # FULL outbound dead-reckoning drift accumulated from anchor 0, so
+    # differencing two long chains does not cancel that drift, it compounds it.
+    # pose_from_start is kept only for the few queries that inherently need a
+    # literal distance to the route start (see _anchor_progress_from_estimate).
+    edge_from_previous: list[float] = field(default_factory=lambda: [0.0, 0.0, 0.0])
 
 
 @dataclass
@@ -107,6 +138,7 @@ class AnchorRelocalization:
     inlier_count: Optional[int] = None
     reprojection_error_px: Optional[float] = None
     anchor_heading_reliable: bool = True
+    degeneracy_ratio: Optional[float] = None
 
     @property
     def distance_to_anchor_m(self) -> float:
@@ -317,6 +349,52 @@ class RouteMemoryAgent:
         self.vio_bridge_std_threshold_m: float = 2.5
         self.vio_bridge_feature_radius_m: float = 2.0
         self._feature_anchor_indices: set = set()
+        # VIO bridge relaxation: the flat threshold above is what caused the
+        # 2026-07-02 ep680 permanent lock (once std crosses it, every subsequent
+        # correction is suppressed forever unless near a feature anchor). Widen
+        # the effective threshold the longer we go without an accepted
+        # observation, so a stuck filter can eventually accept a re-acquisition
+        # candidate instead of being frozen for the rest of the episode.
+        self.vio_bridge_relaxation_grace_m: float = 3.0
+        self.vio_bridge_relaxation_rate: float = 0.3
+        # Large-forward-jump confirmation gate: sequence_forward_tolerance_m below
+        # only guards against motion_error > 0 (looks like we moved backward). It
+        # never guarded the opposite case (s collapsing implausibly far forward in
+        # one step, e.g. a single confident-but-wrong ICP match claiming
+        # "arrived"), which is exactly the 2026-07-02 ep680 failure: one match at
+        # s~=0 was trusted instantly and then protected by the VIO bridge for the
+        # rest of the episode. Require a second, independent observation to land
+        # near the same s before committing a jump this large.
+        self.sequence_large_forward_jump_m: float = 2.0 * self.anchor_spacing_m
+        self.sequence_large_jump_confirm_tolerance_m: float = 0.5
+        self.sequence_large_jump_confirm_window_m: float = self.anchor_spacing_m
+        self._pending_jump_observed_s_m: Optional[float] = None
+        self._pending_jump_distance_marker_m: Optional[float] = None
+        # Corridor-degeneracy handling (P2): an accepted relocalization estimate whose
+        # source anchor point cloud was geometrically degenerate (see
+        # relocalization.corridor_degeneracy_ratio) is still used, but the arc-length
+        # filter should trust it less — see the inflate below the skip threshold check
+        # in _estimate_arc_observation.
+        self.corridor_degeneracy_inflate_threshold: float = 0.30
+        # Direction 2 (persistent-error fix): fuse near-tied relocalization
+        # candidates from the same query instead of keeping only the top-scored
+        # one. Candidates must be reprojected to the same anchor as the top pick
+        # and agree within these tolerances to be fused in — this is a spatial
+        # (single-timestep) average across candidates, not a temporal filter.
+        self.fusion_candidate_pool_size: int = 6
+        self.fusion_min_score_ratio: float = 0.6
+        self.fusion_max_heading_disagreement_rad: float = math.radians(30.0)
+        self.fusion_max_position_disagreement_m: float = 0.75
+        # Direction 1 (persistent-error fix): temporally smooth the anchor-relative
+        # pose across successive accepted relocalization events (reprojecting the
+        # previous filtered belief onto whichever anchor the new estimate matches),
+        # mirroring ArcLengthParticleFilter's predict/observe split but for the 2-D
+        # pose instead of 1-D arc length. _orientation_filter_weight is a running
+        # pseudo-confidence that decays each update so stale beliefs fade out.
+        self._orientation_filter_weight: float = 0.0
+        self.orientation_filter_decay: float = 0.5
+        self.orientation_filter_max_weight: float = 3.0
+        self.orientation_filter_max_disagreement_rad: float = math.radians(60.0)
         if self.enabled:
             self._append_anchor(descriptor=None, metadata={"event": "start"})
 
@@ -397,6 +475,8 @@ class RouteMemoryAgent:
         self._sequence_observation_history = []
         self._distance_since_sequence_observation_m = 0.0
         self._sequence_current_s_m = float(self._outbound_distance_m)
+        self._pending_jump_observed_s_m = None
+        self._pending_jump_distance_marker_m = None
         self._return_started = True
         self._return_update_count = 0
         self._force_next_relocalization = True
@@ -412,9 +492,9 @@ class RouteMemoryAgent:
         for i in range(1, len(self.anchors)):
             prev = self.anchors[i - 1]
             curr = self.anchors[i]
-            if prev.pose_from_start is None or curr.pose_from_start is None:
-                continue
-            dtheta = abs(wrap_angle(curr.pose_from_start[2] - prev.pose_from_start[2]))
+            # Already a local (single-edge) comparison -- use the edge directly
+            # rather than differencing two pose_from_start values.
+            dtheta = abs(wrap_angle(curr.edge_from_previous[2]))
             if dtheta > threshold_rad:
                 self._feature_anchor_indices.add(prev.index)
                 self._feature_anchor_indices.add(curr.index)
@@ -471,6 +551,9 @@ class RouteMemoryAgent:
             })
             return None
 
+        # Direction 1 (persistent-error fix): blend with the previous filtered
+        # belief instead of a hard overwrite, damping single-observation jitter.
+        estimate = self._temporally_smooth_relocalization(estimate)
         self._latest_relocalization = estimate
         self._update_arc_filter_from_sequence(observation)
         self.relocalization_events.append({
@@ -587,6 +670,18 @@ class RouteMemoryAgent:
     def current_return_pose(self) -> list[float]:
         return list(self._return_pose_from_return_start)
 
+    def current_absolute_pose_from_start(self) -> list[float]:
+        """Action-integrated (non-oracle) current pose relative to the outbound start.
+
+        Composes the return-start absolute pose with the return-phase odometry
+        delta accumulated so far. Only valid once ``finalize_outbound()`` has run
+        (guaranteed for any caller reachable from ``update_return_motion``, which
+        guards on ``self._return_started``). Used to feed a dead-reckoning yaw
+        reference into non-oracle relocalization backends (P1 heading-consistency
+        gate) without leaking Isaac's privileged ground-truth pose.
+        """
+        return compose_pose(self._return_start_pose_from_start, self._return_pose_from_return_start)
+
     def summary(self) -> dict:
         progress = self.progress()
         return {
@@ -633,12 +728,15 @@ class RouteMemoryAgent:
         return self._outbound_distance_m - self._last_anchor_distance_m >= self.anchor_spacing_m
 
     def _append_anchor(self, descriptor: Optional[object], metadata: Optional[dict]) -> None:
+        previous_pose = self.anchors[-1].pose_from_start if self.anchors else [0.0, 0.0, 0.0]
+        edge_from_previous = relative_delta(previous_pose, self._outbound_pose_from_start)
         anchor = RouteAnchor(
             index=len(self.anchors),
             pose_from_start=[float(x) for x in self._outbound_pose_from_start],
             distance_from_start_m=float(self._outbound_distance_m),
             descriptor=descriptor,
             metadata=dict(metadata or {}),
+            edge_from_previous=[float(x) for x in edge_from_previous],
         )
         self.anchors.append(anchor)
         self._last_anchor_distance_m = self._outbound_distance_m
@@ -750,6 +848,63 @@ class RouteMemoryAgent:
             anchor_dtheta_rad=float(propagated[2]),
         )
 
+    def _temporally_smooth_relocalization(self, new_estimate: AnchorRelocalization) -> AnchorRelocalization:
+        """Direction 1 (persistent-error fix): blend a fresh accepted estimate with
+        the previous filtered belief (reprojected onto the new estimate's anchor)
+        instead of overwriting it outright, so single-observation heading/position
+        jitter is damped across successive relocalization events. Mirrors
+        ArcLengthParticleFilter's predict/observe split, but for the 2-D
+        anchor-relative pose rather than 1-D arc length.
+
+        _orientation_filter_weight decays each update (orientation_filter_decay)
+        so a stale belief's influence fades out as new evidence arrives, and a
+        fresh estimate that disagrees sharply with the carried belief is trusted
+        outright rather than averaged toward a stale value.
+        """
+        if not new_estimate.anchor_heading_reliable:
+            self._orientation_filter_weight = float(new_estimate.confidence)
+            return new_estimate
+        previous = self._latest_relocalization
+        if previous is None or not previous.anchor_heading_reliable:
+            self._orientation_filter_weight = float(new_estimate.confidence)
+            return new_estimate
+        projected = self._reproject_delta_to_anchor(
+            previous.anchor_index,
+            previous.anchor_dx_m,
+            previous.anchor_dy_m,
+            previous.anchor_dtheta_rad,
+            new_estimate.anchor_index,
+        )
+        if projected is None:
+            self._orientation_filter_weight = float(new_estimate.confidence)
+            return new_estimate
+        prev_dx, prev_dy, prev_dtheta = projected
+        if abs(wrap_angle(prev_dtheta - new_estimate.anchor_dtheta_rad)) > self.orientation_filter_max_disagreement_rad:
+            self._orientation_filter_weight = float(new_estimate.confidence)
+            return new_estimate
+        old_weight = self._orientation_filter_weight * self.orientation_filter_decay
+        new_weight = float(new_estimate.confidence)
+        total_weight = old_weight + new_weight
+        if total_weight <= 1e-9:
+            self._orientation_filter_weight = new_weight
+            return new_estimate
+        blended_dtheta = circular_weighted_mean(
+            [(prev_dtheta, old_weight), (new_estimate.anchor_dtheta_rad, new_weight)]
+        )
+        if blended_dtheta is None:
+            self._orientation_filter_weight = new_weight
+            return new_estimate
+        blended_dx = (old_weight * prev_dx + new_weight * new_estimate.anchor_dx_m) / total_weight
+        blended_dy = (old_weight * prev_dy + new_weight * new_estimate.anchor_dy_m) / total_weight
+        self._orientation_filter_weight = min(self.orientation_filter_max_weight, total_weight)
+        return replace(
+            new_estimate,
+            anchor_dx_m=float(blended_dx),
+            anchor_dy_m=float(blended_dy),
+            anchor_dtheta_rad=float(blended_dtheta),
+            backend=f"{new_estimate.backend}+ema",
+        )
+
     def _estimate_arc_observation(
         self,
         estimate: AnchorRelocalization,
@@ -764,9 +919,28 @@ class RouteMemoryAgent:
                 estimate.anchor_dtheta_rad,
             ]
             current_pose_from_anchor = inverse_delta(anchor_pose_from_current)
-            current_pose_from_start = compose_pose(anchor.pose_from_start, current_pose_from_anchor)
-            observed_s = self._project_pose_to_route_distance(current_pose_from_start)
+            # Relative-edge pose graph (2026-07-02): current_pose_from_anchor[0]
+            # is the forward offset of current within the matched anchor's OWN
+            # locally-recorded frame, which approximates the route's local
+            # tangent at that anchor (the robot generally faces along its path
+            # while navigating outbound). Combined with the anchor's own robust
+            # scalar distance_from_start_m, this avoids the old global
+            # nearest-segment search over every anchor pair's pose_from_start
+            # (drift-prone -- see _project_pose_to_route_distance); this hot
+            # path (every accepted relocalization) now touches only the ONE
+            # matched anchor's local data, nothing chained from anchor 0.
+            observed_s = anchor.distance_from_start_m + current_pose_from_anchor[0]
+            observed_s = float(max(0.0, min(self._outbound_distance_m, observed_s)))
             sigma = max(0.45, min(2.0, estimate.distance_to_anchor_m + 0.5 * self.anchor_spacing_m))
+            if (
+                estimate.degeneracy_ratio is not None
+                and estimate.degeneracy_ratio < self.corridor_degeneracy_inflate_threshold
+            ):
+                # P2: the accepted candidate came from a geometrically weak (near-corridor)
+                # anchor patch even though it passed the harder skip threshold upstream in
+                # relocalization.py. Trust it less instead of feeding the filter a falsely
+                # tight sigma, so std widens rather than collapsing onto a shaky estimate.
+                sigma *= 2.0
             source = "seqslam_pose_projection"
         else:
             observed_s = float(anchor.distance_from_start_m)
@@ -832,13 +1006,59 @@ class RouteMemoryAgent:
         if score < min_score:
             return None, None, "sequence_candidate_score_too_low"
 
-        # VIO bridge: in the corridor dead zone the arc-length position is ambiguous.
-        # If the filter is uncertain AND the candidate lands away from a feature anchor
-        # (corner, doorway), reject the visual update and rely on dead reckoning instead.
+        # Direction 2 (persistent-error fix): blend in other candidates from this
+        # same query that agree with the top pick instead of discarding them.
+        estimate = self._fuse_candidate_cluster(score, estimate, candidates)
+
+        # Large-forward-jump confirmation gate (2026-07-02 ep680 fix, part 1/2):
+        # sequence_forward_tolerance_m above only guards motion_error > 0 (looks
+        # like we moved backward). It never guarded the opposite case -- s
+        # collapsing implausibly far forward in one step, e.g. a single
+        # confident-but-wrong ICP match claiming "arrived". Require a second,
+        # independent observation to land near the same s before trusting a jump
+        # this large; otherwise fall back to dead reckoning for this step.
+        motion_error = observation.motion_error_m
+        if (
+            self._sequence_observation is not None
+            and self._sequence_observation.source != "return_start_prior"
+            and motion_error is not None
+            and motion_error < -self.sequence_large_forward_jump_m
+        ):
+            pending = self._pending_jump_observed_s_m
+            if (
+                pending is not None
+                and abs(observation.observed_s_m - pending) <= self.sequence_large_jump_confirm_tolerance_m
+            ):
+                # Second observation corroborates the first -- proceed to commit below.
+                self._pending_jump_observed_s_m = None
+                self._pending_jump_distance_marker_m = None
+            else:
+                self._pending_jump_observed_s_m = float(observation.observed_s_m)
+                self._pending_jump_distance_marker_m = float(self._distance_since_sequence_observation_m)
+                return None, None, "large_forward_jump_pending_confirmation"
+        elif (
+            self._pending_jump_observed_s_m is not None
+            and self._distance_since_sequence_observation_m - (self._pending_jump_distance_marker_m or 0.0)
+            > self.sequence_large_jump_confirm_window_m
+        ):
+            # Pending candidate never got corroborated within the window -- drop it as noise.
+            self._pending_jump_observed_s_m = None
+            self._pending_jump_distance_marker_m = None
+
+        # VIO bridge (2026-07-02 ep680 fix, part 2/2): in the corridor dead zone
+        # the arc-length position is ambiguous, so suppress updates when the
+        # filter is uncertain and the candidate lands away from a feature anchor
+        # (corner, doorway). The effective threshold widens the longer we go
+        # without an accepted observation, so a filter that got stuck (e.g. by
+        # a bad match that slipped past the gate above) can still eventually
+        # accept a re-acquisition candidate instead of being frozen forever.
+        effective_vio_threshold = self.vio_bridge_std_threshold_m + self.vio_bridge_relaxation_rate * max(
+            0.0, self._distance_since_sequence_observation_m - self.vio_bridge_relaxation_grace_m
+        )
         if (
             self.vio_bridge_enabled
             and self._arc_length_filter is not None
-            and self._arc_length_filter.std() > self.vio_bridge_std_threshold_m
+            and self._arc_length_filter.std() > effective_vio_threshold
             and not self._is_near_feature_anchor(observation.observed_s_m)
         ):
             return None, None, "vio_bridge_suppressed"
@@ -849,9 +1069,77 @@ class RouteMemoryAgent:
         if len(self._sequence_observation_history) > self.sequence_window:
             self._sequence_observation_history = self._sequence_observation_history[-self.sequence_window:]
         self._distance_since_sequence_observation_m = 0.0
+        self._pending_jump_observed_s_m = None
+        self._pending_jump_distance_marker_m = None
         self._target_anchor_index = int(observation.anchor_index)
         self._target_anchor_min_distance_m = estimate.distance_to_anchor_m
         return estimate, observation, None
+
+    def _fuse_candidate_cluster(
+        self,
+        top_score: float,
+        top_estimate: AnchorRelocalization,
+        scored_candidates: list[tuple[float, AnchorRelocalization, SequenceArcObservation]],
+    ) -> AnchorRelocalization:
+        """Direction 2 (persistent-error fix): average the top pick with other
+        candidates from the *same* relocalization query that plausibly measure
+        the same true pose, instead of keeping only the single highest-scored
+        candidate. Reduces single-candidate noise in anchor_dtheta_rad/dx/dy.
+
+        This must not reintroduce the P1 ambiguity in reverse: a candidate is
+        only folded in if it is reprojected onto the top pick's own anchor and
+        found to agree within tight heading/position tolerances. A genuinely
+        competing hypothesis (e.g. the LoFTR +1-anchor bias) disagrees and is
+        left out rather than averaged into a worse compromise estimate.
+        """
+        if not top_estimate.anchor_heading_reliable:
+            return top_estimate
+        weight_sum = max(1e-9, float(top_score))
+        dx_sum = top_estimate.anchor_dx_m * top_score
+        dy_sum = top_estimate.anchor_dy_m * top_score
+        angle_pool = [(top_estimate.anchor_dtheta_rad, float(top_score))]
+        fused_count = 1
+        for score, estimate, _observation in scored_candidates[1:self.fusion_candidate_pool_size]:
+            if score < self.fusion_min_score_ratio * top_score:
+                continue
+            if not estimate.anchor_heading_reliable:
+                continue
+            if estimate.anchor_index == top_estimate.anchor_index:
+                dx, dy, dtheta = estimate.anchor_dx_m, estimate.anchor_dy_m, estimate.anchor_dtheta_rad
+            else:
+                projected = self._reproject_delta_to_anchor(
+                    estimate.anchor_index,
+                    estimate.anchor_dx_m,
+                    estimate.anchor_dy_m,
+                    estimate.anchor_dtheta_rad,
+                    top_estimate.anchor_index,
+                )
+                if projected is None:
+                    continue
+                dx, dy, dtheta = projected
+            heading_disagreement = abs(wrap_angle(dtheta - top_estimate.anchor_dtheta_rad))
+            if heading_disagreement > self.fusion_max_heading_disagreement_rad:
+                continue
+            position_disagreement = math.hypot(dx - top_estimate.anchor_dx_m, dy - top_estimate.anchor_dy_m)
+            if position_disagreement > self.fusion_max_position_disagreement_m:
+                continue
+            weight_sum += score
+            dx_sum += dx * score
+            dy_sum += dy * score
+            angle_pool.append((dtheta, float(score)))
+            fused_count += 1
+        if fused_count == 1:
+            return top_estimate
+        fused_dtheta = circular_weighted_mean(angle_pool)
+        if fused_dtheta is None:
+            return top_estimate
+        return replace(
+            top_estimate,
+            anchor_dx_m=float(dx_sum / weight_sum),
+            anchor_dy_m=float(dy_sum / weight_sum),
+            anchor_dtheta_rad=float(fused_dtheta),
+            backend=f"{top_estimate.backend}+fused{fused_count}",
+        )
 
     def _update_arc_filter_from_sequence(self, observation: SequenceArcObservation) -> None:
         if self._arc_length_filter is None:
@@ -921,29 +1209,74 @@ class RouteMemoryAgent:
         self._target_anchor_min_distance_m = projected.distance_to_anchor_m
         return projected
 
+    def _compose_edges_between(self, from_index: int, to_index: int) -> Optional[list[float]]:
+        """Relative-edge pose graph (2026-07-02): compose only the local
+        edge_from_previous deltas strictly between from_index and to_index (never
+        routing through anchor 0), returning "to_index as seen from from_index".
+
+        This bounds compounding error to the number of hops actually separating
+        the two anchors (usually 1-2 for the P1/Direction-1/Direction-2 callers
+        below), instead of each anchor's full outbound-accumulated
+        pose_from_start -- differencing two long independent chains does not
+        cancel their drift, it adds it.
+        """
+        if from_index == to_index:
+            return [0.0, 0.0, 0.0]
+        if self._anchor_by_index(from_index) is None or self._anchor_by_index(to_index) is None:
+            return None
+        step = 1 if to_index > from_index else -1
+        pose = [0.0, 0.0, 0.0]
+        idx = from_index
+        while idx != to_index:
+            nxt = idx + step
+            edge_anchor = self._anchor_by_index(nxt if step > 0 else idx)
+            if edge_anchor is None:
+                return None
+            edge = edge_anchor.edge_from_previous if step > 0 else inverse_delta(edge_anchor.edge_from_previous)
+            pose = compose_pose(pose, edge)
+            idx = nxt
+        return pose
+
+    def _reproject_delta_to_anchor(
+        self,
+        source_anchor_index: int,
+        dx: float,
+        dy: float,
+        dtheta: float,
+        target_anchor_index: int,
+    ) -> Optional[list[float]]:
+        """Re-express a (dx, dy, dtheta) delta "anchor as seen from current" so it
+        is relative to a different anchor, by composing the short local edge
+        chain between the two anchors (see _compose_edges_between) rather than
+        differencing their two full outbound-accumulated poses. Pure geometry,
+        no AnchorRelocalization bookkeeping — shared by _project_estimate_to_anchor
+        and the Direction 1/2 fusion helpers below."""
+        target_pose_in_source_frame = self._compose_edges_between(source_anchor_index, target_anchor_index)
+        if target_pose_in_source_frame is None:
+            return None
+        current_pose_in_source_frame = inverse_delta([dx, dy, dtheta])
+        return relative_delta(current_pose_in_source_frame, target_pose_in_source_frame)
+
     def _project_estimate_to_anchor(
         self,
         estimate: AnchorRelocalization,
         target_anchor_index: int,
     ) -> Optional[AnchorRelocalization]:
-        source_anchor = self._anchor_by_index(estimate.anchor_index)
-        target_anchor = self._anchor_by_index(target_anchor_index)
-        if source_anchor is None or target_anchor is None:
-            return None
-        source_pose_from_current = [
+        target_pose_from_current = self._reproject_delta_to_anchor(
+            estimate.anchor_index,
             estimate.anchor_dx_m,
             estimate.anchor_dy_m,
             estimate.anchor_dtheta_rad,
-        ]
-        current_pose_from_source = inverse_delta(source_pose_from_current)
-        current_pose_from_start = compose_pose(source_anchor.pose_from_start, current_pose_from_source)
-        target_pose_from_current = relative_delta(current_pose_from_start, target_anchor.pose_from_start)
+            target_anchor_index,
+        )
+        if target_pose_from_current is None:
+            return None
         backend = estimate.backend
         if not backend.endswith("+monotonic"):
             backend = f"{backend}+monotonic"
         return replace(
             estimate,
-            anchor_index=int(target_anchor.index),
+            anchor_index=int(target_anchor_index),
             anchor_dx_m=float(target_pose_from_current[0]),
             anchor_dy_m=float(target_pose_from_current[1]),
             anchor_dtheta_rad=float(target_pose_from_current[2]),

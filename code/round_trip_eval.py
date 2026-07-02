@@ -50,6 +50,7 @@ from relocalization import (
     quat_wxyz_to_matrix as _quat_wxyz_to_matrix,
     ransac_rigid_transform as _ransac_rigid_transform,
     rigid_transform_3d as _rigid_transform_3d,
+    scan_context_anchor_relocalization,
     _append_covisibility_record,
     _diagnostic_inc,
 )
@@ -162,7 +163,7 @@ parser.add_argument("--route_anchor_spacing_m", type=float, default=1.0, help=ar
 parser.add_argument("--route_min_relocalization_confidence", type=float, default=0.35, help=argparse.SUPPRESS)
 parser.add_argument(
     "--route_relocalization_backend",
-    choices=("none", "oracle_anchor", "feature_depth", "sift_depth", "loftr_depth", "lidar_local_map"),
+    choices=("none", "oracle_anchor", "feature_depth", "sift_depth", "loftr_depth", "lidar_local_map", "scan_context"),
     default="none",
     help=argparse.SUPPRESS,
 )
@@ -1389,14 +1390,35 @@ def main():
             return_candidates=True,
         )
     elif args_cli.route_relocalization_backend == "lidar_local_map":
+        # route_agent is assigned right below; Python closures resolve the name at
+        # call time (late binding), so by the time this lambda actually runs
+        # (during return-phase steps, long after construction) route_agent is
+        # already bound. current_absolute_pose_from_start()[2] is the robot's own
+        # action-integrated yaw (non-oracle) used by the P1 heading-consistency gate.
         route_relocalizer = lambda descriptor, anchors: local_map_anchor_relocalization(
             descriptor,
             anchors,
             max_candidates=args_cli.route_relocalization_window,
             diagnostics=route_relocalization_diagnostics,
             return_candidates=True,
+            dead_reckoning_yaw_rad=route_agent.current_absolute_pose_from_start()[2],
         )
-    relocalization_interval_backends = set(feature_relocalization_backends) | {"lidar_local_map"}
+    elif args_cli.route_relocalization_backend == "scan_context":
+        # P3: Scan Context picks *which* anchor via global descriptor
+        # similarity, then a narrow local ICP refines the metric offset --
+        # see relocalization.scan_context_anchor_relocalization docstring.
+        # dead_reckoning_yaw_rad (2026-07-02 fix): guards the ICP refinement
+        # against Scan Context's own 180-degree shift ambiguity, same pattern
+        # as lidar_local_map's P1 gate above.
+        route_relocalizer = lambda descriptor, anchors: scan_context_anchor_relocalization(
+            descriptor,
+            anchors,
+            max_candidates=args_cli.route_relocalization_window,
+            diagnostics=route_relocalization_diagnostics,
+            return_candidates=True,
+            dead_reckoning_yaw_rad=route_agent.current_absolute_pose_from_start()[2],
+        )
+    relocalization_interval_backends = set(feature_relocalization_backends) | {"lidar_local_map", "scan_context"}
     route_agent = RouteMemoryAgent(
         enabled=args_cli.route_memory,
         hint_mode=args_cli.route_hint_mode,
