@@ -181,6 +181,18 @@ parser.add_argument(
          "since it grows the measurement JSON.",
 )
 parser.add_argument(
+    "--measured_odometry",
+    action="store_true",
+    default=False,
+    help="Integrate route-memory's dead-reckoning (action_delta fed to update_outbound_motion/"
+         "update_return_motion) from the robot's own instantaneous body velocity (root_vel_w) "
+         "instead of assuming the commanded vlm_vel_commands were achieved exactly. Approximates "
+         "what a real robot's onboard state estimator (IMU + leg odometry) would report -- still "
+         "an integrated, still-drifting quantity, not privileged world position -- as opposed to "
+         "the current default, which silently assumes perfect command tracking every step. Off by "
+         "default to preserve existing behavior.",
+)
+parser.add_argument(
     "--vio_bridge",
     action="store_true",
     default=True,
@@ -761,6 +773,37 @@ def get_robot_velocity(env):
     return env.unwrapped.scene["robot"].data.root_vel_w[0].detach().cpu().numpy().copy()
 
 
+def get_measured_action_delta(env, control_dt):
+    """Body-frame planar (dx, dy, dtheta) integrated from the robot's own
+    instantaneous linear/angular velocity (root_vel_w), instead of assuming
+    the commanded vlm_vel_commands were achieved exactly for the full step.
+
+    2026-07-03: the default action_delta (vlm_vel_commands * control_dt)
+    silently assumes perfect command tracking every step -- it's the
+    velocity that was *asked for*, not measured. root_vel_w is the
+    simulator's exact velocity, analogous to what a real robot's onboard
+    state estimator (IMU + leg odometry) would report for body velocity
+    (not privileged world *position* -- this is still an integrated,
+    still-drifting quantity once accumulated over many steps here, same as
+    a real onboard estimator would be, just with a much smaller per-step
+    error than assuming commanded==achieved). Yaw rate uses only the
+    world-frame angular velocity's Z component, consistent with this
+    project's existing planar/2-D treatment of navigation elsewhere
+    (pose_yaw() et al.) -- fine for a quadruped walking on roughly flat
+    ground with small roll/pitch, not a general 3-D assumption.
+    """
+    robot_pose = get_robot_pose(env)
+    rotation = _quat_wxyz_to_matrix(np.asarray(robot_pose[3:7], dtype=np.float32))
+    root_vel = env.unwrapped.scene["robot"].data.root_vel_w[0].detach().cpu().numpy()
+    lin_vel_body = rotation.T @ np.asarray(root_vel[:3], dtype=np.float32)
+    yaw_rate = float(root_vel[5])
+    return [
+        float(lin_vel_body[0]) * control_dt,
+        float(lin_vel_body[1]) * control_dt,
+        yaw_rate * control_dt,
+    ]
+
+
 def nearest_path_point(position_xy, path_xy):
     if len(path_xy) == 0:
         return {"index": None, "distance_m": None}
@@ -1017,7 +1060,16 @@ def local_map_descriptor_from_env(env):
         return None
     sensor = None
     sensor_name_used = None
-    for name in ("lidar_sensor", "lidar", "local_lidar", "ray_caster", "height_scanner"):
+    # 2026-07-03: route_memory_lidar (a dedicated RayCaster, separate from
+    # lidar_sensor) now takes priority. lidar_sensor is also the locomotion
+    # policy's height-map observation input (ObservationsCfg.PolicyCfg in
+    # go2_matterport_vision_cfg.py) and must keep the ray geometry its
+    # checkpoint was trained on -- narrowing its vertical_fov_range to fix
+    # route-memory's obstacle-band coverage caused reproducible early falls
+    # (see that file's comment on lidar_sensor). route_memory_lidar carries
+    # the improved (symmetric, higher-resolution) geometry instead; scenes
+    # without it fall back to lidar_sensor unchanged.
+    for name in ("route_memory_lidar", "lidar_sensor", "lidar", "local_lidar", "ray_caster", "height_scanner"):
         try:
             if name in sensors:
                 sensor = sensors[name]
@@ -1047,6 +1099,51 @@ def local_map_descriptor_from_env(env):
         hits = hits[0]
     if hits.ndim != 2 or hits.shape[1] < 3:
         return None
+    if not getattr(local_map_descriptor_from_env, "_diag_per_channel_printed", False):
+        # 2026-07-03: sanity-check vertical_fov_range=(0.0, 90.0) on go2_matterport_vision_cfg.py's
+        # lidar_sensor -- read literally (0deg=horizontal, 90deg=straight up, per IsaacLab's
+        # linspace(vertical_fov_range[0], vertical_fov_range[1], channels) convention), every
+        # channel would sit between horizontal and straight-up with none pointed down, which would
+        # be a bad match for the height-band obstacle filter (z in [-0.20, 1.80] m) this pipeline
+        # relies on. The sensor offset carries a non-identity rotation quaternion that could
+        # compensate for this, so check the RAW per-channel ray hits directly instead of trusting
+        # the two config numbers.
+        try:
+            channels = int(getattr(sensor.cfg.pattern_cfg, "channels", 32))
+        except Exception:
+            channels = 32
+        try:
+            robot_pose_diag = get_robot_pose(env)
+            robot_position_diag = np.asarray(robot_pose_diag[:3], dtype=np.float32)
+            robot_rotation_diag = _quat_wxyz_to_matrix(np.asarray(robot_pose_diag[3:7], dtype=np.float32))
+            if hits.shape[0] % channels == 0:
+                per_channel = hits.reshape(channels, -1, hits.shape[1])
+                lines = []
+                for ch in range(channels):
+                    ch_hits = per_channel[ch]
+                    ch_valid = np.isfinite(ch_hits).all(axis=1)
+                    ch_finite = ch_hits[ch_valid]
+                    if len(ch_finite) == 0:
+                        lines.append(f"  channel {ch:>2}: 0/{ch_hits.shape[0]} finite hits")
+                        continue
+                    ch_body = (robot_rotation_diag.T @ (ch_finite[:, :3] - robot_position_diag).T).T
+                    z_body = ch_body[:, 2]
+                    in_band = int(((z_body >= -0.20) & (z_body <= 1.80)).sum())
+                    lines.append(
+                        f"  channel {ch:>2}: {len(ch_finite)}/{ch_hits.shape[0]} finite hits, "
+                        f"z_body range=({float(z_body.min()):.2f},{float(z_body.max()):.2f}), "
+                        f"in_obstacle_band[-0.20,1.80]={in_band}"
+                    )
+                print(f"[DIAG] local_map_descriptor_from_env: per-channel breakdown (channels={channels}):")
+                print("\n".join(lines))
+            else:
+                print(
+                    f"[DIAG] local_map_descriptor_from_env: raw hit count {hits.shape[0]} not divisible "
+                    f"by channels={channels}, skipping per-channel breakdown"
+                )
+        except Exception as exc:
+            print(f"[DIAG] local_map_descriptor_from_env: per-channel breakdown failed: {exc}")
+        local_map_descriptor_from_env._diag_per_channel_printed = True
     valid = np.isfinite(hits).all(axis=1)
     hits = hits[valid]
     if len(hits) == 0:
@@ -1805,11 +1902,14 @@ def main():
             stop_gate.notify_sim_step(get_robot_position(env))
 
         if args_cli.route_memory:
-            action_delta = [
-                float(vlm_vel_commands[0]) * control_dt,
-                float(vlm_vel_commands[1]) * control_dt,
-                float(vlm_vel_commands[2]) * control_dt,
-            ]
+            if args_cli.measured_odometry:
+                action_delta = get_measured_action_delta(env, control_dt)
+            else:
+                action_delta = [
+                    float(vlm_vel_commands[0]) * control_dt,
+                    float(vlm_vel_commands[1]) * control_dt,
+                    float(vlm_vel_commands[2]) * control_dt,
+                ]
             route_descriptor = route_memory_descriptor_from_infos(infos, env)
             current_route_descriptor = route_descriptor
             if phase in ("outbound", "confirm"):

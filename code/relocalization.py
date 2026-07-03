@@ -425,7 +425,15 @@ def descriptor_local_map_points_xyz(descriptor: object) -> Optional[np.ndarray]:
     return np.concatenate([xy, z], axis=1)
 
 
-def voxel_downsample_2d(points: np.ndarray, voxel_size_m: float = 0.12, max_points: int = 256) -> np.ndarray:
+def voxel_downsample_2d(points: np.ndarray, voxel_size_m: float = 0.10, max_points: int = 512) -> np.ndarray:
+    # 2026-07-03: defaults relaxed from (0.12, 256). The vertical_fov_range fix
+    # in go2_matterport_vision_cfg.py raised raw obstacle-band points per scan
+    # from ~345 to ~2841 (measured directly on ep4) -- the old 256-point cap
+    # was already barely below the old raw budget and would have thrown away
+    # nearly all of the new headroom. Still well short of what the literature
+    # survey found real indoor LiDAR pipelines retain (1000s of points); a
+    # bigger jump is deferred pending the 3-episode validation batch alongside
+    # the horizontal_res tightening above.
     points = np.asarray(points, dtype=np.float32)
     if points.ndim != 2 or points.shape[1] < 2 or len(points) == 0:
         return np.empty((0, 2), dtype=np.float32)
