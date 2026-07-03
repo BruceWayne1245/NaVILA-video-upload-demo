@@ -29,7 +29,12 @@ from omni.isaac.lab.app import AppLauncher
 import cli_args  # isort: skip
 from instruction_rewriter import InstructionRewriteError, InstructionRewriter
 from hint_action_arbiter import HintActionArbiter, HintActionArbiterConfig
-from route_memory_agent import AnchorRelocalization, RelativeStartProgress, RouteMemoryAgent
+from route_memory_agent import (
+    AnchorRelocalization,
+    RelativeStartProgress,
+    RouteMemoryAgent,
+    diagnostic_frame_thresholds_to_fire,
+)
 from stop_gate import GateDecision, ReturnStopGate
 from topdown_route_map import capture_occupancy_floor_slice, save_topdown_route_map
 from relocalization import (
@@ -40,6 +45,7 @@ from relocalization import (
     descriptor_camera_to_body as _descriptor_camera_to_body,
     descriptor_depth as _descriptor_depth,
     descriptor_intrinsics as _descriptor_intrinsics,
+    descriptor_local_map_points,
     descriptor_rgb_gray as _descriptor_rgb_gray,
     feature_depth_anchor_relocalization,
     feature_matcher_config as _feature_matcher_config,
@@ -52,6 +58,7 @@ from relocalization import (
     ransac_rigid_transform as _ransac_rigid_transform,
     rigid_transform_3d as _rigid_transform_3d,
     scan_context_anchor_relocalization,
+    voxel_downsample_2d,
     _append_covisibility_record,
     _diagnostic_inc,
 )
@@ -179,6 +186,17 @@ parser.add_argument(
          "mask) to route_relocalization_diagnostics for the lidar_local_map/scan_context/fused "
          "backends, for offline visualization via plot_anchor_match_diagnostics.py. Off by default "
          "since it grows the measurement JSON.",
+)
+parser.add_argument(
+    "--capture_route_memory_diagnostic_frames",
+    action="store_true",
+    default=False,
+    help="At ~4 fixed fractions of return-journey progress remaining (75%%/50%%/25%%/5%%), dump a "
+         "diagnostic frame: robot world pose, current local-map points, and every recorded anchor's "
+         "world pose + local-map points -- to result_dir/route_memory_diagnostic_frames/. Rendered "
+         "offline via plot_route_memory_diagnostic_frames.py (occupancy-map overview, clean per-anchor "
+         "and current local maps, and a current-vs-every-anchor ICP match plot). Works best paired "
+         "with --topdown_route_map. Off by default.",
 )
 parser.add_argument(
     "--measured_odometry",
@@ -802,6 +820,42 @@ def get_measured_action_delta(env, control_dt):
         float(lin_vel_body[1]) * control_dt,
         yaw_rate * control_dt,
     ]
+
+
+def capture_route_memory_diagnostic_frame(env, route_agent, current_descriptor, step, output_dir):
+    """Dump one diagnostic frame for offline rendering by
+    plot_route_memory_diagnostic_frames.py: the robot's current world pose
+    and local-map points, plus every recorded anchor's world pose and
+    local-map points. No ICP/matching is computed here -- that's pure numpy
+    with no Isaac Sim dependency, so it's deferred entirely to the offline
+    script, keeping this live-capture hook as small as possible.
+
+    2026-07-03: replaces the old capture-only-the-anchor-Scan-Context-picked
+    approach (plot_anchor_match_diagnostics.py) for cases where you want to
+    see the match against *every* recorded anchor, not just the one the
+    live backend happened to select.
+    """
+    current_points = descriptor_local_map_points(current_descriptor)
+    current_points = voxel_downsample_2d(current_points) if current_points is not None else None
+    frame = {
+        "step": int(step),
+        "robot_world_pose": [float(x) for x in get_robot_pose(env)],
+        "current_local_map_points_body": current_points.tolist() if current_points is not None else None,
+        "anchors": [],
+    }
+    for anchor in route_agent.anchors:
+        anchor_points = descriptor_local_map_points(anchor.descriptor)
+        anchor_points = voxel_downsample_2d(anchor_points) if anchor_points is not None else None
+        world_pose = anchor.metadata.get("world_pose")
+        frame["anchors"].append({
+            "index": int(anchor.index),
+            "distance_from_start_m": float(anchor.distance_from_start_m),
+            "world_pose": [float(x) for x in world_pose] if world_pose is not None else None,
+            "local_map_points_body": anchor_points.tolist() if anchor_points is not None else None,
+        })
+    os.makedirs(output_dir, exist_ok=True)
+    with open(os.path.join(output_dir, f"frame_step{int(step):06d}.json"), "w", encoding="utf-8") as f:
+        json.dump(frame, f)
 
 
 def nearest_path_point(position_xy, path_xy):
@@ -1457,6 +1511,8 @@ def main():
     num_steps = 0
     target_steps = 0
     same_pos_count = 0
+    diagnostic_frames_fired = set()
+    diagnostic_frames_dir = os.path.join(result_dir, "route_memory_diagnostic_frames")
     prev_pos = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
     control_dt = env.unwrapped.cfg.sim.dt * env.unwrapped.cfg.decimation
     max_episode_steps = 100 * 0.5 / control_dt
@@ -1947,6 +2003,16 @@ def main():
                     "shadow_non_oracle",
                 )
                 route_memory_alignment = route_progress_alignment_record(progress, shadow_progress)
+
+            if args_cli.capture_route_memory_diagnostic_frames and shadow_progress is not None:
+                total_length = route_agent.total_route_length_m
+                if total_length > 1e-6:
+                    fraction_remaining = max(0.0, min(1.0, shadow_progress.distance_to_start_m / total_length))
+                    for threshold in diagnostic_frame_thresholds_to_fire(fraction_remaining, diagnostic_frames_fired):
+                        capture_route_memory_diagnostic_frame(
+                            env, route_agent, current_route_descriptor, num_steps, diagnostic_frames_dir,
+                        )
+                        diagnostic_frames_fired.add(threshold)
 
         _traj_record = make_trajectory_record(
             num_steps,

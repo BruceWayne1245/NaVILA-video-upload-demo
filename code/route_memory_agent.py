@@ -18,6 +18,31 @@ def wrap_angle(angle: float) -> float:
     return math.atan2(math.sin(angle), math.cos(angle))
 
 
+DIAGNOSTIC_FRAME_FRACTIONS_REMAINING: tuple[float, ...] = (0.75, 0.5, 0.25, 0.05)
+"""Fixed fractions of return-journey progress remaining at which
+round_trip_eval.py's --capture_route_memory_diagnostic_frames captures a full
+diagnostic frame (occupancy overview + clean local maps + current-vs-every-
+anchor match). Tied to route progress rather than step count or
+relocalization_interval_updates so the number of captured frames stays ~4 per
+episode regardless of episode length or how often relocalization runs."""
+
+
+def diagnostic_frame_thresholds_to_fire(
+    fraction_remaining: float,
+    already_fired: Iterable[float],
+    thresholds: Iterable[float] = DIAGNOSTIC_FRAME_FRACTIONS_REMAINING,
+) -> list[float]:
+    """Which threshold(s) in ``thresholds`` does ``fraction_remaining`` newly
+    cross (i.e. fall at-or-below), that aren't already in ``already_fired``?
+
+    Pure function so the sampling logic is unit-testable without Isaac Sim;
+    round_trip_eval.py owns the actual capture side effect and threshold
+    bookkeeping (accumulating fired thresholds into a set across steps).
+    """
+    already_fired = set(already_fired)
+    return [t for t in thresholds if t not in already_fired and fraction_remaining <= t]
+
+
 def circular_weighted_mean(pairs: Iterable[tuple[float, float]]) -> Optional[float]:
     """Confidence-weighted circular mean of (angle_rad, weight) pairs.
 
@@ -579,6 +604,17 @@ class RouteMemoryAgent:
         if not self.enabled or not self.anchors:
             return
         self.anchors[-1].metadata.update(dict(metadata))
+
+    @property
+    def total_route_length_m(self) -> float:
+        """Total outbound route length (meters), finalized once return starts.
+
+        Used by round_trip_eval.py to trigger diagnostic-frame captures at
+        fixed *fractions* of the return journey (e.g. 75%/50%/25%/5%
+        remaining) regardless of relocalization_interval_updates or episode
+        step count, so the number of captured frames stays ~3-4 per episode.
+        """
+        return float(self._outbound_distance_m)
 
     def progress(self) -> Optional[RelativeStartProgress]:
         if not self.enabled or not self._return_started:

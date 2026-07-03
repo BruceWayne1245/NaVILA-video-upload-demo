@@ -6,9 +6,37 @@ from route_memory_agent import (
     RelativeStartProgress,
     RouteMemoryAgent,
     compose_pose,
+    diagnostic_frame_thresholds_to_fire,
     inverse_delta,
     relative_delta,
 )
+
+
+class DiagnosticFrameThresholdsTest(unittest.TestCase):
+    """2026-07-03: --capture_route_memory_diagnostic_frames samples ~4 frames
+    per episode by fraction of route remaining, not step count -- this is
+    the pure crossing-detection logic round_trip_eval.py's per-step loop
+    calls into."""
+
+    def test_no_thresholds_fire_above_the_first_one(self):
+        self.assertEqual(diagnostic_frame_thresholds_to_fire(0.9, already_fired=set()), [])
+
+    def test_crossing_below_first_threshold_fires_only_that_one(self):
+        self.assertEqual(diagnostic_frame_thresholds_to_fire(0.6, already_fired=set()), [0.75])
+
+    def test_a_big_jump_fires_every_threshold_crossed_at_once(self):
+        # e.g. a long blackout between progress checks skipping past several
+        # thresholds in one step -- all of them should still fire, not just
+        # the nearest one, so no diagnostic stage is silently skipped.
+        self.assertEqual(diagnostic_frame_thresholds_to_fire(0.1, already_fired=set()), [0.75, 0.5, 0.25])
+
+    def test_already_fired_thresholds_do_not_refire(self):
+        self.assertEqual(diagnostic_frame_thresholds_to_fire(0.1, already_fired={0.75, 0.5}), [0.25])
+
+    def test_all_fired_yields_nothing_further(self):
+        self.assertEqual(
+            diagnostic_frame_thresholds_to_fire(0.0, already_fired={0.75, 0.5, 0.25, 0.05}), []
+        )
 
 
 class RouteMemoryAgentTest(unittest.TestCase):
