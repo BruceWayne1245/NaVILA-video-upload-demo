@@ -1,0 +1,16 @@
+{
+  "floor_z": 0.12711000442504883,
+  "height_px": 288,
+  "max_x": 8.276979923248291,
+  "max_y": 10.130579948425293,
+  "mesh_triangles_considered": 68847,
+  "mesh_triangles_rasterized": 8985,
+  "min_x": 0.3684101104736328,
+  "min_y": -4.174190044403076,
+  "obstacle_dilation_px": 2,
+  "resolution_m_per_px": 0.05,
+  "type": "usd_floor_slice_occupancy",
+  "width_px": 160,
+  "z_max": 2.327110004425049,
+  "z_min": 0.20711000442504884
+}

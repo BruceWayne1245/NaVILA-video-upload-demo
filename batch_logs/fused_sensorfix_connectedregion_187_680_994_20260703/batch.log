@@ -1,0 +1,22 @@
+Batch started at 2026-07-03T09:58:32+01:00
+Each episode uses a fresh 8-bit VLM server and a fresh Isaac evaluation process.
+Each episode uses a unique VLM port: PORT_BASE(54321) + episode_idx.
+Running only episodes: 187 680 994
+Route hint config: --route_memory --route_hint_mode=compact --route_hint_source=oracle --route_relocalization_backend=fused
+Return yaw alignment enabled: --oracle_align_return_yaw_to_anchor_segment
+Extra Isaac args: --route_relocalization_interval_updates=25 --stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0 --topdown_route_map --hint_action_arbiter
+Skipping episode 4; ONLY_EPISODES=187 680 994
+Skipping episode 5; ONLY_EPISODES=187 680 994
+Skipping episode 134; ONLY_EPISODES=187 680 994
+[2026-07-03T09:58:32+01:00] starting episode 187 (EU6Fwq7SyZv), port=54508, suffix=fused_sensorfix_connectedregion_187_680_994_20260703_ep187
+[2026-07-03T10:05:51+01:00] finished episode 187, exit_code=0
+Skipping episode 367; ONLY_EPISODES=187 680 994
+Skipping episode 368; ONLY_EPISODES=187 680 994
+Skipping episode 408; ONLY_EPISODES=187 680 994
+Skipping episode 678; ONLY_EPISODES=187 680 994
+[2026-07-03T10:05:51+01:00] starting episode 680 (zsNo4HB9uLZ), port=55001, suffix=fused_sensorfix_connectedregion_187_680_994_20260703_ep680
+[2026-07-03T10:11:29+01:00] finished episode 680, exit_code=0
+[2026-07-03T10:11:29+01:00] starting episode 994 (QUCTc6BB5sX), port=55315, suffix=fused_sensorfix_connectedregion_187_680_994_20260703_ep994
+[2026-07-03T10:16:58+01:00] finished episode 994, exit_code=0
+Skipping episode 1040; ONLY_EPISODES=187 680 994
+Batch finished at 2026-07-03T10:16:58+01:00

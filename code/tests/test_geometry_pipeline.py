@@ -9,6 +9,7 @@ Run with:
     PYTHONPATH=scripts python -m unittest tests/test_geometry_pipeline.py -v
 """
 
+import json
 import math
 import unittest
 from unittest import mock
@@ -17,6 +18,7 @@ import numpy as np
 
 from relocalization import (
     backproject_points,
+    build_local_map_match_snapshot,
     camera_point_to_body,
     camera_rotation_to_body_yaw,
     corridor_degeneracy_ratio,
@@ -820,6 +822,104 @@ class TestLocalMapHeadingConsistencyGate(unittest.TestCase):
         self.assertEqual(diagnostics.get("heading_consistency_rejected"), 1)
 
 
+class TestLocalMapMatchSnapshot(unittest.TestCase):
+    """build_local_map_match_snapshot: the anchor/current point-cloud snapshot
+    plot_anchor_match_diagnostics.py renders, for opt-in visual diagnosis of
+    LiDAR anchor matches (see capture_match_snapshots below)."""
+
+    def test_transform_and_inlier_mask_are_correct(self):
+        anchor_points = np.array([[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [5.0, 5.0]], dtype=np.float32)
+        theta = math.pi / 2.0
+        translation = np.array([2.0, 3.0], dtype=np.float32)
+        # current_points contains exact transforms of the first three anchor
+        # points (should be inliers) but not the fourth (should be an outlier).
+        current_points = np.array([[2.0, 3.0], [2.0, 4.0], [1.0, 3.0], [-8.0, -8.0]], dtype=np.float32)
+
+        snapshot = build_local_map_match_snapshot(anchor_points, current_points, theta, translation)
+
+        self.assertEqual(snapshot["anchor_inlier_mask"], [True, True, True, False])
+        self.assertAlmostEqual(snapshot["theta_rad"], theta, places=5)
+        self.assertEqual(snapshot["translation"], [2.0, 3.0])
+        # Must be plain JSON-serializable types (no numpy scalars/arrays).
+        json.dumps(snapshot)
+
+    def test_snapshot_shapes_match_input_point_counts(self):
+        anchor_points = _rectangle_outline_points()
+        current_points = _rotate_2d(anchor_points, 0.1) + np.array([0.2, -0.1], dtype=np.float32)
+        snapshot = build_local_map_match_snapshot(anchor_points, current_points, 0.1, np.array([0.2, -0.1]))
+        self.assertEqual(len(snapshot["anchor_points_body"]), len(anchor_points))
+        self.assertEqual(len(snapshot["current_points_body"]), len(current_points))
+        self.assertEqual(len(snapshot["anchor_inlier_mask"]), len(anchor_points))
+
+
+class TestCaptureMatchSnapshotsFlag(unittest.TestCase):
+    """capture_match_snapshots: opt-in point-cloud snapshots attached to
+    accepted covisibility records for local_map_icp and scan_context, without
+    changing the default (off) behavior or any existing scalar metrics."""
+
+    def _make_anchor(self, points: np.ndarray) -> RouteAnchor:
+        return RouteAnchor(
+            index=0,
+            pose_from_start=[0.0, 0.0, 0.0],
+            distance_from_start_m=5.0,
+            route_remaining_to_start_m=5.0,
+            descriptor={"local_map_points_body": points},
+        )
+
+    def test_local_map_icp_attaches_snapshot_when_requested(self):
+        rect = _rectangle_outline_points()
+        anchor = self._make_anchor(rect)
+        current_descriptor = {
+            "local_map_points_body": _rotate_2d(rect, 0.05) + np.array([0.1, 0.05], dtype=np.float32)
+        }
+        diagnostics: dict = {}
+        result = local_map_anchor_relocalization(
+            current_descriptor, [anchor], diagnostics=diagnostics, capture_match_snapshots=True,
+        )
+        self.assertIsNotNone(result)
+        records = [r for r in diagnostics["covisibility_records"] if r.get("outcome") == "pose_candidate"]
+        self.assertEqual(len(records), 1)
+        snapshot = records[0]["match_snapshot"]
+        self.assertEqual(len(snapshot["anchor_inlier_mask"]), len(snapshot["anchor_points_body"]))
+        self.assertGreater(sum(snapshot["anchor_inlier_mask"]), 0, "well-aligned rectangles should have inliers")
+        json.dumps(snapshot)
+
+    def test_local_map_icp_omits_snapshot_by_default(self):
+        rect = _rectangle_outline_points()
+        anchor = self._make_anchor(rect)
+        current_descriptor = {"local_map_points_body": rect}
+        diagnostics: dict = {}
+        result = local_map_anchor_relocalization(current_descriptor, [anchor], diagnostics=diagnostics)
+        self.assertIsNotNone(result)
+        records = [r for r in diagnostics["covisibility_records"] if r.get("outcome") == "pose_candidate"]
+        self.assertEqual(len(records), 1)
+        self.assertNotIn("match_snapshot", records[0])
+
+    def test_scan_context_attaches_snapshot_when_requested(self):
+        rect = _rectangle_outline_points()
+        anchor = self._make_anchor(rect)
+        current_descriptor = {"local_map_points_body": rect}
+        diagnostics: dict = {}
+        result = scan_context_anchor_relocalization(
+            current_descriptor, [anchor], diagnostics=diagnostics, capture_match_snapshots=True,
+        )
+        self.assertIsNotNone(result)
+        records = [r for r in diagnostics.get("covisibility_records", []) if r.get("outcome") == "pose_candidate"]
+        self.assertEqual(len(records), 1)
+        snapshot = records[0]["match_snapshot"]
+        self.assertIn("anchor_points_body", snapshot)
+        json.dumps(snapshot)
+
+    def test_scan_context_omits_snapshot_by_default(self):
+        rect = _rectangle_outline_points()
+        anchor = self._make_anchor(rect)
+        current_descriptor = {"local_map_points_body": rect}
+        diagnostics: dict = {}
+        result = scan_context_anchor_relocalization(current_descriptor, [anchor], diagnostics=diagnostics)
+        self.assertIsNotNone(result)
+        self.assertNotIn("covisibility_records", diagnostics)
+
+
 # ---------------------------------------------------------------------------
 # P3: Scan Context (2026-07-02)
 # ---------------------------------------------------------------------------
@@ -1209,6 +1309,45 @@ class TestFusedAnchorRelocalization(unittest.TestCase):
              mock.patch("relocalization.scan_context_anchor_relocalization", return_value=None):
             result = fused_anchor_relocalization({}, [])
         self.assertIsNone(result)
+
+
+class TestFusedDiagnosticsAccumulateAcrossCalls(unittest.TestCase):
+    """2026-07-03: fused_anchor_relocalization used to build a fresh {} for
+    rgbd_diag/lidar_diag on every call and wholesale-overwrite
+    diagnostics["fused_rgbd_diagnostics"]/["fused_lidar_diagnostics"] each
+    time -- across a whole episode's worth of calls, only the LAST call's
+    per-anchor covisibility_records (and match_snapshot) ever survived into
+    the saved measurement JSON, silently discarding every earlier attempt.
+    Fixed via diagnostics.setdefault(...) so the same nested dict is reused
+    call over call; this locks in that a real (non-mocked) Scan Context path
+    across multiple fused_anchor_relocalization calls accumulates instead of
+    resetting."""
+
+    def _make_anchor(self, points: np.ndarray) -> RouteAnchor:
+        return RouteAnchor(
+            index=0,
+            pose_from_start=[0.0, 0.0, 0.0],
+            distance_from_start_m=5.0,
+            route_remaining_to_start_m=5.0,
+            descriptor={"local_map_points_body": points},
+        )
+
+    def test_two_calls_accumulate_lidar_covisibility_records(self):
+        rect = _rectangle_outline_points()
+        anchor = self._make_anchor(rect)
+        current_descriptor = {"local_map_points_body": rect}
+        diagnostics: dict = {}
+        with mock.patch("relocalization.feature_depth_anchor_relocalization", return_value=None):
+            for _ in range(2):
+                fused_anchor_relocalization(
+                    current_descriptor, [anchor], diagnostics=diagnostics, capture_match_snapshots=True,
+                )
+        lidar_diag = diagnostics.get("fused_lidar_diagnostics", {})
+        self.assertEqual(lidar_diag.get("attempts"), 2, "scalar counters must accumulate, not reset, across calls")
+        records = [r for r in lidar_diag.get("covisibility_records", []) if r.get("outcome") == "pose_candidate"]
+        self.assertEqual(len(records), 2, "both calls' match snapshots must survive, not just the last one")
+        for record in records:
+            json.dumps(record["match_snapshot"])
 
 
 if __name__ == "__main__":

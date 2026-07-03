@@ -1,0 +1,29 @@
+Batch started at 2026-07-03T12:20:13+01:00
+Each episode uses a fresh 8-bit VLM server and a fresh Isaac evaluation process.
+Each episode uses a unique VLM port: PORT_BASE(54321) + episode_idx.
+Route hint config: --route_memory --route_hint_mode=compact --route_hint_source=oracle --route_relocalization_backend=fused
+Return yaw alignment enabled: --oracle_align_return_yaw_to_anchor_segment
+Extra Isaac args: --route_relocalization_interval_updates=25 --stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0 --topdown_route_map --hint_action_arbiter --capture_anchor_match_snapshots
+[2026-07-03T12:20:13+01:00] starting episode 4 (x8F5xyUWy9e), port=54325, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep4
+[2026-07-03T12:23:57+01:00] finished episode 4, exit_code=0
+[2026-07-03T12:23:57+01:00] starting episode 5 (x8F5xyUWy9e), port=54326, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep5
+[2026-07-03T12:32:53+01:00] finished episode 5, exit_code=0
+[2026-07-03T12:32:53+01:00] starting episode 134 (2azQ1b91cZZ), port=54455, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep134
+[2026-07-03T12:37:44+01:00] finished episode 134, exit_code=0
+[2026-07-03T12:37:44+01:00] starting episode 187 (EU6Fwq7SyZv), port=54508, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep187
+[2026-07-03T12:45:08+01:00] finished episode 187, exit_code=0
+[2026-07-03T12:45:08+01:00] starting episode 367 (X7HyMhZNoso), port=54688, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep367
+[2026-07-03T12:49:28+01:00] finished episode 367, exit_code=0
+[2026-07-03T12:49:29+01:00] starting episode 368 (X7HyMhZNoso), port=54689, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep368
+[2026-07-03T12:53:57+01:00] finished episode 368, exit_code=0
+[2026-07-03T12:53:57+01:00] starting episode 408 (oLBMNvg9in8), port=54729, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep408
+[2026-07-03T12:56:05+01:00] finished episode 408, exit_code=0
+[2026-07-03T12:56:05+01:00] starting episode 678 (zsNo4HB9uLZ), port=54999, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep678
+[2026-07-03T12:58:35+01:00] finished episode 678, exit_code=0
+[2026-07-03T12:58:35+01:00] starting episode 680 (zsNo4HB9uLZ), port=55001, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep680
+[2026-07-03T13:04:16+01:00] finished episode 680, exit_code=0
+[2026-07-03T13:04:16+01:00] starting episode 994 (QUCTc6BB5sX), port=55315, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep994
+[2026-07-03T13:10:09+01:00] finished episode 994, exit_code=0
+[2026-07-03T13:10:09+01:00] starting episode 1040 (X7HyMhZNoso), port=55361, suffix=fused_capture_snapshots_fixed_hard11_20260703_ep1040
+[2026-07-03T13:12:34+01:00] finished episode 1040, exit_code=0
+Batch finished at 2026-07-03T13:12:34+01:00

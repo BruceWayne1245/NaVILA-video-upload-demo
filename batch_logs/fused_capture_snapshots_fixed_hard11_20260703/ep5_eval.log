@@ -1,0 +1,907 @@
+[3g
+H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H    H   
+[INFO] Using python from: /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/bin/python
+[Warning] [omni.isaac.kit.simulation_app] Modules: ['omni.kit_app'] were loaded before SimulationApp was started and might not be loaded correctly.
+[Warning] [omni.isaac.kit.simulation_app] Please check to make sure no extra omniverse or pxr modules are imported before the call to SimulationApp(...)
+Loading user config located at: '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni/data/Kit/Isaac-Sim/4.1/user.config.json'
+[Info] [carb] Logging to file: /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni/logs/Kit/Isaac-Sim/4.1/kit_20260703_122404.log
+2026-07-03 11:24:04 [0ms] [Warning] [omni.kit.app.plugin] No crash reporter present, dumps uploading isn't available.
+[0.021s] [ext: omni.kit.async_engine-0.0.0] startup
+[0.058s] [ext: omni.stats-1.0.1] startup
+[0.059s] [ext: omni.client-1.1.0] startup
+[0.072s] [ext: omni.datastore-0.0.0] startup
+[0.073s] [ext: omni.blobkey-1.1.0] startup
+[0.073s] [ext: omni.ujitso.default-1.0.0] startup
+[0.073s] [ext: omni.hsscclient-0.0.0] startup
+[0.073s] [ext: omni.rtx.shadercache.vulkan-1.0.0] startup
+[0.074s] [ext: omni.assets.plugins-0.0.0] startup
+[0.074s] [ext: omni.gpu_foundation-0.0.0] startup
+[0.078s] [ext: carb.windowing.plugins-1.0.0] startup
+2026-07-03 11:24:04 [68ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-07-03 11:24:04 [68ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.079s] [ext: omni.kit.renderer.init-0.0.0] startup
+2026-07-03 11:24:04 [78ms] [Warning] [omni.platforminfo.plugin] failed to open the default display.  Can't verify X Server version.
+
+|---------------------------------------------------------------------------------------------|
+| Driver Version: 570.124.06    | Graphics API: Vulkan
+|=============================================================================================|
+| GPU | Name                             | Active | LDA | GPU Memory | Vendor-ID | LUID       |
+|     |                                  |        |     |            | Device-ID | UUID       |
+|     |                                  |        |     |            | Bus-ID    |            |
+|---------------------------------------------------------------------------------------------|
+| 0   | NVIDIA GeForce RTX 4090          | Yes: 0 |     | 24564   MB | 10de      | 0          |
+|     |                                  |        |     |            | 2684      | 5493c24e.. |
+|     |                                  |        |     |            | 1         |            |
+|=============================================================================================|
+| OS: 22.04.5 LTS (Jammy Jellyfish) ubuntu, Version: 22.04.5, Kernel: 6.8.0-124-generic
+| Processor: Intel(R) Core(TM) i9-14900K | Cores: 24 | Logical: 48
+|---------------------------------------------------------------------------------------------|
+| Total Memory (MB): 128516 | Free Memory: 121864
+| Total Page/Swap (MB): 2047 | Free Page/Swap: 2047
+|---------------------------------------------------------------------------------------------|
+2026-07-03 11:24:04 [479ms] [Warning] [gpu.foundation.plugin] IOMMU is enabled.
+[0.583s] [ext: omni.kit.pipapi-0.0.0] startup
+[0.584s] [ext: omni.kit.pip_archive-0.0.0] startup
+[0.584s] [ext: omni.mtlx-0.1.0] startup
+[0.584s] [ext: omni.usd.config-1.0.4] startup
+[0.586s] [ext: omni.gpucompute.plugins-0.0.0] startup
+[0.586s] [ext: omni.usd.libs-1.0.1] startup
+[0.637s] [ext: omni.kit.telemetry-0.5.0] startup
+[0.650s] [ext: omni.kit.loop-isaac-1.2.0] startup
+[0.650s] [ext: omni.kit.test-0.0.0] startup
+[0.671s] [ext: omni.usd.schema.semantics-0.0.0] startup
+[0.729s] [ext: omni.usd.schema.anim-0.0.0] startup
+[0.739s] [ext: omni.usd.schema.physx-106.0.20] startup
+[0.763s] [ext: omni.usd.schema.omnigraph-1.0.0] startup
+[0.767s] [ext: omni.usd.schema.audio-0.0.0] startup
+[0.769s] [ext: omni.usd.schema.geospatial-0.0.0] startup
+[0.770s] [ext: omni.usd.schema.forcefield-106.0.20] startup
+[0.774s] [ext: omni.usd_resolver-1.0.0] startup
+[0.777s] [ext: usdrt.scenegraph-7.4.8] startup
+[0.804s] [ext: omni.appwindow-1.1.8] startup
+2026-07-03 11:24:05 [794ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-07-03 11:24:05 [794ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.805s] [ext: omni.kit.actions.core-1.0.0] startup
+[0.806s] [ext: omni.kit.renderer.core-1.0.1] startup
+2026-07-03 11:24:05 [797ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-07-03 11:24:05 [797ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-07-03 11:24:05 [802ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-07-03 11:24:05 [802ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.813s] [ext: omni.kit.commands-1.4.9] startup
+[0.815s] [ext: omni.kit.renderer.capture-0.0.0] startup
+[0.816s] [ext: omni.graph.exec-0.9.3] startup
+[0.817s] [ext: omni.kit.renderer.imgui-1.0.1] startup
+2026-07-03 11:24:05 [808ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-07-03 11:24:05 [808ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-07-03 11:24:05 [809ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-07-03 11:24:05 [809ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+2026-07-03 11:24:05 [809ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-07-03 11:24:05 [809ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[0.857s] [ext: carb.audio-0.1.0] startup
+[0.859s] [ext: omni.ui-2.23.11] startup
+[0.864s] [ext: omni.kit.usd_undo-0.1.8] startup
+[0.864s] [ext: omni.kit.exec.core-0.13.2] startup
+[0.866s] [ext: omni.kit.audiodeviceenum-1.0.1] startup
+[0.866s] [ext: omni.activity.core-1.0.1] startup
+[0.867s] [ext: omni.kit.window.popup_dialog-2.0.24] startup
+[0.869s] [ext: omni.usd.core-1.2.11] startup
+[0.872s] [ext: omni.resourcemonitor-105.0.1] startup
+[0.873s] [ext: omni.timeline-1.0.10] startup
+[0.874s] [ext: omni.kit.widget.nucleus_connector-1.1.8] startup
+[0.875s] [ext: omni.hydra.usdrt_delegate-7.4.7] startup
+[0.892s] [ext: omni.hydra.scene_delegate-0.3.3] startup
+[0.898s] [ext: omni.usd-1.11.2] startup
+[0.922s] [ext: omni.kit.helper.file_utils-0.1.8] startup
+[0.923s] [ext: omni.kit.widget.path_field-2.0.9] startup
+[0.924s] [ext: omni.kit.widget.options_menu-1.1.4] startup
+[0.925s] [ext: omni.kit.widget.context_menu-1.2.1] startup
+[0.925s] [ext: omni.kit.widget.filebrowser-2.10.48] startup
+[0.927s] [ext: omni.kit.widget.browser_bar-2.0.10] startup
+[0.928s] [ext: omni.kit.widget.options_button-1.0.2] startup
+[0.928s] [ext: omni.ui.scene-1.9.3] startup
+[0.930s] [ext: omni.kit.notification_manager-1.0.8] startup
+[0.931s] [ext: omni.kit.clipboard-1.0.3] startup
+[0.932s] [ext: omni.kit.window.filepicker-2.10.34] startup
+[0.937s] [ext: omni.ujitso.processor.texture-1.0.0] startup
+[0.937s] [ext: omni.iray.libs-0.0.0] startup
+[0.940s] [ext: omni.kit.window.file_importer-1.1.11] startup
+[0.941s] [ext: omni.ujitso.client-0.0.0] startup
+[0.941s] [ext: omni.mdl.neuraylib-0.2.5] startup
+[0.942s] [ext: omni.mdl-52.0.1] startup
+[0.950s] [ext: omni.kit.menu.utils-1.5.27] startup
+[0.955s] [ext: omni.kit.usd.layers-2.1.31] startup
+[0.960s] [ext: omni.volume-0.5.0] startup
+[0.962s] [ext: omni.kit.context_menu-1.8.0] startup
+[0.962s] [ext: omni.hydra.rtx-0.2.0] startup
+[0.973s] [ext: omni.kit.material.library-1.4.4] startup
+[0.975s] [ext: omni.hydra.engine.stats-1.0.2] startup
+[0.979s] [ext: omni.kit.hydra_texture-1.2.6] startup
+[0.982s] [ext: omni.kit.viewport.registry-104.0.6] startup
+[0.983s] [ext: omni.kit.raycast.query-1.0.5] startup
+[0.989s] [ext: omni.kit.hotkeys.core-1.3.3] startup
+[0.991s] [ext: omni.kit.widget.viewport-106.0.3] startup
+[0.993s] [ext: omni.inspect-1.0.1] startup
+[0.994s] [ext: omni.kit.viewport.window-106.0.8] startup
+[1.002s] [ext: omni.kit.window.file_exporter-1.0.29] startup
+[1.003s] [ext: omni.kit.widget.filter-1.1.4] startup
+[1.003s] [ext: omni.kit.viewport.utility-1.0.17] startup
+[1.003s] [ext: omni.kit.widget.prompt-1.0.7] startup
+[1.004s] [ext: omni.kit.widget.stage-2.10.26] startup
+[1.008s] [ext: omni.graph.core-2.170.3] startup
+[1.011s] [ext: omni.kit.widget.text_editor-1.0.2] startup
+[1.012s] [ext: omni.physx.foundation-106.0.20] startup
+[1.012s] [ext: omni.kit.widget.searchfield-1.1.6] startup
+[1.012s] [ext: omni.kit.widget.highlight_label-1.0.2] startup
+[1.013s] [ext: omni.kit.widget.settings-1.1.1] startup
+[1.014s] [ext: omni.kit.window.property-1.11.1] startup
+[1.014s] [ext: omni.graph.tools-1.78.0] startup
+[1.024s] [ext: omni.kit.window.preferences-1.5.3] startup
+[1.028s] [ext: omni.kit.property.usd-3.21.28] startup
+[1.032s] [ext: omni.graph-1.135.0] startup
+[1.052s] [ext: omni.graph.image.core-0.3.2] startup
+[1.056s] [ext: omni.graph.ui-1.70.0] startup
+[1.063s] [ext: omni.graph.action_core-1.1.4] startup
+[1.070s] [ext: omni.graph.image.nodes-1.0.2] startup
+[1.071s] [ext: omni.graph.action_nodes-1.23.0] startup
+[1.077s] [ext: omni.graph.nodes-1.143.0] startup
+[1.085s] [ext: omni.graph.action-1.102.1] startup
+[1.087s] [ext: omni.kvdb-106.0.20] startup
+[1.090s] [ext: omni.debugdraw-0.1.3] startup
+[1.095s] [ext: omni.usdphysics-106.0.20] startup
+[1.098s] [ext: omni.localcache-106.0.20] startup
+[1.100s] [ext: omni.convexdecomposition-106.0.20] startup
+[1.105s] [ext: omni.graph.ui_nodes-1.25.1] startup
+[1.110s] [ext: omni.physx.cooking-106.0.20] startup
+[1.119s] [ext: omni.graph.bundle.action-2.0.4] startup
+[1.120s] [ext: omni.kit.stage_template.core-1.1.21] startup
+[1.121s] [ext: omni.physx-106.0.20] startup
+[1.132s] [ext: omni.graph.scriptnode-1.19.1] startup
+[1.134s] [ext: omni.physx.stageupdate-106.0.20] startup
+[1.137s] [ext: omni.kit.primitive.mesh-1.0.16] startup
+[1.141s] [ext: omni.kit.manipulator.transform-104.7.5] startup
+[1.146s] [ext: omni.kit.widget.toolbar-1.6.2] startup
+[1.176s] [ext: omni.usdphysics.ui-106.0.20] startup
+[1.198s] [ext: omni.physx.commands-106.0.20] startup
+[1.202s] [ext: omni.kit.manipulator.tool.snap-1.4.5] startup
+[1.208s] [ext: omni.kit.stage_templates-1.2.3] startup
+[1.210s] [ext: omni.physx.ui-106.0.20] startup
+[1.234s] [ext: omni.kit.window.file-1.3.52] startup
+[1.239s] [ext: omni.kit.property.material-1.9.4] startup
+[1.245s] [ext: omni.physics.tensors-106.0.20] startup
+[1.251s] [ext: omni.physx.demos-106.0.20] startup
+[1.275s] [ext: omni.kit.property.physx-106.0.20] startup
+[1.364s] [ext: omni.physx.tensors-106.0.20] startup
+[1.369s] [ext: omni.physx.vehicle-106.0.20] startup
+[1.379s] [ext: omni.sensors.tiled-0.0.4] startup
+[1.381s] [ext: omni.physx.camera-106.0.20] startup
+[1.387s] [ext: omni.kit.manipulator.selector-1.1.1] startup
+[1.389s] [ext: omni.ui_query-1.1.2] startup
+[1.390s] [ext: omni.fabric.commands-1.1.4] startup
+[1.394s] [ext: omni.kit.viewport.manipulator.transform-106.0.1] startup
+[1.395s] [ext: omni.kit.ui_test-1.2.18] startup
+[1.396s] [ext: omni.kit.widget.graph-1.12.8] startup
+[1.399s] [ext: omni.kit.manipulator.prim.core-107.0.3] startup
+[1.402s] [ext: omni.physx.cct-106.0.20] startup
+[1.409s] [ext: omni.kit.graph.delegate.default-1.2.2] startup
+[1.410s] [ext: omni.kit.manipulator.prim.fabric-106.0.1] startup
+[1.411s] [ext: omni.kit.manipulator.prim.usd-106.0.1] startup
+[1.413s] [ext: omni.kit.graph.editor.core-1.5.3] startup
+[1.416s] [ext: omni.kit.widget.material_preview-1.0.16] startup
+[1.419s] [ext: omni.kit.manipulator.prim-106.0.0] startup
+[1.419s] [ext: omni.kit.graph.usd.commands-1.3.1] startup
+[1.420s] [ext: omni.kit.window.toolbar-1.6.1] startup
+[1.422s] [ext: omni.kit.widget.layers-1.7.9] startup
+[1.427s] [ext: omni.kit.manipulator.selection-104.0.9] startup
+[1.428s] [ext: omni.physx.graph-106.0.20] startup
+[1.437s] [ext: omni.physx.telemetry-106.0.20] startup
+[1.440s] [ext: omni.physx.supportui-106.0.20] startup
+[1.450s] [ext: omni.kit.window.material_graph-1.8.15] startup
+[1.498s] [ext: omni.warp.core-1.2.1] startup
+[1.500s] [ext: omni.syntheticdata-0.6.7] startup
+[1.509s] [ext: omni.isaac.version-1.1.0] startup
+[1.510s] [ext: omni.warp-1.2.1] startup
+[1.514s] [ext: omni.physx.bundle-106.0.20] startup
+[1.514s] [ext: omni.command.usd-1.0.3] startup
+[1.515s] [ext: omni.isaac.nucleus-0.3.0] startup
+[1.516s] [ext: omni.replicator.core-1.11.14] startup
+2026-07-03 11:24:05 [1,625ms] [Warning] [omni.replicator.core.scripts.annotators] Annotator PostProcessDispatch is already registered, overwriting annotator template
+[1.694s] [ext: omni.isaac.core-3.18.1] startup
+[1.814s] [ext: omni.isaac.kit-1.13.0] startup
+[1.814s] [ext: omni.replicator.isaac-1.15.0] startup
+[1.837s] [ext: omni.physx.fabric-106.0.20] startup
+[1.842s] [ext: omni.isaac.cloner-0.8.1] startup
+[1.844s] [ext: omni.kit.viewport.rtx-104.0.1] startup
+[1.844s] [ext: isaaclab.python.headless-1.1.0] startup
+[1.844s] [ext: isaaclab.python.headless.rendering-1.1.0] startup
+[1.848s] Simulation App Starting
+[3.066s] app ready
+[3.227s] Simulation App Startup Complete
+[3.979s] [ext: omni.kit.asset_converter-2.1.11] startup
+2026-07-03 11:24:10 [6,320ms] [Warning] [omni.hydra.scene_delegate.plugin] Calling getBypassRenderSkelMeshProcessing for prim /World/envs/env_0/Robot/FL_foot/visuals.proto_mesh_0_id0 that has not been populated
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 19536 doesn't match expected size 25806 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_calf/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 6270 doesn't match expected size 25806 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55254 doesn't match expected size 90378 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90378 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55278 doesn't match expected size 90402 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90402 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FL_hip/visuals.proto_me[INFO][AppLauncher]: Loading experience file: /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/source/extensions/omni.isaac.lab/omni/isaac/lab/app/../../../../../../apps/isaaclab.python.headless.rendering.kit
+Starting kit application with the following args:  ['/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/exts/omni.isaac.kit/omni/isaac/kit/simulation_app.py', '/mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/source/extensions/omni.isaac.lab/omni/isaac/lab/app/../../../../../../apps/isaaclab.python.headless.rendering.kit', '--/app/tokens/exe-path=/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/omni', '--/persistent/app/viewport/displayOptions=3094', '--/rtx/materialDb/syncLoads=True', '--/rtx/hydra/materialSyncLoads=True', '--/omni.kit.plugin/syncUsdLoads=True', '--/app/renderer/resolution/width=1280', '--/app/renderer/resolution/height=720', '--/app/window/width=1440', '--/app/window/height=900', '--/renderer/multiGpu/enabled=True', '--/app/fastShutdown=True', '--ext-folder', '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/exts', '--ext-folder', '/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/isaacsim/apps', '--/renderer/activeGpu=0', '--/physics/cudaDevice=0', '--portable', '--no-window', '--/app/window/hideUi=True']
+Passing the following args to the base kit application:  ['--task=go2_matterport_vision', '--num_envs=1', '--history_length=9', '--load_run=2024-09-25_23-22-02', '--headless', '--enable_cameras', '--round_trip_mode=phase_prompt', '--instruction_rewriter_provider=cache_only', '--vlm_port=54326', '--episode_idx=5', '--result_suffix=fused_capture_snapshots_fixed_hard11_20260703_ep5', '--route_memory', '--route_hint_mode=compact', '--route_hint_source=oracle', '--route_relocalization_backend=fused', '--oracle_align_return_yaw_to_anchor_segment', '--route_relocalization_interval_updates=25', '--stop_gate', '--stop_gate_r_in=3.0', '--stop_gate_r_out=3.0', '--topdown_route_map', '--hint_action_arbiter', '--capture_anchor_match_snapshots']
+Warp 1.2.1 initialized:
+   CUDA Toolkit 11.8, Driver 12.8
+   Devices:
+     "cpu"      : "x86_64"
+     "cuda:0"   : "NVIDIA GeForce RTX 4090" (24 GiB, sm_89, mempool enabled)
+   Kernel cache:
+     /home/teambruce/.cache/warp/1.2.1
+[INFO]: Parsing configuration from: <class 'omni.isaac.vlnce.config.go2.go2_matterport_vision_cfg.Go2MatterportVisionCfg'>
+[INFO]: Parsing configuration from: <class 'omni.isaac.vlnce.config.go2.go2_matterport_vision_cfg.Go2VisionRoughPPORunnerCfg'>
+[INFO] Loading run from directory: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02
+[INFO]: Loading model checkpoint from: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02/model_26499.pt
+[INFO]: Base environment:
+	Environment device    : cuda:0
+	Physics step-size     : 0.005
+	Rendering step-size   : 0.02
+	Environment step-size : 0.02
+	Physics GPU pipeline  : True
+	Physics GPU simulation: True
+[INFO]: Time taken for scene creation : 1.254903 seconds
+[INFO]: Scene manager:  <class InteractiveScene>
+	Number of environments: 1
+	Environment spacing   : 2.5
+	Source prim name      : /World/envs/env_0
+	Global prim paths     : ['/World/matterport']
+	Replicate physics     : True
+[INFO]: Starting the simulation. This may take a few seconds. Please wait...
+[INFO]: Time taken for simulation start : 0.829106 seconds
+[INFO] Command Manager:  <CommandManager> contains 1 active terms.
++------------------------------------------------+
+|              Active Command Terms              |
++-------+---------------+------------------------+
+| Index | Name          |          Type          |
++-------+---------------+------------------------+
+|   0   | base_velocity | UniformVelocityCommand |
++-------+---------------+------------------------+
+
+[INFO] Action Manager:  <ActionManager> contains 1 active terms.
++------------------------------------+
+|  Active Action Terms (shape: 12)   |
++--------+-------------+-------------+
+| Index  | Name        |   Dimension |
++--------+-------------+-------------+
+|   0    | joint_pos   |          12 |
++--------+-------------+-------------+
+
+Module omni.isaac.lab.utils.warp.kernels ca938a1 load on device 'cuda:0' took 0.24 ms
+[INFO] Observation Manager: <ObservationManager> contains 9 groups.
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'policy' (shape: (504,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_ang_vel                   |     (3,)    |
+|     1     | base_rpy                       |     (3,)    |
+|     2     | velocity_commands              |     (3,)    |
+|     3     | joint_pos                      |    (12,)    |
+|     4     | joint_vel                      |    (12,)    |
+|     5     | actions                        |    (12,)    |
+|     6     | height_map                     |    (459,)   |
++-----------+--------------------------------+-------------+
++---------------------------------------------------------+
+| Active Observation Terms in Group: 'proprio' (shape: (45,)) |
++-----------+---------------------------------+-----------+
+|   Index   | Name                            |   Shape   |
++-----------+---------------------------------+-----------+
+|     0     | base_ang_vel                    |    (3,)   |
+|     1     | base_rpy                        |    (3,)   |
+|     2     | velocity_commands               |    (3,)   |
+|     3     | joint_pos                       |   (12,)   |
+|     4     | joint_vel                       |   (12,)   |
+|     5     | actions                         |   (12,)   |
++-----------+---------------------------------+-----------+
++----------------------------------------------------------+
+| Active Observation Terms in Group: 'critic' (shape: (699,)) |
++-----------+--------------------------------+-------------+
+|   Index   | Name                           |    Shape    |
++-----------+--------------------------------+-------------+
+|     0     | base_lin_vel                   |     (3,)    |
+|     1     | base_ang_vel                   |     (3,)    |
+|     2     | base_rpy                       |     (3,)    |
+|     3     | velocity_commands              |     (3,)    |
+|     4     | joint_pos                      |    (12,)    |
+|     5     | joint_vel                      |    (12,)    |
+|     6     | actions                        |    (12,)    |
+|     7     | height_scan                    |    (651,)   |
++-----------+--------------------------------+-------------+
++----------------------------------------------------------------------+
+| Active Observation Terms in Group: 'camera_obs' (shape: (512, 512, 4)) |
++------------+------------------------------+--------------------------+
+|   Index    | Name                         |          Shape           |
++------------+------------------------------+--------------------------+
+|     0      | rgb_measurement              |      (512, 512, 4)       |
++------------+------------------------------+--------------------------+
++------------------------------------------------------------------------+
+| Active Observation Terms in Group: 'viz_camera_obs' (shape: (512, 512, 4)) |
++------------+-------------------------------+---------------------------+
+|   Index    | Name                          |           Shape           |
++------------+-------------------------------+---------------------------+
+|     0      | rgb_measurement               |       (512, 512, 4)       |
++------------+-------------------------------+---------------------------+
++---------------------------------------------------------------------+
+| Active Observation Terms in Group: 'depth_obs' (shape: (1, 512, 512)) |
++-----------+-------------------------------+-------------------------+
+|   Index   | Name                          |          Shape          |
++-----------+-------------------------------+-------------------------+
+|     0     | depth_measurement             |      (1, 512, 512)      |
++-----------+-------------------------------+-------------------------+
++-------------------------------------------------------------------------+
+| Active Observation Terms in Group: 'rear_camera_obs' (shape: (512, 512, 4)) |
++------------+-------------------------------+----------------------------+
+|   Index    | Name                          |           Shape            |
++------------+-------------------------------+----------------------------+
+|     0      | rgb_measurement               |       (512, 512, 4)        |
++------------+-------------------------------+----------------------------+
++-------------------------------------------------------------------------+
+| Active Observation Terms in Group: 'rear_depth_obs' (shape: (1, 512, 512)) |
++------------+---------------------------------+--------------------------+
+|   Index    | Name                            |          Shape           |
++------------+---------------------------------+--------------------------+
+|     0      | depth_measurement               |      (1, 512, 512)       |
++------------+---------------------------------+--------------------------+
++---------------------------------------------------+
+| Active Observation Terms in Group: 'route_memory_obs' |
++------------+-----------------------+--------------+
+|   Index    | Name                  |    Shape     |
++------------+-----------------------+--------------+
+|     0      | height_map            |    (459,)    |
+|     1      | height_scan           |    (651,)    |
++------------+-----------------------+--------------+
+
+[INFO] Event Manager:  <EventManager> contains 1 active terms.
++-------------------------------------+
+| Active Event Terms in Mode: 'reset' |
++--------+----------------------------+
+| Index  | Name                       |
++--------+----------------------------+
+|   0    | reset_scene_to_default     |
+|   1    | reset_base                 |
++--------+----------------------------+
+
+[INFO] Termination Manager:  <TerminationManager> contains 3 active terms.
++------------------------------------+
+|      Active Termination Terms      |
++-------+-----------------+----------+
+| Index | Name            | Time Out |
++-------+-----------------+----------+
+|   0   | time_out        |   True   |
+|   1   | base_contact    |  False   |
+|   2   | bad_orientation |  False   |
++-------+-----------------+----------+
+
+[INFO] Reward Manager:  <RewardManager> contains 1 active terms.
++--------------------------------------+
+|         Active Reward Terms          |
++-------+---------------------+--------+
+| Index | Name                | Weight |
++-------+---------------------+--------+
+|   0   | termination_penalty | -200.0 |
++-------+---------------------+--------+
+
+[INFO] Curriculum Manager:  <CurriculumManager> contains 0 active terms.
++----------------------+
+| Active Curriculum Terms |
++-----------+----------+
+|   Index   | Name     |
++-----------+----------+
++-----------+----------+
+
+[INFO]: Completed setting up the environment...
+ActorCritic.__init__ got unexpected arguments, which will be ignored: ['history_length']
+Actor MLP: Sequential(
+  (0): Linear(in_features=909, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=12, bias=True)
+)
+Critic MLP: Sequential(
+  (0): Linear(in_features=699, out_features=512, bias=True)
+  (1): ELU(alpha=1.0)
+  (2): Linear(in_features=512, out_features=256, bias=True)
+  (3): ELU(alpha=1.0)
+  (4): Linear(in_features=256, out_features=128, bias=True)
+  (5): ELU(alpha=1.0)
+  (6): Linear(in_features=128, out_features=1, bias=True)
+)
+[INFO]: Loading model checkpoint from: /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl/go2_vision/2024-09-25_23-22-02/model_26499.pt
+Warmup step 0/100...
+Warmup step 99/100...
+[INFO] Captured USD floor-slice occupancy map: 158x323 px, 29680 rasterized triangles
+[stop_gate] enabled: r_in=3.0 r_out=3.0 confirm_steps=3 min_confidence=0.5
+[hint_arbiter] enabled: topdown_map_available=True allow_without_clear_path=False
+Not enough images received, padding.
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[DIAG] local_map_descriptor_from_env: using sensor name='lidar_sensor' (available: ['height_scanner', 'rgbd_camera', 'viz_rgb_camera', 'contact_forces', 'lidar_sensor', 'rear_rgbd_camera'])
+[DIAG] local_map_descriptor_from_env: points_body count=2842 x_range=(-0.59,15.15) y_range=(-7.24,0.69) z_range=(-0.36,2.27) radius_max=15.90
+Not enough images received, padding.
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+Not enough images received, padding.
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+Not enough images received, padding.
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+Not enough images received, padding.
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[outbound] VLM output: I think I should stop because I have finished the instruction.
+Vel Command: [0.0, 0.0, 0.0], Env Steps to go: 0, Parseable: True
+
+[return] start step=1775, oracle=False, pose_error_after_oracle={'xy_error_m': 0.18066592514514923, 'z_error_m': 0.0, 'yaw_error_rad': -0.04688928440534679, 'yaw_error_deg': -2.686558100814959}
+[return] step=1775, elapsed_return_steps=0, distance_to_start=10.136
+Not enough images received, padding.
+[hint_arbiter] step=1776 override=False reason=occupied_in_local_map_path desired=forward bearing=0.38259402922421476 clear=False
+[return] VLM output: The next action is turn left 45 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=1776 decision=pass d=11.925484942839311 conf=1.000 teleport=False
+Not enough images received, padding.
+[hint_arbiter] step=1851 override=False reason=occupied_in_local_map_path desired=right bearing=-28.573654416607067 clear=False
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=1851 decision=pass d=11.815151297061476 conf=1.000 teleport=False
+Not enough images received, padding.
+[hint_arbiter] step=1876 override=False reason=occupied_in_local_map_path desired=right bearing=-40.23813879892932 clear=False
+[return] VLM output: The next action is turn left 15 degree.
+Vel Command: [0.0, 0.0, 0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=1876 decision=pass d=11.783071836794404 conf=1.000 teleport=False
+Not enough images received, padding.
+[hint_arbiter] step=1901 override=False reason=occupied_in_local_map_path desired=right bearing=-50.09254542049315 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=1901 decision=pass d=11.75108073385281 conf=1.000 teleport=False
+[hint_arbiter] step=1976 override=False reason=occupied_in_local_map_path desired=right bearing=-72.62782603478202 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=1976 decision=pass d=11.47522852877571 conf=1.000 teleport=False
+[hint_arbiter] step=2051 override=False reason=occupied_in_local_map_path desired=right bearing=-75.96544759487696 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2051 decision=pass d=11.50931726872531 conf=1.000 teleport=False
+[hint_arbiter] step=2126 override=False reason=vlm_action_consistent desired=right bearing=-67.50074302294774 clear=None
+[return] VLM output: The next action is turn right 15 degree.
+Vel Command: [0.0, 0.0, -0.5235987755982988], Env Steps to go: 25, Parseable: True
+
+[stop_gate] step=2126 decision=pass d=11.523388727308577 conf=1.000 teleport=False
+[hint_arbiter] step=2151 override=False reason=occupied_in_local_map_path desired=right bearing=-52.692209165022525 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2151 decision=pass d=11.552950992968743 conf=1.000 teleport=False
+[hint_arbiter] step=2226 override=False reason=occupied_in_local_map_path desired=right bearing=-46.468527313374146 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2226 decision=pass d=11.533644070116038 conf=1.000 teleport=False
+[return] step=2275, elapsed_return_steps=500, distance_to_start=9.556
+[hint_arbiter] step=2301 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30444169459463 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2301 decision=pass d=11.533736299445527 conf=1.000 teleport=False
+[hint_arbiter] step=2376 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30434647321058 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2376 decision=pass d=11.533736379971947 conf=1.000 teleport=False
+[hint_arbiter] step=2451 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304476442580444 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2451 decision=pass d=11.533736631572468 conf=1.000 teleport=False
+[hint_arbiter] step=2526 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30418649056074 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2526 decision=pass d=11.53373615843654 conf=1.000 teleport=False
+[hint_arbiter] step=2601 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30416827901568 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2601 decision=pass d=11.533736324499781 conf=1.000 teleport=False
+[hint_arbiter] step=2676 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30413310039308 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2676 decision=pass d=11.53373649557409 conf=1.000 teleport=False
+[hint_arbiter] step=2751 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30424240464723 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2751 decision=pass d=11.533736561067458 conf=1.000 teleport=False
+[return] step=2775, elapsed_return_steps=1000, distance_to_start=9.556
+[hint_arbiter] step=2826 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30433542000794 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2826 decision=pass d=11.533736379971947 conf=1.000 teleport=False
+[hint_arbiter] step=2901 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30425106713971 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2901 decision=pass d=11.533736646604547 conf=1.000 teleport=False
+[hint_arbiter] step=2976 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304422922132225 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=2976 decision=pass d=11.533736384982582 conf=1.000 teleport=False
+[hint_arbiter] step=3051 override=False reason=occupied_in_local_map_path desired=right bearing=-46.3044166755414 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3051 decision=pass d=11.533736123360853 conf=1.000 teleport=False
+[hint_arbiter] step=3126 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30433604343433 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3126 decision=pass d=11.533736465508987 conf=1.000 teleport=False
+[hint_arbiter] step=3201 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30433624203549 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3201 decision=pass d=11.533736384982582 conf=1.000 teleport=False
+[return] step=3275, elapsed_return_steps=1500, distance_to_start=9.556
+[hint_arbiter] step=3276 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30420243729428 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3276 decision=pass d=11.533736490563044 conf=1.000 teleport=False
+[hint_arbiter] step=3351 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30423444169814 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3351 decision=pass d=11.533736233951647 conf=1.000 teleport=False
+[hint_arbiter] step=3426 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30417562812487 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3426 decision=pass d=11.533736233951647 conf=1.000 teleport=False
+[hint_arbiter] step=3501 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30425575510298 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3501 decision=pass d=11.533736389993296 conf=1.000 teleport=False
+[hint_arbiter] step=3576 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30420059154321 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3576 decision=pass d=11.533736072899384 conf=1.000 teleport=False
+[hint_arbiter] step=3651 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30446065228575 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3651 decision=pass d=11.533736631572468 conf=1.000 teleport=False
+[hint_arbiter] step=3726 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30436507431866 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3726 decision=pass d=11.533735720728982 conf=1.000 teleport=False
+[return] step=3775, elapsed_return_steps=2000, distance_to_start=9.556
+[hint_arbiter] step=3801 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304375664196854 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3801 decision=pass d=11.533735962307972 conf=1.000 teleport=False
+[hint_arbiter] step=3876 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304376175931985 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3876 decision=pass d=11.533736213908478 conf=1.000 teleport=False
+[hint_arbiter] step=3951 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304408768047665 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=3951 decision=pass d=11.533736123360853 conf=1.000 teleport=False
+[hint_arbiter] step=4026 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30427153831061 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4026 decision=pass d=11.533736148414524 conf=1.000 teleport=False
+[hint_arbiter] step=4101 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30430963934034 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4101 decision=pass d=11.533736057866536 conf=1.000 teleport=False
+[hint_arbiter] step=4176 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30437066298155 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4176 decision=pass d=11.533736465508987 conf=1.000 teleport=False
+[hint_arbiter] step=4251 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304212664607206 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4251 decision=pass d=11.533736324499781 conf=1.000 teleport=False
+[return] step=4275, elapsed_return_steps=2500, distance_to_start=9.556
+[hint_arbiter] step=4326 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304189466963486 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4326 decision=pass d=11.533736485552076 conf=1.000 teleport=False
+[hint_arbiter] step=4401 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304308654687695 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4401 decision=pass d=11.533735977340294 conf=1.000 teleport=False
+[hint_arbiter] step=4476 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30439817860768 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4476 decision=pass d=11.533736384982582 conf=1.000 teleport=False
+[hint_arbiter] step=4551 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30430433823325 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4551 decision=pass d=11.533736057866536 conf=1.000 teleport=False
+[hint_arbiter] step=4626 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304251902803145 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4626 decision=pass d=11.533736148414524 conf=1.000 teleport=False
+[hint_arbiter] step=4701 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304403852464226 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4701 decision=pass d=11.533735962307972 conf=1.000 teleport=False
+[return] step=4775, elapsed_return_steps=3000, distance_to_start=9.556
+[hint_arbiter] step=4776 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30408240147284 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4776 decision=pass d=11.533735997384483 conf=1.000 teleport=False
+[hint_arbiter] step=4851 override=False reason=occupied_in_local_map_path desired=right bearing=-46.3043182963727 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4851 decision=pass d=11.533736395004087 conf=1.000 teleport=False
+[hint_arbiter] step=4926 override=False reason=occupied_in_local_map_path desired=right bearing=-46.3043703185825 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=4926 decision=pass d=11.533736213908478 conf=1.000 teleport=False
+[hint_arbiter] step=5001 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30430349028179 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5001 decision=pass d=11.533736148414524 conf=1.000 teleport=False
+[hint_arbiter] step=5076 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304392186923764 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5076 decision=pass d=11.533736294434911 conf=1.000 teleport=False
+[hint_arbiter] step=5151 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30450408785239 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5151 decision=pass d=11.533736213908478 conf=1.000 teleport=False
+[hint_arbiter] step=5226 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304319763163456 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5226 decision=pass d=11.533736299445527 conf=1.000 teleport=False
+[return] step=5275, elapsed_return_steps=3500, distance_to_start=9.556
+[hint_arbiter] step=5301 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304296595839816 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5301 decision=pass d=11.533736470519642 conf=1.000 teleport=False
+[hint_arbiter] step=5376 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304260742213195 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5376 decision=pass d=11.533736138392822 conf=1.000 teleport=False
+[hint_arbiter] step=5451 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304120211182116 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5451 decision=pass d=11.533736319488774 conf=1.000 teleport=False
+[hint_arbiter] step=5526 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30441115620823 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5526 decision=pass d=11.533736379971947 conf=1.000 teleport=False
+[hint_arbiter] step=5601 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304443341519686 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5601 decision=pass d=11.533736128371432 conf=1.000 teleport=False
+[hint_arbiter] step=5676 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30405116764022 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5676 decision=pass d=11.533736248984845 conf=1.000 teleport=False
+[hint_arbiter] step=5751 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30438744404442 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5751 decision=pass d=11.533736213908478 conf=1.000 teleport=False
+[return] step=5775, elapsed_return_steps=4000, distance_to_start=9.556
+[hint_arbiter] step=5826 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304448979334474 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5826 decision=pass d=11.53373620889788 conf=1.000 teleport=False
+[hint_arbiter] step=5901 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30413348669289 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5901 decision=pass d=11.533736238962636 conf=1.000 teleport=False
+[hint_arbiter] step=5976 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304281034838134 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=5976 decision=pass d=11.533736228940738 conf=1.000 teleport=False
+[hint_arbiter] step=6051 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30448591035017 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6051 decision=pass d=11.533736037823832 conf=1.000 teleport=False
+[hint_arbiter] step=6126 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30426030339324 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6126 decision=pass d=11.533736153425494 conf=1.000 teleport=False
+[hint_arbiter] step=6201 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304192782384895 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6201 decision=pass d=11.533736405025905 conf=1.000 teleport=False
+[return] step=6275, elapsed_return_steps=4500, distance_to_start=9.556
+[hint_arbiter] step=6276 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30438662816636 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6276 decision=pass d=11.533736379971947 conf=1.000 teleport=False
+[hint_arbiter] step=6351 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304284639284475 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6351 decision=pass d=11.533736309466995 conf=1.000 teleport=False
+[hint_arbiter] step=6426 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30437984036914 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6426 decision=pass d=11.533736057866536 conf=1.000 teleport=False
+[hint_arbiter] step=6501 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304254315701584 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6501 decision=pass d=11.533736148414524 conf=1.000 teleport=False
+[hint_arbiter] step=6576 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30436814794284 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6576 decision=pass d=11.533736057866536 conf=1.000 teleport=False
+[hint_arbiter] step=6651 override=False reason=occupied_in_local_map_path desired=right bearing=-46.30446357230376 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6651 decision=pass d=11.533736379971947 conf=1.000 teleport=False
+[hint_arbiter] step=6726 override=False reason=occupied_in_local_map_path desired=right bearing=-46.304206020508204 clear=False
+[return] VLM output: The next action is move forward 75 cm.
+Vel Command: [0.5, 0.0, 0.0], Env Steps to go: 75, Parseable: True
+
+[stop_gate] step=6726 decision=pass d=11.533736742163455 conf=1.000 teleport=False
+[return] step=6775, elapsed_return_steps=5000, distance_to_start=9.556
+sh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55254 doesn't match expected size 90378 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 55278 doesn't match expected size 90402 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/FR_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90378 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_thigh/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 35124 doesn't match expected size 90402 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 54198 doesn't match expected size 111120 in faceVarying primvars
+2026-07-03 11:24:10 [6,322ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/RL_hip/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 56922 doesn't match expected size 111120 in faceVarying primvars
+2026-07-03 11:24:10 [6,323ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_3': buffer size 11886 doesn't match expected size 233784 in faceVarying primvars
+2026-07-03 11:24:10 [6,323ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_2': buffer size 6015 doesn't match expected size 233784 in faceVarying primvars
+2026-07-03 11:24:10 [6,323ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_4': buffer size 30390 doesn't match expected size 233784 in faceVarying primvars
+2026-07-03 11:24:10 [6,323ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st_1': buffer size 6960 doesn't match expected size 233784 in faceVarying primvars
+2026-07-03 11:24:10 [6,323ms] [Warning] [omni.hydra] Mesh '/World/envs/env_0/Robot/base/visuals.proto_mesh_0_id0' has corrupted data in primvar 'st': buffer size 178533 doesn't match expected size 233784 in faceVarying primvars
+2026-07-03 11:32:33 [508,626ms] [Warning] [carb.windowing-glfw.plugin] GLFW initialization failed.
+2026-07-03 11:32:33 [508,626ms] [Warning] [carb] Failed to startup plugin carb.windowing-glfw.plugin (interfaces: [carb::windowing::IGLContext v1.0],[carb::windowing::IWindowing v1.4]) (impl: carb.windowing-glfw.plugin)
+[508.763s] Simulation App Shutting Down
+Warning: Possible version incompatibility. Attempting to load omni::fabric::IPath with version v0.2 against v0.1.
+Warning: Possible version incompatibility. Attempting to load omni::fabric::IPath with version v0.2 against v0.1.
+/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/tensordict/_pytree.py:218: UserWarning: torch.utils._pytree._register_pytree_node is deprecated. Please use torch.utils._pytree.register_pytree_node instead.
+  register_pytree_node(
+/mnt/SSD4T/teambruce/conda_envs/vlnce-isaac/lib/python3.10/site-packages/tensordict/_pytree.py:237: UserWarning: torch.utils._pytree._register_pytree_node is deprecated. Please use torch.utils._pytree.register_pytree_node instead.
+  register_pytree_node(

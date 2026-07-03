@@ -488,6 +488,37 @@ def _apply_transform_2d(points: np.ndarray, theta: float, translation: np.ndarra
     return (points @ _rotation_2d(theta).T + np.asarray(translation, dtype=np.float32)).astype(np.float32)
 
 
+def build_local_map_match_snapshot(
+    anchor_points: np.ndarray,
+    current_points: np.ndarray,
+    theta: float,
+    translation: np.ndarray,
+    correspondence_threshold_m: float = 0.45,
+) -> dict:
+    """JSON-serializable snapshot of one anchor-vs-current local-map ICP
+    alignment, for offline visual match-quality diagnosis (see
+    ``plot_anchor_match_diagnostics.py``). Both point sets are already
+    voxel-downsampled (<=256 points) by the time backends call this, so a
+    snapshot is only a few KB -- safe to attach per accepted match when a
+    caller opts in via ``capture_match_snapshots``, rather than only ever
+    keeping the scalar summary metrics (overlap ratio, residual, confidence)
+    that the rest of this module already records.
+    """
+    anchor_points = np.asarray(anchor_points, dtype=np.float32)
+    current_points = np.asarray(current_points, dtype=np.float32)
+    transformed_anchor = _apply_transform_2d(anchor_points, theta, translation)
+    _, distances = _nearest_neighbor_2d(transformed_anchor, current_points)
+    inlier_mask = distances < float(correspondence_threshold_m)
+    return {
+        "anchor_points_body": anchor_points.tolist(),
+        "current_points_body": current_points.tolist(),
+        "theta_rad": float(theta),
+        "translation": [float(translation[0]), float(translation[1])],
+        "anchor_inlier_mask": inlier_mask.tolist(),
+        "correspondence_threshold_m": float(correspondence_threshold_m),
+    }
+
+
 def corridor_degeneracy_ratio(points: np.ndarray, k: int = 8) -> Optional[float]:
     """Estimate how geometrically constrained a 2-D local-map point cloud is for ICP.
 
@@ -911,6 +942,7 @@ def local_map_anchor_relocalization(
     dead_reckoning_yaw_rad: Optional[float] = None,
     corridor_degeneracy_skip_threshold: float = 0.15,
     heading_consistency_max_error_rad: float = math.radians(90.0),
+    capture_match_snapshots: bool = False,
 ) -> Optional[object]:
     """Relocalize against saved route anchors using LiDAR/local-map scan matching.
 
@@ -920,6 +952,14 @@ def local_map_anchor_relocalization(
     ``RouteMemoryAgent.current_absolute_pose_from_start()[2]``). It is used only
     as a cross-check (P1 heading-consistency gate); passing ``None`` preserves
     the previous behavior (always accept the top-scoring ICP yaw seed).
+
+    ``capture_match_snapshots``, when true, attaches a small anchor/current
+    point-cloud snapshot (see ``build_local_map_match_snapshot``) to every
+    accepted (``outcome == "pose_candidate"``) covisibility record, for
+    offline visualization of *why* a match looked the way it did -- the
+    scalar metrics already recorded here (overlap, residual, confidence) say
+    a match was bad but not what the two point clouds actually looked like.
+    Off by default since it noticeably grows the measurement JSON.
     """
     from route_memory_agent import AnchorRelocalization, compose_pose, inverse_delta, wrap_angle
 
@@ -1087,6 +1127,10 @@ def local_map_anchor_relocalization(
         record["estimated_distance_to_anchor_m"] = float(candidate.distance_to_anchor_m)
         record["estimated_bearing_to_anchor_deg"] = float(candidate.bearing_to_anchor_deg)
         record["outcome"] = "pose_candidate"
+        if capture_match_snapshots:
+            record["match_snapshot"] = build_local_map_match_snapshot(
+                anchor_points, current_points, result["theta"], result["translation"]
+            )
         _append_covisibility_record(diagnostics, record)
         pose_candidates.append(candidate)
         if best is None or score > best[0]:
@@ -1115,6 +1159,7 @@ def scan_context_anchor_relocalization(
     min_combined_score_margin_ratio: float = 1.15,
     dead_reckoning_yaw_rad: Optional[float] = None,
     heading_consistency_max_error_rad: float = math.radians(90.0),
+    capture_match_snapshots: bool = False,
 ) -> Optional[object]:
     """P3: relocalize using Scan Context global-descriptor similarity to pick
     *which* anchor, then a narrow local ICP search only against that one
@@ -1383,6 +1428,28 @@ def scan_context_anchor_relocalization(
         anchor_heading_reliable=True,
     )
     _diagnostic_inc(diagnostics, "successful_estimates")
+    if capture_match_snapshots:
+        match_record = {
+            "attempt": diagnostics.get("attempts") if diagnostics is not None else None,
+            "anchor_index": int(best_anchor.index),
+            "matcher_backend": "scan_context",
+            "outcome": "pose_candidate",
+            "scan_context_similarity": float(best_similarity),
+            "scan_context_region_size": int(best_region_size),
+            "inlier_count": inlier_count,
+            "overlap_ratio": overlap,
+            "median_residual_m": residual,
+            "confidence": float(combined_confidence),
+            "estimated_anchor_dx_m": float(result["translation"][0]),
+            "estimated_anchor_dy_m": float(result["translation"][1]),
+            "estimated_anchor_dtheta_deg": float(math.degrees(result["theta"])),
+            "estimated_distance_to_anchor_m": float(candidate.distance_to_anchor_m),
+            "estimated_bearing_to_anchor_deg": float(candidate.bearing_to_anchor_deg),
+            "match_snapshot": build_local_map_match_snapshot(
+                best_anchor_points, current_points, result["theta"], result["translation"]
+            ),
+        }
+        _append_covisibility_record(diagnostics, match_record)
     if return_candidates:
         return [candidate]
     return candidate
@@ -1399,6 +1466,7 @@ def fused_anchor_relocalization(
     agreement_max_heading_disagreement_rad: float = math.radians(30.0),
     agreement_max_position_disagreement_m: float = 0.75,
     single_source_confidence_penalty: float = 0.8,
+    capture_match_snapshots: bool = False,
 ) -> Optional[object]:
     """Cross-validate LoFTR (RGB-D) and Scan Context (LiDAR) relocalization
     against each other instead of trusting either in isolation.
@@ -1448,8 +1516,19 @@ def fused_anchor_relocalization(
     if diagnostics is not None:
         diagnostics["matcher_backend"] = "fused"
 
-    rgbd_diag: Optional[dict] = {} if diagnostics is not None else None
-    lidar_diag: Optional[dict] = {} if diagnostics is not None else None
+    # Reuse the same nested dict across calls (via setdefault) rather than a
+    # fresh {} each time: this function is called once per relocalization
+    # interval for the whole episode, and a fresh dict every call meant only
+    # the LAST call's per-anchor covisibility_records (and match_snapshot,
+    # once capture_match_snapshots was added) ever survived into the saved
+    # measurement JSON -- every earlier call's history was silently discarded
+    # the instant the next call overwrote diagnostics["fused_rgbd_diagnostics"]
+    # / ["fused_lidar_diagnostics"] wholesale. setdefault makes every call
+    # accumulate into the same persistent sub-dict instead, so scalar counters
+    # (e.g. "attempts") and covisibility_records/match_snapshot both cover the
+    # full episode, not just its final relocalization attempt.
+    rgbd_diag: Optional[dict] = diagnostics.setdefault("fused_rgbd_diagnostics", {}) if diagnostics is not None else None
+    lidar_diag: Optional[dict] = diagnostics.setdefault("fused_lidar_diagnostics", {}) if diagnostics is not None else None
 
     rgbd_result = feature_depth_anchor_relocalization(
         current_descriptor,
@@ -1464,10 +1543,8 @@ def fused_anchor_relocalization(
         max_candidates=max_candidates,
         diagnostics=lidar_diag,
         dead_reckoning_yaw_rad=dead_reckoning_yaw_rad,
+        capture_match_snapshots=capture_match_snapshots,
     )
-    if diagnostics is not None:
-        diagnostics["fused_rgbd_diagnostics"] = rgbd_diag
-        diagnostics["fused_lidar_diagnostics"] = lidar_diag
 
     def _single_source(result, label: str):
         _diagnostic_inc(diagnostics, f"fused_{label}_only")

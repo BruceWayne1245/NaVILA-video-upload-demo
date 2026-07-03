@@ -172,6 +172,15 @@ parser.add_argument("--route_relocalization_window", type=int, default=0, help=a
 parser.add_argument("--route_relocalization_interval_updates", type=int, default=25, help=argparse.SUPPRESS)
 parser.add_argument("--route_fallback", action="store_true", default=False, help=argparse.SUPPRESS)
 parser.add_argument(
+    "--capture_anchor_match_snapshots",
+    action="store_true",
+    default=False,
+    help="Attach small anchor-vs-current local-map point-cloud snapshots (ICP alignment + inlier "
+         "mask) to route_relocalization_diagnostics for the lidar_local_map/scan_context/fused "
+         "backends, for offline visualization via plot_anchor_match_diagnostics.py. Off by default "
+         "since it grows the measurement JSON.",
+)
+parser.add_argument(
     "--vio_bridge",
     action="store_true",
     default=True,
@@ -1434,6 +1443,7 @@ def main():
             diagnostics=route_relocalization_diagnostics,
             return_candidates=True,
             dead_reckoning_yaw_rad=route_agent.current_absolute_pose_from_start()[2],
+            capture_match_snapshots=args_cli.capture_anchor_match_snapshots,
         )
     elif args_cli.route_relocalization_backend == "scan_context":
         # P3: Scan Context picks *which* anchor via global descriptor
@@ -1449,6 +1459,7 @@ def main():
             diagnostics=route_relocalization_diagnostics,
             return_candidates=True,
             dead_reckoning_yaw_rad=route_agent.current_absolute_pose_from_start()[2],
+            capture_match_snapshots=args_cli.capture_anchor_match_snapshots,
         )
     elif args_cli.route_relocalization_backend == "fused":
         # Cross-validates LoFTR (RGB-D) against Scan Context (LiDAR) each
@@ -1465,6 +1476,7 @@ def main():
             diagnostics=route_relocalization_diagnostics,
             return_candidates=True,
             dead_reckoning_yaw_rad=route_agent.current_absolute_pose_from_start()[2],
+            capture_match_snapshots=args_cli.capture_anchor_match_snapshots,
         )
     relocalization_interval_backends = set(feature_relocalization_backends) | {"lidar_local_map", "scan_context", "fused"}
     route_agent = RouteMemoryAgent(
