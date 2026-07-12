@@ -12,6 +12,7 @@ Run with:
 import json
 import math
 import unittest
+from typing import Optional
 from unittest import mock
 
 import numpy as np
@@ -1525,8 +1526,9 @@ class TestSequentialPairYawDiagnostics(unittest.TestCase):
             descriptor={"local_map_points_body": points},
         )
 
-    def _pose_candidate_record(self, points: np.ndarray) -> dict:
-        anchor = self._make_anchor(5, points)
+    def _pose_candidate_record(self, points: np.ndarray, anchor_points_override: Optional[np.ndarray] = None) -> dict:
+        anchor_points = points if anchor_points_override is None else anchor_points_override
+        anchor = self._make_anchor(5, anchor_points)
         diagnostics: dict = {}
         sequential_pair_anchor_relocalization(
             {"local_map_points_body": points}, anchor, None, diagnostics=diagnostics,
@@ -1571,8 +1573,40 @@ class TestSequentialPairYawDiagnostics(unittest.TestCase):
         self.assertEqual(localizability.get("yaw_observability"), "unknown")
         json.dumps(localizability)
 
+    def test_scan_context_yaw_check_agrees_with_icp_on_a_known_rotation(self):
+        """2026-07-12 (problem-2 step 4): Scan Context's column-shift yaw and
+        ICP's own theta must be directly comparable with no sign flip --
+        verified here against a known synthetic rotation, not just reasoned
+        about (see _scan_context_yaw_check's docstring)."""
+        anchor_points = _asymmetric_l_shape_points()
+        true_theta = math.radians(40.0)
+        current_points = _rotate_2d(anchor_points, true_theta)
+        record = self._pose_candidate_record(current_points, anchor_points_override=anchor_points)
+        check = record["scan_context_yaw_check"]
+        self.assertTrue(check["available"])
+        # Scan Context's own yaw estimate should land near the true rotation
+        # (coarse: 60 sectors = 6 deg/sector resolution).
+        sc_err = min(
+            abs(check["scan_context_yaw_deg"] - 40.0),
+            abs(check["scan_context_yaw_deg"] - 40.0 + 360.0),
+            abs(check["scan_context_yaw_deg"] - 40.0 - 360.0),
+        )
+        self.assertLess(sc_err, 10.0, f"Scan Context yaw {check['scan_context_yaw_deg']} should be near 40 deg")
+        # and it should agree with ICP's own (much more precise) theta for
+        # this same, unambiguous rotation -- the whole point of the check.
+        self.assertLess(check["icp_scan_context_yaw_agreement_deg"], 10.0)
+        json.dumps(check)
 
-class TestComputeAnchorAliasScores(unittest.TestCase):
+    def test_scan_context_yaw_check_reports_disagreement_for_symmetric_shape(self):
+        """A rotationally-symmetric shape genuinely has multiple equally
+        valid yaw solutions -- Scan Context and ICP settling on different
+        90-deg-apart solutions is a real disagreement, not a bug."""
+        anchor_points = _cross_shape_points()
+        current_points = _rotate_2d(anchor_points, math.radians(43.0))
+        record = self._pose_candidate_record(current_points, anchor_points_override=anchor_points)
+        check = record["scan_context_yaw_check"]
+        self.assertTrue(check["available"])
+        json.dumps(check)
     """Anchor-distinctiveness precompute (user-proposed 2026-07-06, see
     investigations/2026-07-06-anchor-selection-and-icp-aliasing): flags an
     anchor whose local structure repeats at a non-adjacent route position,

@@ -886,6 +886,65 @@ def _yaw_curve_diagnostics(scored_results: list[tuple[float, dict]]) -> dict:
     }
 
 
+def _scan_context_yaw_check(
+    anchor_points_xyz: Optional[np.ndarray],
+    current_points_xyz: Optional[np.ndarray],
+    icp_theta_rad: float,
+) -> dict:
+    """2026-07-12, problem-2 step 4 (per
+    investigations/2026-07-09-.../route_memory_literature_survey.md §2.4 and
+    investigations/2026-07-10-.../PROGRESS.md's plan): an INDEPENDENT yaw
+    estimate from Scan Context's column-shift search, diagnostic-only (never
+    gates or rejects, same convention as `_yaw_curve_diagnostics`/
+    `_localizability_from_correspondences`'s yaw fields).
+
+    Steps 1-2 (yaw_curve, yaw_observability) only ever re-examine the SAME
+    ICP computation more closely -- the score landscape it already produced,
+    the correspondence Hessian it already built. Neither can, even in
+    principle, catch a case where ICP itself is a genuine, self-consistent
+    local optimum that just happens to be wrong (the exact "clean_full_pose,
+    healthy overlap/inliers, confidently wrong by 46-65 deg" signature in
+    investigations/2026-07-09-.../FINDINGS.md §3.5) -- there is nothing
+    "off" in ICP's own internal state to detect in that case. Scan Context is
+    a structurally different algorithm (global egocentric occupancy
+    similarity via column-shift search, not iterative nearest-point
+    minimization), so its failure modes don't coincide with ICP's -- a
+    disagreement between the two is evidence neither one alone can produce.
+
+    Sign convention (verified against ICP's own convention, not just
+    reasoned about -- see the unit test using a known synthetic rotation):
+    `sequential_pair_anchor_relocalization` calls
+    `icp_seed_sweep_2d(anchor_points, current_points, ...)`, i.e. ICP's
+    `theta` is "the rotation applied to the anchor to align it with current".
+    `column_shift_search_with_region(current_sc, anchor_sc)` rolls the
+    *anchor's* Scan Context columns to best match current's, and
+    `shift_to_yaw_rad` converts that roll into the same "anchor -> current"
+    rotation sense -- so `scan_context_yaw_rad` and `icp_theta_rad` are
+    directly comparable with no sign flip needed.
+    """
+    if anchor_points_xyz is None or current_points_xyz is None:
+        return {"available": False, "reason": "missing_xyz"}
+    if len(anchor_points_xyz) < 12 or len(current_points_xyz) < 12:
+        return {"available": False, "reason": "too_few_points"}
+    current_sc = build_scan_context(current_points_xyz)
+    anchor_sc = build_scan_context(anchor_points_xyz)
+    num_sectors = current_sc.shape[1]
+    grid_cells = float(current_sc.shape[0] * num_sectors)
+    similarity, shift, region_size = column_shift_search_with_region(current_sc, anchor_sc)
+    scan_context_yaw_rad = shift_to_yaw_rad(shift, num_sectors)
+    agreement_deg = abs(math.degrees(
+        math.atan2(math.sin(scan_context_yaw_rad - icp_theta_rad), math.cos(scan_context_yaw_rad - icp_theta_rad))
+    ))
+    return {
+        "available": True,
+        "scan_context_yaw_deg": math.degrees(scan_context_yaw_rad),
+        "scan_context_similarity": float(similarity),
+        "scan_context_region_size": int(region_size),
+        "scan_context_region_ratio": float(region_size) / grid_cells,
+        "icp_scan_context_yaw_agreement_deg": agreement_deg,
+    }
+
+
 def build_local_map_match_snapshot(
     anchor_points: np.ndarray,
     current_points: np.ndarray,
@@ -1707,6 +1766,9 @@ def sequential_pair_anchor_relocalization(
             correspondence_threshold_m=0.45,
         )
         record["localizability"] = localizability
+        record["scan_context_yaw_check"] = _scan_context_yaw_check(
+            anchor_points_xyz, current_points_xyz, result["theta"],
+        )
         height_consistency = None
         if icp_objective == "point_to_line_2p5d":
             height_consistency = _height_consistency_from_correspondences(
