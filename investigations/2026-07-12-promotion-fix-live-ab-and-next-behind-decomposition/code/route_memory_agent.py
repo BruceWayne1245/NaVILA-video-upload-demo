@@ -371,6 +371,9 @@ class RouteMemoryAgent:
         sequential_pair_promotion_alias_min_votes: int = 5,
         sequential_pair_promotion_alias_stall_attempts: int = 200,
         sequential_pair_promotion_use_pre_closure_estimates: bool = False,
+        sequential_pair_short_baseline_disambiguation: bool = False,
+        sequential_pair_short_baseline_min_travel_m: float = 0.3,
+        sequential_pair_short_baseline_max_rotation_disagreement_deg: float = 20.0,
         quarantine_window_size: int = 6,
         quarantine_min_samples: int = 3,
         quarantine_distance_spread_m: float = 0.5,
@@ -464,6 +467,31 @@ class RouteMemoryAgent:
             sequential_pair_promotion_use_pre_closure_estimates
         )
         self._promotion_alias_stall_counter: dict[int, int] = {}
+        # Short-baseline yaw disambiguation (2026-07-12, problem-2 step 5, per
+        # investigations/2026-07-09-.../route_memory_literature_survey.md
+        # §2.1/§4 and step 4's negative result -- see
+        # _check_short_baseline_yaw_disambiguation's docstring): off by
+        # default. NOT the same mechanism as the already-tried-and-regressed
+        # 2026-07-08 `multiframe_anchor_window` (which merges several OUTBOUND
+        # frames captured at the *same* physical location into one denser
+        # anchor descriptor -- confirmed not to help rotational self-alias,
+        # since a genuinely symmetric structure looks symmetric no matter how
+        # densely it's sampled from the same vantage point). This instead
+        # compares two RETURN-phase observations of the *same* candidate
+        # anchor taken from two genuinely different robot positions, using the
+        # short (bounded, single-candidate-dwell-time-only, never accumulated
+        # across the whole episode) relative motion between them as a
+        # consistency constraint -- exploiting real parallax, not sample count.
+        self.sequential_pair_short_baseline_disambiguation: bool = bool(
+            sequential_pair_short_baseline_disambiguation
+        )
+        self.sequential_pair_short_baseline_min_travel_m: float = float(
+            sequential_pair_short_baseline_min_travel_m
+        )
+        self.sequential_pair_short_baseline_max_rotation_disagreement_rad: float = math.radians(
+            float(sequential_pair_short_baseline_max_rotation_disagreement_deg)
+        )
+        self._yaw_disambiguation_pending: dict[int, dict] = {}
         self.sequence_window = 8
         self.sequence_motion_sigma_m = 1.0
         self.sequence_forward_tolerance_m = 0.4
@@ -1091,6 +1119,68 @@ class RouteMemoryAgent:
                 best[idx] = estimate
         return best
 
+    def _check_short_baseline_yaw_disambiguation(
+        self, anchor_index: int, raw_estimate: AnchorRelocalization,
+    ) -> Optional[bool]:
+        """2026-07-12, problem-2 step 5: cross-check a single ambiguous ICP
+        reading against a second, later reading of the *same* candidate
+        anchor taken once the robot has genuinely moved
+        (`sequential_pair_short_baseline_min_travel_m`, default 0.3m) --
+        exploiting real parallax between two different vantage points, not
+        more points from the same one (see the constructor's comment on why
+        this differs from the already-tried-and-regressed
+        `multiframe_anchor_window`).
+
+        Geometry: each raw ICP reading gives the anchor's pose *relative to
+        the robot* at capture time. Composing that relative pose onto the
+        robot's own absolute pose (`current_absolute_pose_from_start()`)
+        gives the anchor's absolute pose as implied by that one reading --
+        if two readings, taken from different robot positions, really are
+        the same fixed anchor, their implied absolute poses should agree
+        regardless of where the robot stood for each one. Reuses
+        `compose_pose`/`relative_delta` (this file's existing SE(2) utilities,
+        already used by `_oracle_edge_between`/`_compose_edges_between`) --
+        deliberately not a new transform convention.
+
+        Returns `None` while still waiting (first reading just stored, or not
+        enough travel yet since it -- the stored first reading is kept
+        as-is, not overwritten, until enough baseline accumulates), `True`
+        once two readings agree (rotation disagreement within
+        `sequential_pair_short_baseline_max_rotation_disagreement_rad`), or
+        `False` once they confirm a genuine disagreement.
+
+        Bounded by construction, not a reintroduced accumulator: at most one
+        pending reading is ever held per candidate anchor index, consumed
+        (deleted) the moment a second reading resolves it one way or the
+        other, and the whole dict is pruned on promotion exactly like
+        `_promotion_distance_history`/etc. -- never grows across an episode.
+        """
+        if not self.sequential_pair_short_baseline_disambiguation:
+            return None
+        current_pose = self.current_absolute_pose_from_start()
+        anchor_abs_pose = compose_pose(
+            current_pose,
+            [raw_estimate.anchor_dx_m, raw_estimate.anchor_dy_m, raw_estimate.anchor_dtheta_rad],
+        )
+
+        pending = self._yaw_disambiguation_pending.get(anchor_index)
+        if pending is None:
+            self._yaw_disambiguation_pending[anchor_index] = {
+                "pose": current_pose,
+                "anchor_abs_pose": anchor_abs_pose,
+            }
+            return None
+
+        travel = relative_delta(pending["pose"], current_pose)
+        travel_dist_m = math.hypot(travel[0], travel[1])
+        if travel_dist_m < self.sequential_pair_short_baseline_min_travel_m:
+            return None
+
+        diff = relative_delta(pending["anchor_abs_pose"], anchor_abs_pose)
+        rotation_disagreement_rad = abs(wrap_angle(diff[2]))
+        del self._yaw_disambiguation_pending[anchor_index]
+        return rotation_disagreement_rad <= self.sequential_pair_short_baseline_max_rotation_disagreement_rad
+
     def _select_sequential_pair_relocalization(
         self,
         estimates: list[AnchorRelocalization],
@@ -1117,6 +1207,11 @@ class RouteMemoryAgent:
             if self.sequential_pair_promotion_use_pre_closure_estimates
             else None
         )
+        # 2026-07-12: always available (independent of the flag above), since
+        # short-baseline disambiguation needs the raw pre-closure-fusion
+        # match_class regardless of whether promotion gating itself uses raw
+        # estimates.
+        raw_by_anchor_for_disambiguation = self._best_estimate_by_anchor(estimates)
 
         estimates, closure_reject_reason = self._sequential_pair_closure_precheck(estimates)
         if closure_reject_reason is not None:
@@ -1135,6 +1230,28 @@ class RouteMemoryAgent:
         next_est = by_anchor.get(next_idx) if next_idx >= 0 else None
         if current_est is None and next_est is None:
             return None, None, "no_current_or_next_anchor_candidates"
+
+        # Short-baseline yaw disambiguation (2026-07-12): runs on EVERY next
+        # candidate reading, not gated on match_class being flagged ambiguous
+        # -- an offline smoke test on ep1040 (this project's own flagship
+        # "confidently wrong rotation" example, investigations/2026-07-09-
+        # .../FINDINGS.md §3.5) found 45/52 (86.5%) of its >45deg bearing
+        # errors carry match_class="clean_full_pose", not "ambiguous_*" --
+        # the whole reason these readings are in the "69% unexplained"
+        # bucket in the first place is that they look clean by every
+        # existing per-attempt diagnostic. Gating this check behind that same
+        # diagnostic would have missed almost all of the cases it exists to
+        # catch. Downgrades next_est.anchor_heading_reliable (propagates to
+        # whatever ends up `selected` below, current_retained or
+        # next_promoted) once two readings from genuinely different robot
+        # positions confirm real disagreement; leaves next_est untouched
+        # while still waiting for a second observation.
+        if next_idx >= 0 and next_est is not None:
+            raw_next = raw_by_anchor_for_disambiguation.get(next_idx)
+            if raw_next is not None:
+                disambiguation_result = self._check_short_baseline_yaw_disambiguation(next_idx, raw_next)
+                if disambiguation_result is False:
+                    next_est = replace(next_est, anchor_heading_reliable=False)
 
         if raw_by_anchor is not None:
             gate_current_est = raw_by_anchor.get(current_idx)
@@ -1181,6 +1298,9 @@ class RouteMemoryAgent:
             }
             self._promotion_alias_stall_counter = {
                 k: v for k, v in self._promotion_alias_stall_counter.items() if k < next_idx
+            }
+            self._yaw_disambiguation_pending = {
+                k: v for k, v in self._yaw_disambiguation_pending.items() if k < next_idx
             }
             selection_reason = "next_promoted"
         else:

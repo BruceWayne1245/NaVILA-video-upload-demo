@@ -111,12 +111,55 @@ Two fully-detached background campaigns (`setsid nohup ... < /dev/null &`, confi
 - **Track A (with step 4)**: current code. Output `/home/teambruce/replay_results_with_step4_20260712/`, log `/home/teambruce/replay_with_step4_20260712_master.log`.
 - **Track B (without step 4, steps 1-2 only)**: a snapshot of `relocalization.py`/`route_memory_agent.py` taken immediately before step 4's edits (this folder's `code/` subdirectory, prior version), imported via a separate `--scripts-dir`. Output `/home/teambruce/replay_results_without_step4_20260712/`, log `/home/teambruce/replay_without_step4_20260712_master.log`.
 
-Worker script and launcher (`replay_worker_step4_ab_20260712.py`, `run_replay_step4_ab_20260712.sh`) are included in this folder's `code/` subdirectory for reproducibility. **Results pending as of this writing.**
+Worker script and launcher (`replay_worker_step4_ab_20260712.py`, `run_replay_step4_ab_20260712.sh`) are included in this folder's `code/` subdirectory for reproducibility.
 
-**What to check once it finishes**: (1) Track B should reproduce §6 attempt 3's numbers (sanity check that nothing else changed); (2) whether `icp_scan_context_yaw_agreement_deg` (Track A only) discriminates the still-unexplained bucket better than `yaw_top1_next_distinct_score_ratio` did in §6 — the actual bar for whether step 4 is worth keeping; (3) whether combining the two step-1/2 signal with the new Scan Context agreement signal (an ensemble) does better than either alone, per this session's own discussion of that possibility.
+---
+
+## 9. Step 4 result: negative, and in the wrong direction to be usable
+
+The §8 A/B completed (2709 readings each track; Track A/B bearing errors are byte-identical, confirming step 4 is truly behavior-neutral). On Track A's full diagnostic set:
+
+| signal | clean (≤5°) median | unexplained-by-old (>10°) median | direction |
+|---|---|---|---|
+| `icp_scan_context_yaw_agreement_deg` | 43.7° | 12.8° | **backwards** — bad readings show *more* agreement |
+| `scan_context_similarity` | 0.216 | 0.300 | **backwards** — bad readings score *higher* SC confidence |
+
+Persists after excluding near-zero-distance readings (bearing math degenerate when `true_dist_m` is tiny). **Likely explanation**: when the real cause of a bearing error is genuine physical symmetry in the scene (not an ICP-specific quirk), ICP and Scan Context are not actually independent — both are 2D geometric registration methods reading the *same* single point cloud, so a real symmetric structure can draw both toward the *same* wrong solution just as easily as it draws ICP there alone. Two methods "agreeing" is not reliable evidence of correctness when they can be fooled the same way by the same data.
+
+**Decision**: stopped the already-running `step4_scan_context_hard11_20260712_accumulated` live batch mid-episode-2 (cleanly killed the whole process tree — VLM server, Isaac Sim, batch driver — confirmed GPU memory returned to idle) rather than let it finish, since the offline result already answers the question this batch existed to check, and step 4's own negative result doesn't need a live re-confirmation before moving on. `_scan_context_yaw_check` itself is left in the code (harmless, diagnostic-only, real unit tests still pass) but should not be used as a trust signal.
+
+---
+
+## 10. Implemented: short-baseline yaw disambiguation (step 5)
+
+**Not the same mechanism as `multiframe_anchor_window`** (2026-07-08, confirmed regressed results — merges several *outbound* frames captured at the *same* physical location into one denser anchor descriptor; more points from one viewpoint, doesn't break a genuinely symmetric structure). This instead compares two independent *return-phase* observations of the same candidate anchor from two genuinely different robot positions (`sequential_pair_short_baseline_min_travel_m`, default 0.3m apart), exploiting real parallax — the one thing §9 established that a same-scan algorithm swap cannot provide.
+
+**Where**: `route_memory_agent.py`, new `_check_short_baseline_yaw_disambiguation()` and `_yaw_disambiguation_pending` state (bounded — one entry per candidate anchor index, consumed the moment it resolves either way, pruned on promotion exactly like `_promotion_distance_history`/etc., never accumulates across an episode). Wired into `_select_sequential_pair_relocalization`: downgrades `anchor_heading_reliable` to `False` on the reported estimate when two readings confirm real disagreement.
+
+**Geometry**: composes each raw reading's (dx, dy, dθ) onto the robot's own absolute pose at capture time (`current_absolute_pose_from_start()`) to get the anchor's *implied absolute pose*; two readings of the same real anchor should imply the same absolute pose regardless of where the robot stood for each one. Reuses `compose_pose`/`relative_delta` (this file's existing SE(2) utilities), not a new transform convention.
+
+**Two design/implementation mistakes found and fixed before this was trustworthy — recorded in full since they're as informative as the final design:**
+
+1. **First version gated the check behind `match_class in (ambiguous_high_confidence, partial_pose_degenerate)`** — reasoning that a clean-looking reading doesn't need a second opinion. An offline smoke test against real `ep1040` capture data (this project's own flagship confidently-wrong-rotation example) found this was backwards: **86.5% of its worst (>45°) bearing errors carry `match_class=clean_full_pose`**, which is the *entire reason* they were in the "69% unexplained" bucket in the first place — gating the one mechanism designed to catch exactly this behind the diagnostic that already fails to catch it defeats the purpose. Fixed by removing the match_class gate entirely — the check now runs on every next-candidate reading unconditionally (cheap: O(1) bookkeeping per attempt).
+
+2. **The offline replay harness used to validate this (§6-8's methodology) never called `update_return_motion()`** — it called `update_relocalization()` directly every subsampled step, which is sufficient for every other diagnostic in this investigation (steps 1/2/4 only need the current attempt's point clouds) but **not** for this one, which depends on `current_absolute_pose_from_start()` actually advancing between attempts. Since the harness never advanced `_return_pose_from_return_start`, the agent's internal pose was frozen at its `finalize_outbound()` value for the entire episode, so every "how far have I traveled since the pending reading" computation returned ~0m regardless of how far the real robot had moved — the mechanism could never accumulate enough baseline to resolve, in either direction. This was caught by pulling the raw per-call log (pending state, computed travel, disagreement, not just the final True/False) after being asked directly whether the checks were actually agreeing or simply never running — the log showed `result=None` on every single call across a 130-step window where the real robot had moved >1m, which is not consistent with "genuinely still ambiguous" and pointed straight at the pose-tracking gap. **Confirmed this bug is confined to the offline test harness and does not affect the real live path**: `round_trip_eval.py` already calls `route_agent.update_return_motion(action_delta, local_descriptor=..., relocalization=...)` every return-phase step (pre-existing code, unchanged), so `current_absolute_pose_from_start()` correctly tracks real motion live. Given the harness bug meant the offline validation couldn't actually be trusted either way, this session moved to live validation directly instead of further offline debugging (see §11).
+
+**Wired into `round_trip_eval.py`**: `--sequential_pair_short_baseline_disambiguation` (opt-in, default off), `--sequential_pair_short_baseline_min_travel_m` (default 0.3), `--sequential_pair_short_baseline_max_rotation_disagreement_deg` (default 20.0), all logged into the measurement JSON config block.
+
+**Test results**: 7 new unit tests in `tests/test_route_memory_agent.py::SequentialPairShortBaselineDisambiguationTest`, including a hand-computable two-viewpoint consistency case, a two-viewpoint disagreement case, a case confirming the mechanism fires even when both raw readings self-report `match_class=clean_full_pose` (§10.1's fix, directly tested), a not-enough-travel-yet case, and a promotion-pruning case. Full suite: 223 tests, only the pre-existing unrelated `cv2` failure, 14 skips unchanged. `py_compile` clean on all three modified production files (`relocalization.py`, `route_memory_agent.py`, `round_trip_eval.py`).
+
+---
+
+## 11. Running now: full live Isaac Sim hard-11 batch for step 5
+
+Given §10's harness bug made offline validation untrustworthy either way, and after confirming the actual production code path is unaffected by that bug (§10, point 2) and the full test suite is clean, this session went directly to a live validation rather than continuing to debug the offline harness.
+
+`short_baseline_hard11_20260712_accumulated` — identical config to `promotion_use_raw_estimates_hard11_20260710_accumulated` / `step4_scan_context_hard11_20260712_accumulated` (the current best-validated batches), plus only `--sequential_pair_short_baseline_disambiguation` (+ its two threshold flags at their defaults). Directly comparable against those existing batches: this mechanism only ever downgrades `anchor_heading_reliable` on the reported hint, never changes `dx`/`dy`/promotion timing, so bearing/anchor-selection numbers should be unaffected except where a downgrade actually fires.
+
+Launched fully detached (`setsid nohup ... < /dev/null &`, confirmed `PPID=1`/no controlling TTY/own session ID). Launcher `/home/teambruce/run_short_baseline_hard11_20260712.sh` (copy in this folder's `code/`), master log `/home/teambruce/short_baseline_hard11_20260712_master.log`. **Results pending as of this writing** — episode 4 was starting at the time of this entry.
 
 ## Next steps
 
-1. Once the A/B campaign in §8 finishes: compute the same clean-vs-unexplained percentile analysis as §6 attempt 2, this time for `icp_scan_context_yaw_agreement_deg`, and decide whether it clears the 40-50% bar alone or needs to be combined with the step-1/2 signals.
-2. If Scan Context's agreement signal (alone or combined) clears a reasonable bar, design the opt-in downgrade gate (`anchor_heading_reliable=False`, translation-only bearing fallback) and move to a live A/B, following this project's standard opt-in/unit-tested/offline-then-live discipline.
-3. If it does not, step 5 (TEASER++ offline verification, short-baseline multi-frame disambiguation, learned registration) is the remaining, lower-priority option per the original plan.
+1. Once §11's live batch finishes: check how often `anchor_heading_reliable` actually gets set to `False`, and for those cases, whether the underlying bearing error was genuinely large (i.e. the downgrade was correct) versus a false positive on an otherwise-fine reading.
+2. If the downgrade rate and precision look reasonable, this is usable as an opt-in mitigation (translation-only bearing fallback when heading is flagged unreliable) — but note it only *suppresses* a bad reading, it does not correct it, unlike a true disambiguation that recovers the right answer; whether that's sufficient value on its own is a judgment call for a follow-up session.
+3. If the offline replay harness is revisited for future diagnostics, fix it once properly (compute real per-step pose deltas from the captured ground truth and feed them through `update_return_motion`) rather than continuing to call `update_relocalization` directly — most future mechanisms in this investigation line are likely to depend on pose tracking the same way step 5 does.

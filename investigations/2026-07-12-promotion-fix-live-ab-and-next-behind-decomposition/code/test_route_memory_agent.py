@@ -13,6 +13,7 @@ from route_memory_agent import (
     diagnostic_frame_thresholds_to_fire,
     inverse_delta,
     relative_delta,
+    wrap_angle,
 )
 
 
@@ -1887,6 +1888,187 @@ class SequentialPairPromotionUsePreClosureEstimatesTest(unittest.TestCase):
         self.assertEqual(agent._target_anchor_index, 1)
         self.assertIn("belief_trust_aware_reconstructed", accepted.backend)
         self.assertNotAlmostEqual(accepted.anchor_dx_m, next_reading.anchor_dx_m, places=4)
+
+
+class SequentialPairShortBaselineDisambiguationTest(unittest.TestCase):
+    """2026-07-12, problem-2 step 5: cross-checks an ambiguous ICP reading of
+    a candidate anchor against a second reading of the *same* candidate taken
+    once the robot has genuinely moved (default 0.3m) -- exploiting real
+    parallax between two different vantage points.
+
+    NOT the same mechanism as the already-tried-and-regressed 2026-07-08
+    `multiframe_anchor_window` (merges several OUTBOUND frames captured at
+    the *same* physical location into one denser anchor descriptor -- more
+    points from the same viewpoint, confirmed not to help a genuinely
+    symmetric structure). This instead compares two independent RETURN-phase
+    observations from two different positions."""
+
+    def _agent(self, **kwargs) -> RouteMemoryAgent:
+        agent = RouteMemoryAgent(
+            enabled=True, anchor_spacing_m=1.0, sequential_pair_promotion_mode="immediate",
+            **kwargs,
+        )
+        for _ in range(2):
+            agent.update_outbound_motion([1.0, 0.0, 0.0])
+        agent.finalize_outbound()
+        return agent  # anchors: 0 @ 0m, 1 @ 1m, 2 @ 2m (return-start); current starts at 2
+
+    def _ambiguous_next_reading(self, dx: float, dy: float, dtheta: float) -> AnchorRelocalization:
+        return AnchorRelocalization(
+            anchor_index=1, anchor_dx_m=dx, anchor_dy_m=dy, anchor_dtheta_rad=dtheta,
+            confidence=0.95, backend="sequential_pair", inlier_count=450,
+            match_class="ambiguous_high_confidence", near_tie_basin_count=1,
+        )
+
+    def _clean_current_reading(self) -> AnchorRelocalization:
+        return AnchorRelocalization(
+            anchor_index=2, anchor_dx_m=0.0, anchor_dy_m=0.0, anchor_dtheta_rad=0.0,
+            confidence=0.5, backend="sequential_pair", inlier_count=100,
+            match_class="clean_full_pose", near_tie_basin_count=0,
+        )
+
+    def test_default_flag_is_off(self):
+        agent = RouteMemoryAgent(enabled=True)
+        self.assertFalse(agent.sequential_pair_short_baseline_disambiguation)
+
+    def test_disabled_by_default_does_not_touch_heading_reliable(self):
+        agent = self._agent()  # flag left at its default (off)
+        current = self._clean_current_reading()
+        reading = self._ambiguous_next_reading(0.3, 0.2, math.radians(25))
+        accepted = agent.update_relocalization(relocalization=[current, reading])
+        self.assertTrue(accepted.anchor_heading_reliable)
+        self.assertEqual(agent._yaw_disambiguation_pending, {})
+
+    def test_two_consistent_readings_from_different_positions_confirm_reliable(self):
+        agent = self._agent(sequential_pair_short_baseline_disambiguation=True)
+        p1 = agent.current_absolute_pose_from_start()
+        # anchor's true (synthetic) absolute pose, implied by reading 1 --
+        # distance 0.92m (> promotion_close_radius_m=0.75) so attempt 1 must
+        # NOT promote yet (pending state needs to survive to attempt 2).
+        dx1, dy1, dtheta1 = 0.9, 0.2, math.radians(25)
+        anchor_abs_pose = compose_pose(p1, [dx1, dy1, dtheta1])
+        current = self._clean_current_reading()
+        reading1 = self._ambiguous_next_reading(dx1, dy1, dtheta1)
+        agent.update_relocalization(relocalization=[current, reading1])
+        self.assertIn(1, agent._yaw_disambiguation_pending, "first ambiguous reading should be stored, waiting")
+
+        agent.update_return_motion([0.4, 0.0, 0.0])  # >= default min_travel_m=0.3
+        p2 = agent.current_absolute_pose_from_start()
+
+        # second reading of the SAME real anchor pose, computed exactly (no noise)
+        dx2, dy2, dtheta2 = relative_delta(p2, anchor_abs_pose)
+        reading2 = self._ambiguous_next_reading(dx2, dy2, dtheta2)
+        accepted = agent.update_relocalization(relocalization=[current, reading2])
+
+        self.assertNotIn(1, agent._yaw_disambiguation_pending, "resolved pair must be consumed")
+        self.assertEqual(accepted.anchor_index, 1, "close reading should have promoted next")
+        self.assertTrue(accepted.anchor_heading_reliable, "two consistent readings must not downgrade reliability")
+
+    def test_two_disagreeing_readings_flag_heading_unreliable(self):
+        agent = self._agent(sequential_pair_short_baseline_disambiguation=True)
+        p1 = agent.current_absolute_pose_from_start()
+        # same distance-0.92m setup as the consistent-readings test, so
+        # attempt 1 doesn't promote and the pending state survives.
+        dx1, dy1, dtheta1 = 0.9, 0.2, math.radians(25)
+        anchor_abs_pose = compose_pose(p1, [dx1, dy1, dtheta1])
+        current = self._clean_current_reading()
+        reading1 = self._ambiguous_next_reading(dx1, dy1, dtheta1)
+        agent.update_relocalization(relocalization=[current, reading1])
+
+        agent.update_return_motion([0.4, 0.0, 0.0])
+        p2 = agent.current_absolute_pose_from_start()
+
+        # second reading implies a genuinely DIFFERENT absolute anchor pose --
+        # same position (dx/dy consistent, so close_enough still forces
+        # promotion), rotation off by 90 deg -- the "confidently wrong
+        # rotation" signature this mechanism targets.
+        wrong_abs_pose = [
+            anchor_abs_pose[0], anchor_abs_pose[1],
+            wrap_angle(anchor_abs_pose[2] + math.radians(90.0)),
+        ]
+        dx2, dy2, dtheta2 = relative_delta(p2, wrong_abs_pose)
+        reading2 = self._ambiguous_next_reading(dx2, dy2, dtheta2)
+        accepted = agent.update_relocalization(relocalization=[current, reading2])
+
+        self.assertEqual(accepted.anchor_index, 1, "close reading should have promoted next")
+        self.assertFalse(accepted.anchor_heading_reliable, "disagreeing readings must flag heading unreliable")
+
+    def test_triggers_even_when_match_class_reports_clean_full_pose(self):
+        """This is NOT gated on match_class -- an offline smoke test against
+        real ep1040 capture data (this project's own flagship
+        confidently-wrong-rotation example) found 86.5% of its worst bearing
+        errors carry match_class=clean_full_pose, which is the whole reason
+        they were unexplained by existing diagnostics in the first place.
+        Gating this check behind match_class ambiguity would have missed
+        almost all of the cases it exists to catch."""
+        agent = self._agent(sequential_pair_short_baseline_disambiguation=True)
+        p1 = agent.current_absolute_pose_from_start()
+        dx1, dy1, dtheta1 = 0.9, 0.2, math.radians(25)
+        anchor_abs_pose = compose_pose(p1, [dx1, dy1, dtheta1])
+        current = self._clean_current_reading()
+        clean_reading1 = AnchorRelocalization(
+            anchor_index=1, anchor_dx_m=dx1, anchor_dy_m=dy1, anchor_dtheta_rad=dtheta1,
+            confidence=0.95, backend="sequential_pair", inlier_count=450,
+            match_class="clean_full_pose", near_tie_basin_count=0,
+        )
+        agent.update_relocalization(relocalization=[current, clean_reading1])
+        self.assertIn(1, agent._yaw_disambiguation_pending, "clean-tagged reading must still be tracked")
+
+        agent.update_return_motion([0.4, 0.0, 0.0])
+        p2 = agent.current_absolute_pose_from_start()
+        wrong_abs_pose = [
+            anchor_abs_pose[0], anchor_abs_pose[1],
+            wrap_angle(anchor_abs_pose[2] + math.radians(90.0)),
+        ]
+        dx2, dy2, dtheta2 = relative_delta(p2, wrong_abs_pose)
+        clean_reading2 = AnchorRelocalization(
+            anchor_index=1, anchor_dx_m=dx2, anchor_dy_m=dy2, anchor_dtheta_rad=dtheta2,
+            confidence=0.95, backend="sequential_pair", inlier_count=450,
+            match_class="clean_full_pose", near_tie_basin_count=0,
+        )
+        accepted = agent.update_relocalization(relocalization=[current, clean_reading2])
+
+        self.assertEqual(accepted.anchor_index, 1)
+        self.assertFalse(
+            accepted.anchor_heading_reliable,
+            "must flag unreliable even though both raw readings self-report clean_full_pose",
+        )
+
+    def test_not_enough_travel_keeps_waiting_without_overwriting_first_reading(self):
+        agent = self._agent(sequential_pair_short_baseline_disambiguation=True)
+        current = self._clean_current_reading()
+        reading1 = self._ambiguous_next_reading(1.5, 0.3, math.radians(25))
+        agent.update_relocalization(relocalization=[current, reading1])
+        stored_first = dict(agent._yaw_disambiguation_pending[1])
+
+        agent.update_return_motion([0.1, 0.0, 0.0])  # below default min_travel_m=0.3
+        reading_too_soon = self._ambiguous_next_reading(1.4, 0.3, math.radians(99))
+        agent.update_relocalization(relocalization=[current, reading_too_soon])
+
+        self.assertIn(1, agent._yaw_disambiguation_pending, "still waiting for enough travel")
+        self.assertEqual(
+            agent._yaw_disambiguation_pending[1]["anchor_abs_pose"], stored_first["anchor_abs_pose"],
+            "first reading must not be overwritten before enough baseline accumulates",
+        )
+
+    def test_pending_history_cleared_on_promotion(self):
+        """Pruned like _promotion_distance_history/etc -- must not carry stale
+        state for an already-passed anchor into the next candidate's dwell."""
+        agent = self._agent(sequential_pair_short_baseline_disambiguation=True)
+        current = self._clean_current_reading()
+        reading1 = self._ambiguous_next_reading(1.5, 0.3, math.radians(25))
+        agent.update_relocalization(relocalization=[current, reading1])
+        self.assertIn(1, agent._yaw_disambiguation_pending)
+
+        # a close, unambiguous reading promotes next (anchor 1) outright
+        close_reading = AnchorRelocalization(
+            anchor_index=1, anchor_dx_m=0.1, anchor_dy_m=0.0, anchor_dtheta_rad=0.0,
+            confidence=0.95, backend="sequential_pair", inlier_count=450,
+            match_class="clean_full_pose", near_tie_basin_count=0,
+        )
+        accepted = agent.update_relocalization(relocalization=[current, close_reading])
+        self.assertEqual(accepted.anchor_index, 1)
+        self.assertNotIn(1, agent._yaw_disambiguation_pending, "promoted anchor's pending state must be pruned")
 
 
 if __name__ == "__main__":
