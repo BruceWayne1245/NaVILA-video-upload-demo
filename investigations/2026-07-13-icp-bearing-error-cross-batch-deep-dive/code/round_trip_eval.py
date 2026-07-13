@@ -461,6 +461,33 @@ parser.add_argument(
          "here is evidence a same-modality check cannot produce. Diagnostic-only: never gates or rejects.",
 )
 parser.add_argument(
+    "--sequential_pair_disable_temporal_smoothing",
+    action="store_true",
+    default=False,
+    help="(2026-07-13) Off by default (temporal smoothing stays on, unchanged behavior). Per "
+         "investigations/2026-07-13-icp-bearing-error-cross-batch-deep-dive/FUSION_MECHANISM_ANALYSIS.md: "
+         "_temporally_smooth_relocalization (the '+ema' backend suffix) is called unconditionally on every "
+         "accepted sequential_pair estimate and is responsible for 93.5%% of measured fusion-corruption in "
+         "that analysis, with no trust_aware_guard-style match_class check at all -- only a blunt 60deg "
+         "disagreement cutoff. Combined with leaving --sequential_pair_closure_check off, this reports each "
+         "accepted attempt's raw selected (dx,dy,dtheta) completely unmodified -- 'no fusion at all'.",
+)
+parser.add_argument(
+    "--sequential_pair_closure_reconciliation_signal",
+    choices=["dtheta", "bearing"],
+    default="dtheta",
+    help="(2026-07-13) 'dtheta' (default) preserves existing behavior: both "
+         "_sequential_pair_closure_belief_fusion and _temporally_smooth_relocalization measure "
+         "disagreement/trust via the two readings' rotation (dtheta) difference, and blend dtheta via "
+         "circular_weighted_mean when fusing. 'bearing' instead measures disagreement/trust via the two "
+         "readings' direction-to-anchor (bearing, atan2(dy,dx) -- the quantity this project's hint/arbiter "
+         "actually consumes) and NEVER blends dtheta via circular_weighted_mean (the specific operation "
+         "confirmed unstable for large disagreements, investigations/2026-07-07-icp-bearing-angle-error/); "
+         "the fused/smoothed output's dtheta is simply carried through unchanged from whichever side is "
+         "dominant (fusion) or freshest (temporal smoothing), never averaged. Position blending (which "
+         "determines the reported bearing) is unchanged in both modes.",
+)
+parser.add_argument(
     "--route_memory_multiframe_anchor_window",
     type=int,
     default=1,
@@ -2350,6 +2377,10 @@ def main():
         sequential_pair_short_baseline_max_rotation_disagreement_deg=(
             args_cli.sequential_pair_short_baseline_max_rotation_disagreement_deg
         ),
+        sequential_pair_disable_temporal_smoothing=bool(
+            args_cli.sequential_pair_disable_temporal_smoothing
+        ),
+        sequential_pair_closure_reconciliation_signal=args_cli.sequential_pair_closure_reconciliation_signal,
         multiframe_anchor_window=args_cli.route_memory_multiframe_anchor_window,
     )
     route_agent.vio_bridge_enabled = bool(getattr(args_cli, "vio_bridge", False))
@@ -2922,6 +2953,8 @@ def main():
             args_cli.sequential_pair_short_baseline_max_rotation_disagreement_deg
         ),
         "sequential_pair_loftr_rear_yaw_check": bool(args_cli.sequential_pair_loftr_rear_yaw_check),
+        "sequential_pair_disable_temporal_smoothing": bool(args_cli.sequential_pair_disable_temporal_smoothing),
+        "sequential_pair_closure_reconciliation_signal": args_cli.sequential_pair_closure_reconciliation_signal,
         "route_relocalization_diagnostics": route_relocalization_diagnostics,
         "route_memory": route_memory_summary,
         "topdown_route_map": topdown_route_map_summary,

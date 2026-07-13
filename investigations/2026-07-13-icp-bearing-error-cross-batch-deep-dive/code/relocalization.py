@@ -1032,6 +1032,16 @@ def _loftr_rear_yaw_check(
     residual = np.linalg.norm(
         (rotation @ anchor_points[inliers].T).T + translation - current_points[inliers], axis=1
     )
+    # 2026-07-13 (continued): also expose LoFTR-rear's own translation, in the
+    # same body-frame (dx, dy) convention ICP's anchor_dx_m/anchor_dy_m use --
+    # lets an offline check compare LoFTR-rear's own BEARING accuracy against
+    # ICP's, not just its rotation accuracy (the only thing this function
+    # reported before). Reuses camera_point_to_body unmodified, same as
+    # feature_depth_anchor_relocalization's own rear-view branch.
+    anchor_origin_in_current_body = camera_point_to_body(translation, current_descriptor)
+    loftr_bearing_deg = math.degrees(math.atan2(
+        float(anchor_origin_in_current_body[1]), float(anchor_origin_in_current_body[0])
+    ))
     return {
         "available": True,
         "loftr_matches": int(len(anchor_uv)),
@@ -1040,6 +1050,9 @@ def _loftr_rear_yaw_check(
         "median_3d_residual_m": float(np.median(residual)),
         "loftr_rear_dtheta_deg": math.degrees(anchor_dtheta),
         "icp_loftr_rear_yaw_agreement_deg": agreement_deg,
+        "loftr_rear_dx_m": float(anchor_origin_in_current_body[0]),
+        "loftr_rear_dy_m": float(anchor_origin_in_current_body[1]),
+        "loftr_rear_bearing_to_anchor_deg": loftr_bearing_deg,
     }
 
 
