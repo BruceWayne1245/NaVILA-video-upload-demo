@@ -1,0 +1,27 @@
+# 2026-07-13 (continued 2) — Correlative occupancy-grid yaw verifier: implemented and tested offline, no reliable improvement over ICP
+
+**Purpose**: `GLOBAL_REGISTRATION_CHECK.md` in this folder found that a wider/differently-initialized search under ICP's own point-to-point metric cannot recover the correct yaw for the hard-anchor set — the wrong pose is a genuinely better-scoring optimum under that metric. The natural next question (per `route_memory_literature_survey.md` §2.3/2.5's "Option B", still untried at that point): does a **different scoring function** — 2D occupancy-grid cross-correlation (Cartographer/Olson-style correlative scan matching), not point-to-point nearest-neighbor residual — do any better? This document reports that offline test.
+
+**Implementation**: rasterized both anchor and current point clouds (same voxel-downsampled 512-point 2D clouds ICP itself uses, so this is a fair comparison against the identical input) into 6m-half-extent, 0.06m-resolution occupancy grids. For each yaw in a 2° sweep (180 candidates), rotated the anchor points, rasterized, and found the globally-best translation for that yaw via FFT cross-correlation (the correlation peak directly gives the best (dx,dy) for that rotation — not an iteratively-refined local one, so this genuinely searches the full (yaw, dx, dy) space per candidate yaw, unlike ICP's local per-seed refinement). Tested two grid variants: raw binary occupancy, and a Gaussian-blurred version (sigma ≈ half the ICP correspondence threshold in grid cells — matching how real correlative-matching implementations smooth their probability grids rather than use raw hard occupancy).
+
+## Result: no reliable improvement, in either grid variant
+
+| method | mean error (deg) | median error (deg) | beats ICP on this reading |
+|---|---|---|---|
+| ICP (24-seed, live production) | 86.0 | 85.7 | — |
+| Correlative, raw binary occupancy | 82.4 | 86.0 | 9/16 readings |
+| Correlative, Gaussian-blurred occupancy | 94.9 | 94.3 | 6/16 readings |
+
+Neither variant shows a systematic win — both are within noise of a coin flip (9/16 and 6/16 out of 16), and pooled mean/median error is statistically indistinguishable from ICP's own. Per-reading behavior is highly inconsistent: on some readings the correlative verifier lands much closer to ground truth than ICP (e.g. `ep368`/step2680: ICP 88.5° vs correlative[no-blur] 7.0°), but on others it is much worse (e.g. `ep367`/step1925, where ICP was already accurate at 3.2° and correlative jumps to 91.8°–107.8°). Blurring the grid (the standard real-world refinement) did not help on this sample — if anything it moved the aggregate slightly worse, though the sample (16 readings) is too small to treat that direction as reliable either.
+
+**Interpretation**: this is a genuinely negative/inconclusive result, not a hyperparameter-tuning failure to be fixed by further grid-resolution or blur-sigma sweeps (which risks overfitting to this 16-reading sample rather than finding a real effect). Combined with `GLOBAL_REGISTRATION_CHECK.md`'s finding that a wider search under ICP's own metric also fails, the emerging picture is that **the ambiguity at these anchors is not specific to ICP's particular point-to-point cost function** — a structurally different 2D shape-matching approach (occupancy-grid overlap instead of nearest-neighbor point correspondence) is fooled in a similar way, roughly as often as it isn't. This is consistent with the underlying cause being genuine, repeated physical structure in the scene (e.g. a hallway/corner pattern that recurs at a different orientation) that looks nearly identical to *any* generic 2D geometric overlap measure from a single viewpoint — not an artifact of one specific algorithm's scoring quirks.
+
+## What this means for the next step
+
+Two single-frame algorithmic approaches have now been tried and found wanting for this hard-anchor set: a wider/differently-seeded search under the existing ICP metric (`GLOBAL_REGISTRATION_CHECK.md`, ruled out), and a structurally different overlap metric (this document, no reliable win). **Both point the same direction**: the fix needs genuinely new information a single frame's geometry does not contain — i.e. a second, spatially-separated viewpoint (real parallax), which is exactly what short-baseline disambiguation (step 5, already implemented) is designed to provide. The priority should now shift fully to **why short-baseline fires on only 0.1% of live events with 0% recall against true errors >45°** (per `investigations/2026-07-13-icp-bearing-error-cross-batch-deep-dive/FINDINGS.md`'s companion analysis) rather than continuing to search for a better single-frame scoring function — that avenue has now had two honest, non-trivial attempts, both negative.
+
+**Not recommended as further work in this line**: additional single-frame scan-matching algorithms (learned registration, TEASER++/global registration, further ICP objective variants) absent a specific new reason to expect they'd behave differently from the two approaches already tried — both point-to-point ICP and occupancy-grid correlation are, at their core, "how well do these two point sets overlap after some rigid transform" measures, and both were fooled at a similar rate.
+
+## Reproducibility
+
+Script: `code/correlative_yaw_verifier_20260713.py` in this folder. Same hard-anchor set and captured data as `GLOBAL_REGISTRATION_CHECK.md` (`icp_replay_capture_hard11_20260706_accumulated`, `ep367` anchor8 + `ep368` anchor12).
