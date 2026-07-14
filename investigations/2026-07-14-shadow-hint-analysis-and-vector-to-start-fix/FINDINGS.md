@@ -1,0 +1,84 @@
+# 2026-07-14 — First forensic analysis of the Oracle→Shadow live batch (`shadow_hint_swap_hard11_20260713_accumulated`), and the discovery of a second, never-investigated dtheta consumer
+
+**Context**: `investigations/2026-07-13-oracle-to-shadow-swap-prep/STEP4_FIRST_LIVE_TEST.md` reported the first ever real-navigation shadow-driven success (ep368). The same day, a full hard-11 shadow-driven batch (`shadow_hint_swap_hard11_20260713_accumulated`, launched 19:39, finished 00:36) was run as the natural next step but never analyzed in depth. This document is that analysis, done entirely from raw trajectory/measurement data (never the smoothed shadow fields), following this project's established methodology. It ends with a finding this project's own bearing-accuracy work never had in scope: a second, independent consumer of `anchor_dtheta_rad` that the fusion-removal work (Variant 1, 07-13) never touched.
+
+## Part 0 — batch composition
+
+11 episodes attempted (4,5,134,187,367,368,408,678,680,994,1040). **8 usable** (never reached return phase and therefore contribute zero relocalization data: `134`/`408` — VLM never completed outbound; `187` — timed out at 7200s, no measurement file at all). Round-trip success on the 8 usable: **5/8 (4, 368, 678, 680, 1040 succeed; 5, 367, 994 fail)**.
+
+## Part 1 — anchor selection accuracy (n=4253 dedup relocalization readings, current/next vs. ground truth via `target_anchor_for_route_position`)
+
+Pooled: current-anchor exact 42.3%, lag-1 20.7%, lag≥2 4.9%, overshoot 32.1%. **One single episode, ep367, is responsible for essentially all of the overshoot mass** (its own diff histogram: `{-7: 75, -6: 294, -5: 5, -4: 83, -3: 171}`, 62.7% of its 1001 readings at lag/overshoot magnitude ≥3, vs. zero such readings in any of the other 7 episodes). Excluding ep367: exact 53.0%, lag-1 27.0%, lag≥2 6.4%, overshoot 13.6% — a materially different, much healthier picture. ep367's own true trajectory (from `position` in the trajectory JSONL) shows the robot physically frozen (sub-2cm jitter) around (-1.9,-1.9)-ish for roughly the back third of its return phase while shadow's `target_anchor_index` claims anchor 5 (anchor5's own world position is ~4.6m from that frozen true position) — this is the already-documented "robot physically stops moving + shadow spuriously advances from scene self-similarity" bug (previously ep408, ep5), now a third confirmed instance.
+
+## Part 2 — ICP numeric accuracy (distance/bearing to the anchor the reading is itself relative to, ground-truthed independently of anchor-selection correctness)
+
+Pooled: distance error median 3.9cm/mean 65.5cm/p90 2.61m; bearing error median 3.64°/mean 36.58°/p90 145.79°; bearing error >10°: 34.8%. Excluding ep367: distance median 2.7cm/mean 20.8cm/p90 0.81m; bearing median 2.13°/mean 12.21°/p90 31.68°; bearing error >10°: **17.8%**. Same ep367-drag pattern as Part 1.
+
+## Part 3 — `hint_action_arbiter` reason distribution and override correctness (n=21233 pooled step-level checks, 8 episodes)
+
+`vlm_action_consistent` 30.0%, `low_relocalization_confidence` 25.5%, `target_too_close` 24.5%, `occupied_in_local_map_path` 10.1%, `vlm_conflicts_with_clear_hint` (real override) 9.9%. Override "accuracy" (does the override's own `desired_kind` match the ground-truth-implied kind at that exact moment, using the *same* anchor the override itself was computed against — i.e. does not re-litigate whether that anchor was the right one to pick, which Part 1 already covers separately): 74.9% pooled, **80.6% excluding ep367**.
+
+## Part 4 — return success rate vs. the two established baselines
+
+This batch: 5/8 = 62.5% return success among outbound-success episodes. **vs. pure-VLM no-hint baseline (`no_hint_hard_fresh_20260629`): 4/9 = 44.4%** — still meaningfully better than no hint at all. **vs. the most recent comparable oracle-driven batch (`short_baseline_hard11_20260712`, same 8-outbound-success-episode denominator): 7/8 = 87.5%** — a real regression vs. the freshest oracle baseline, not just vs. the historical floor. The gap traces almost entirely to two of the three return failures (ep367, ep994) rather than a uniform degradation.
+
+## Part 5 — is ep367/ep994's failure pre-existing (independent of the oracle→shadow swap) or new?
+
+Direct comparison against `short_baseline_hard11_20260712` (closest-in-time oracle batch, same episode identities):
+- **ep5: confirmed pre-existing.** Oracle batch: return_success=False, distance=9.47m. Real trajectory shows the robot frozen at (1.06,3.52) from almost the very start of return (step ~2400 of ~6776) — near-identical signature and magnitude to this batch's own ep5 failure (8.93m). Same bug, same location, independent of hint source.
+- **ep367: NOT confirmed pre-existing — the opposite.** Oracle batch: return_success=True, distance=1.83m, smooth monotonic progress, 1352 return steps, zero freeze anywhere in the trajectory. This batch: the robot took a different path and got stuck at a location the oracle run never visited. The freeze mechanism itself may be an old bug class, but *this specific episode taking a path that triggers it* correlates with the shadow hint, not with something proven independent of it.
+- **ep994: also not confirmed pre-existing.** Oracle batch: return_success=True, distance=0.96m. This batch's failure mode (ends within the 3.0m success radius at 2.66m but never issues a stop) has no oracle-side precedent either.
+
+(Caveat: `short_baseline_hard11_20260712` used `closure_check=True`, not this batch's Variant-1 config — not a strict single-variable ablation, but the closest available comparison.)
+
+## Part 6 — root-caused: ep367 and ep994 are two *different* failure mechanisms, and neither is really "hint_action_arbiter got gated at the wrong moment"
+
+**ep994**: real physical stop. `command=[0.5,0,0]` held constant while `speed_mps` decays exponentially (0.024→~0.004 m/s over 100 steps, position creeps ~1cm) — a genuine contact/obstruction lock, not a decision-loop. `hint_action_arbiter` is `override=False, reason=low_relocalization_confidence` for the entire approach and the whole stuck window (confidence 0.42–0.57, below the 0.90 gate) — **but this is not what caused the collision**: the VLM was already issuing `move forward` on its own, unprompted, the whole time. If the gate had been open, the hint's own direction at the moment of collision would have called for `turn right` (bearing −105.7° vs. VLM's `forward`) — a real, plausible-but-unproven missed remediation opportunity, not a case of a bad hint causing the walk into the obstacle.
+
+**ep367**: not a physical stop at all. `command=[0,0,±0.52]` (pure yaw, zero linear velocity) for hundreds of consecutive steps at a time (twice, ~500 steps each) — the VLM is choosing to spin in place, not being blocked. The instant `command` switches to `[0.5,0,0]`, the robot accelerates completely normally (0→0.22 m/s in 10 steps) — there is no obstruction. This is a VLM decision loop, and (see Part 7) it correlates with a badly wrong text hint, not merely with the arbiter's confidence gate.
+
+## Part 7 — root cause chase, part 2: what does the *text* injected into the VLM actually say, and is it accurate?
+
+Cross-checked against the earlier assumption ("hint itself was fine, only `hint_action_arbiter`'s gate was the problem") by comparing every `hint_events[i]["progress"]["bearing_to_start_deg"]` (the number behind the "next-anchor vector dx=.., dy=.." clause actually injected into the VLM prompt in `hint_mode=compact`) against the true bearing-to-start computed from the trajectory's own `position`/`yaw_rad` at that exact step.
+
+- **ep994**: bearing error is mostly 0–8° right through the anchor6/7/8 stretch leading up to and including the moment of the wall collision (step 5876–5976: 0.2–1.1° error). **The injected hint text was accurate before, during, and immediately after the collision.** A handful of isolated single-reading spikes (30–170°) appear scattered through the episode but each self-corrects on the very next reading — noise, not a sustained bias. Confirms: ep994's collision is 100% the VLM's own doing; the hint carries no responsibility.
+- **ep367**: bearing error is ~15° (accurate) through step 2701, then **jumps to 159–179° at step 2776 and stays in the 60–180° range for nearly the entire remainder of the episode** (anchor10: 120–179° for ~900 steps straight; anchor8: recovers briefly to 15.9° at step 3901 then degrades again to 60–140°; anchor5: pinned at 73–172° for ~1800 steps). **The injected hint text was actively wrong — frequently close to 180° opposite of true — for most of the stuck period.** This is not the VLM inventing a problem alone; it was reading bad directions.
+
+## Part 8 — why ep367's hint went bad: found the exact mechanism, and it is *not* the anchor identity or the arbiter's confidence gate
+
+`anchor_dx_m`/`anchor_dy_m` (pure ICP translation to the tracked anchor — what `hint_action_arbiter` actually uses) stayed small and sane the entire time (0.03–0.56m, `anchor_heading_reliable=True` throughout) — the live translation match was fine. Pulling the raw `relocalization_events` for anchor10's whole tenure: **`anchor_dtheta_rad` is pinned at −165° to −179° (essentially exactly 180°) for every single accepted event, confidence=1.0 throughout.** ICP found a confidently-scored but 180°-flipped rotational hypothesis — the still-open, previously-documented "confidently wrong" rotational-aliasing failure mode (this project's "Mode 3" / "anchor-15-style" signature, explicitly flagged as unsolved as far back as 07-06/07-07) — on a symmetric corridor cross-section.
+
+**This is where the previous mental model (fixed via `investigations/2026-07-13-icp-bearing-error-cross-batch-deep-dive`'s Variant 1) breaks down.** That whole investigation line, including the STEP3 calibration's celebrated median-1.79° result, measured `bearing_to_anchor_deg` — computed purely from `anchor_dx_m`/`anchor_dy_m` (translation), which **never touches `dtheta` at all**. The metric that got fixed (fusion-introduced corruption of the current/next blend) and the metric that's broken here (raw single-candidate rotation) are mathematically independent quantities. Confirmed by reading `_anchor_progress_from_estimate()` (`route_memory_agent.py`, pre-fix code):
+
+```python
+if estimate.anchor_heading_reliable:
+    anchor_to_start = relative_delta(anchor.pose_from_start, [0.0, 0.0, 0.0])
+    anchor_pose_from_current = [estimate.anchor_dx_m, estimate.anchor_dy_m, estimate.anchor_dtheta_rad]
+    start_pose_from_current = compose_pose(anchor_pose_from_current, anchor_to_start)
+    dx, dy, _ = start_pose_from_current   # -> target_dx_m/target_dy_m, the injected "vector to start"
+```
+
+This composes the *raw, unfused, per-attempt* `anchor_dtheta_rad` (fusion was off this whole batch — `sequential_pair_closure_check=False`, Variant 1) with the anchor's own recorded `pose_from_start` to build the hint's directional signal — a code path the fusion-removal work never touched and the bearing-accuracy metric never measured. `anchor_heading_reliable` stayed `True` the entire time — the system had no internal signal that this composition was unsafe.
+
+**Two independent problems compound here, not one:**
+1. **Design**: `compose_pose`/`relative_delta` are pure SE(2) rigid-transform math — a beeline between two points, blind to corridor shape. `anchor_to_start` is a straight-line delta from the anchor's recorded position to the origin, not a path. If the true walkable route needs an L-turn, this vector can point straight through the inside wall of that turn — independent of whether `dtheta` is itself accurate.
+2. **Accuracy**: on top of that, the live `dtheta` feeding the composition can itself be confidently wrong by ~180° (the still-open rotational-aliasing problem), which — since `hint_action_arbiter` uses a *different*, dtheta-free quantity (`bearing_to_anchor_deg`) — was invisible to every prior validation pass built around the arbiter or around `bearing_to_anchor_deg`.
+
+By contrast, `direct_oracle_route_anchor_progress` (the oracle-driven hint generator, `round_trip_eval.py`) never does this composition at all — it points `target_dx_m`/`target_dy_m` straight at a nearby recorded waypoint anchor (same value as its own `anchor_dx_m`/`anchor_dy_m`), which is why oracle-driven hints never exhibited this failure mode.
+
+## Part 9 — next-anchor "lag": a methodology correction, cross-checked against `investigations/2026-07-12-.../FINDINGS.md`
+
+Initial pooled read: "next" anchor lags the instantaneous floor-projected ground truth in 25.7% of readings (33.5% excluding ep367) — a large-looking number compared to what was remembered as "next-anchor staleness is basically zero" from the 07-12 A/B. Re-reading that document's own §5 clarified the discrepancy is **not a regression, it's two different metrics**: its own §2 table reports the *same* kind of raw per-attempt lag rate at 18.3–25.1% (never near zero) — that "near zero" number is specifically its §5 *strict* test (does the true trajectory ever actually cross the still-un-promoted anchor's own recorded position, checked over each whole candidacy span, not a single instant): 1/89 spans (1.1%) there.
+
+Applying that exact strict, span-based test to this batch: **3/91 candidacy spans (3.3%)** show genuine staleness. Inspected each: 2 of the 3 (ep994, `next_idx=5` then `4`) are the *same* already-diagnosed physical-freeze episode mechanically producing two spans, not a second bug; the third (ep1040, `next_idx=1`) is a single boundary-touching reading that self-resolves within the same span (robot walking normally, briefly grazing the anchor's exact `s` value on its way through) — the same "resolves within 1–3 attempts, not a real problem" category 07-12's own §3/§4.1 already established. **Net: genuine next-anchor staleness remains ~1–3%, same order of magnitude as the 07-12 baseline — the raw-lag number's rise (18–25% → 25.7–33.5%) is not evidence of a new shadow-swap-caused regression**, it's a comparison-methodology mismatch (raw snapshot lag vs. strict physical-crossing test) that should have been checked before treating the raw number as a finding.
+
+## Part 10 — hint_action override "points backward" risk: also mostly an artifact, small residual real risk
+
+Naive check (compare `route_memory`'s live `bearing_to_anchor_deg` against the arbiter's own `desired_kind`/`desired_bearing_deg` at the same logged row) found 48/4253 readings (1.1%) where the override fired while the *simultaneously-logged* bearing was >90° off — looked concerning. **Confirmed artifact**: `hint_action_arbiter`'s own decision is cached from whenever it last ran and can be several steps stale relative to `route_memory`'s own freshly-updated reading (same "close-range bearing sensitivity" effect documented in the ICP-accuracy investigations — passing within centimeters of the tracked anchor makes its bearing swing wildly, independent of anything being wrong). Direct example (ep367, step 2793→2794): arbiter's own `desired_bearing_deg` stays 12.06° (sane) across both rows while `route_memory`'s own `bearing_to_anchor_deg` jumps from 4.4°→170.4° in the same step — the arbiter's actual executed decision never changed.
+
+Re-checked using only the arbiter's **own self-consistent** `desired_bearing_deg` (deduped by decision, not by row): of **29 distinct real override decisions** across all 8 usable episodes, only **3** had the arbiter's own bearing genuinely >90° (ep680 ×1, ep994 ×2) — and all three produced a single mild `turn right 45°` nudge with no measurable regression in `distance_to_start` afterward (9.92→9.81m, 6.56→6.64m, 6.71→6.77m). Real, quantified residual risk: ~10% of real overrides, zero observed harm this batch — worth tracking, not (yet) worth engineering around.
+
+## Summary of what's now believed true, going into the fix (see `PROGRESS.md`)
+
+- ep994's return failure: physical obstruction (unrelated to any relocalization/hint code), compounded by `stop_gate`'s forced-stop safety net being defeated because *both* its inputs (confidence via `_extract_d_and_conf`, and the anchor-chain `distance_to_start_m` itself) degrade together exactly when the robot is stuck near an ICP-degenerate patch of the map (`corridor_degeneracy_ratio` 0.69–0.88 for anchors 4–8, a structural property of that stretch, not a per-attempt event) — the oracle path's `if "oracle" in source: return d, 1.0` hardcoding gives it a forced-stop safety net shadow structurally cannot have with the same code.
+- ep367's return failure: a raw, un-fused ICP rotation estimate confidently wrong by ~180° on a symmetric corridor, feeding a straight-line (wall-blind) "vector to start" composition that Variant 1's fusion-removal work never touched and the bearing-accuracy metric never measured — genuinely misleading text reaching the VLM, not merely an arbiter mis-gate.
