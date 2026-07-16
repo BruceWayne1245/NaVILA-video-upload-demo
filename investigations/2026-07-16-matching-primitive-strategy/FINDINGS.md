@@ -29,6 +29,33 @@ Per the reasoning above (the shared blind spot is "single viewpoint," not "which
 | **2. 3D/height-aware matching** | **Partially tested (Part 2 above)** — the version bounded by the existing ~2m height-filtered band shows a real but mixed (42.9% positive) signal. The stronger version (genuinely richer vertical structure beyond the current band) cannot be tested with any existing capture and would need either a new Isaac Sim capture with the filter widened/removed, or a direct inspection of what the `route_memory_lidar` sensor's raw returns actually contain before this filter is applied. |
 | **3. Retune the dedicated `route_memory_lidar` sensor (FOV/resolution/max_distance)** | **Cannot be tested with existing data at all.** Any sensor-config change produces fundamentally different raw returns that were never captured under the old config — there is no offline shortcut; this would need a fresh live Isaac Sim run. |
 
+## Part 3.5 — is the aliasing really "textureless corridors," or is it the anchor-capture methodology itself? (user-raised, checked directly against real data)
+
+User recalled that `2026-07-15-.../FINDINGS.md` Part 7's turn-angle check found not all problem anchors sit on featureless corridor stretches — 2/7 (`ep367`, `ep498`) are directly at sharp turns (41-49°, 63.7°), contradicting a pure "it's just corridors" story. This raised the question: is the residual problem really about textureless environments, or about how anchors are built/matched regardless of the underlying geometry's distinctiveness?
+
+**Directly re-verified** (`shadow_hint_swap_50ep_20260714_accumulated`, ground-truth anchor-to-anchor path geometry): confirmed `ep367` anchor5 (49.2°) and anchor8 (41.0°) are indeed at real, meaningfully sharp route-direction changes (anchor7, part of the same "5+7+8" bad group, is only 17.3° — more corridor-like).
+
+**But their own saved local point clouds show `corridor_degeneracy_ratio` just as high as, or higher than, typical corridor stretches** — anchor5: 0.956, anchor7: 0.846, anchor8: 0.787 (median, pooled over all readings against that anchor) — far above the project's own historically-observed corridor floor (minimum ever seen: 0.403) and the corridor-skip threshold (0.15). **The turn objectively exists in the route's path geometry, but the anchor's own single instantaneous LiDAR capture — taken at whatever moment `anchor_spacing_m`'s cumulative-distance trigger happened to fire — does not actually see it.** This points at a capture-timing/positioning problem (a single frame's limited range/FOV, captured at one arbitrary instant, missing nearby distinguishing structure that objectively exists close by) rather than "no distinguishing information exists nearby at all."
+
+**Follow-up check: how far away is the nearest real landmark from each known-bad anchor, in practice?** Walked anchor-to-anchor path-direction changes outward from each of the 10 known-bad anchors (5 episodes, `134/367/214/498/319`) to find the nearest genuine turn (>30°):
+
+| episode/anchor | nearest turn | distance |
+|---|---:|---:|
+| `367`/5 | 49.2° | 0.00m |
+| `367`/7 | 41.0° | 0.87m |
+| `367`/8 | 41.0° | 0.00m |
+| `498`/5 | 63.7° | 0.00m |
+| `319`/4 | 48.3° | 0.82m |
+| `319`/5 | 48.3° | 1.73m |
+| `214`/3 | 61.0° | 5.26m |
+| `214`/5 | 61.0° | 3.53m |
+| `134`/7 | 179.3° | 3.29m |
+| `214`/1 | — | not found within 7 anchors either side |
+
+**9/10 have a genuine turn within 0-5.3m, most within 0-2m or at ~0m (i.e. very close, several essentially AT the anchor's own position)** — accumulating real motion over a modest, few-meter window should very plausibly capture a genuine landmark for most of these cases without needing an unbounded or very long reach. One exception (`ep214` anchor1) has no nearby turn found at all — a case Option 1 likely cannot fix regardless of window size, worth remembering as an expected residual, not a design failure.
+
+**Net conclusion**: the residual problem is not best characterized as "this project's environments are fundamentally too textureless" — real, nearby distinguishing structure usually exists close to the failure points. It's better characterized as **a single-instantaneous-frame capture methodology (both at anchor-creation time and at live-match time) that is timing/position-sensitive and frequently fails to capture nearby distinguishing structure that does exist** — directly supporting Option 1 (motion-integrated accumulation) as addressing the actual mechanism, not just a differently-shaped guess.
+
 ## Part 4 — decision and priority (user-directed, 2026-07-16)
 
 **Start with Option 1 (real motion-integrated multi-frame submap).** Rationale: it is the only one of the three that targets the actual shared root cause identified in Part 1 (the missing ingredient is information from a genuinely different viewpoint — real parallax across time/motion — not a better single-instant representation, 2D or 3D) rather than a different way of looking at the same single instant. It is also the option with the most legitimate historical caution attached — flagged as deferred since 2026-07-03 specifically because it needs real design decisions (anchor-creation timing, live-scan-matching design), not a parameter tweak — so it should be scoped and planned carefully before implementation begins, not treated as a quick fix.
