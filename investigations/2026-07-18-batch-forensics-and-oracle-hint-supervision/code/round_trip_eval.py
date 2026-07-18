@@ -622,6 +622,27 @@ parser.add_argument(
          "determines the reported bearing) is unchanged in both modes.",
 )
 parser.add_argument(
+    "--sequential_pair_report_next_anchor",
+    action="store_true",
+    default=False,
+    help=(
+        "(2026-07-18) Off by default (reports 'current', unchanged behavior). The injected hint's "
+        "target_anchor_index/distance_to_anchor_m/bearing_to_anchor_deg have always described the "
+        "'current' role (the anchor most recently confirmed/promoted to -- a backward-looking 'where "
+        "you were last confirmed' signal), never the 'next' role (the upcoming, not-yet-promoted "
+        "candidate) -- despite the hint text's own 'next-anchor vector' label implying otherwise. Real "
+        "data confirms this frequently reports a target behind the robot (bearing swinging to "
+        "+-150-179 deg mid-dwell between promotions) -- unlike --route_hint_source=oracle's "
+        "direct_oracle_route_anchor_progress, which continuously looks ~1 anchor-spacing AHEAD of the "
+        "robot's true position, this never did. When enabled, hint generation reports the 'next' "
+        "role's own estimate instead, reusing the existing next-role reliability machinery (quarantine, "
+        "quarantine_next_quality, short_baseline_disambiguation's anchor_heading_reliable downgrade -- "
+        "already feeds into the same 'position uncertain' hedged-wording fallback via filter_std_m) "
+        "rather than inventing new degradation logic. Falls back to reporting current's own estimate "
+        "when no next-role estimate is available yet this attempt."
+    ),
+)
+parser.add_argument(
     "--route_memory_multiframe_anchor_window",
     type=int,
     default=1,
@@ -2704,6 +2725,7 @@ def main():
             args_cli.sequential_pair_disable_temporal_smoothing
         ),
         sequential_pair_closure_reconciliation_signal=args_cli.sequential_pair_closure_reconciliation_signal,
+        sequential_pair_report_next_anchor=bool(args_cli.sequential_pair_report_next_anchor),
         multiframe_anchor_window=args_cli.route_memory_multiframe_anchor_window,
         multiframe_anchor_symmetric_enabled=bool(
             args_cli.route_memory_multiframe_anchor_symmetric_enabled
@@ -3368,6 +3390,7 @@ def main():
         "sequential_pair_loftr_rear_yaw_check": bool(args_cli.sequential_pair_loftr_rear_yaw_check),
         "sequential_pair_disable_temporal_smoothing": bool(args_cli.sequential_pair_disable_temporal_smoothing),
         "sequential_pair_closure_reconciliation_signal": args_cli.sequential_pair_closure_reconciliation_signal,
+        "sequential_pair_report_next_anchor": bool(args_cli.sequential_pair_report_next_anchor),
         "route_memory_multiframe_anchor_symmetric_enabled": bool(
             args_cli.route_memory_multiframe_anchor_symmetric_enabled
         ),
