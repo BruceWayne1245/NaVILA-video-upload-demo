@@ -1821,6 +1821,78 @@ class SequentialPairPromotionModeTest(unittest.TestCase):
                           "5 attempts is only enough for one 3-vote promotion (anchor 2 -> 1), not two")
 
 
+class SequentialPairReportNextAnchorTest(unittest.TestCase):
+    """2026-07-18: the injected hint has always described the "current" role
+    (the anchor most recently promoted to -- a backward-looking "where you
+    were last confirmed" signal), never "next" (the upcoming, unconfirmed
+    candidate) -- despite the hint text's own "next-anchor vector" label.
+    sequential_pair_report_next_anchor switches hint generation to report
+    next's own estimate instead, reusing next's existing reliability
+    machinery (quarantine / short_baseline_disambiguation's
+    anchor_heading_reliable downgrade, which already feeds filter_std_m's
+    hedged-wording fallback) rather than inventing new degradation logic."""
+
+    def _agent_with_pair(self, **kwargs) -> RouteMemoryAgent:
+        agent = RouteMemoryAgent(enabled=True, anchor_spacing_m=1.0, **kwargs)
+        for _ in range(2):
+            agent.update_outbound_motion([1.0, 0.0, 0.0])
+        agent.finalize_outbound()
+        return agent  # anchors: 0 @ 0m, 1 @ 1m, 2 @ 2m (return-start); current starts at 2
+
+    def _current_reading(self) -> AnchorRelocalization:
+        return AnchorRelocalization(anchor_index=2, anchor_dx_m=-1.5, anchor_dy_m=0.0, anchor_dtheta_rad=0.0,
+                                     confidence=0.5, backend="sequential_pair", inlier_count=100)
+
+    def _far_next_reading(self) -> AnchorRelocalization:
+        # distance ~3.04m, well past promotion_close_radius_m (0.75 @ spacing=1.0) --
+        # proven non-qualifying in SequentialPairPromotionModeTest's own far_next.
+        return AnchorRelocalization(anchor_index=1, anchor_dx_m=-3.0, anchor_dy_m=0.5, anchor_dtheta_rad=0.0,
+                                     confidence=0.6, backend="sequential_pair", inlier_count=200)
+
+    def test_default_flag_is_off(self):
+        agent = RouteMemoryAgent(enabled=True)
+        self.assertFalse(agent.sequential_pair_report_next_anchor)
+
+    def test_flag_off_reports_current_anchor_unchanged(self):
+        agent = self._agent_with_pair(sequential_pair_report_next_anchor=False)
+        agent.update_relocalization(relocalization=[self._current_reading(), self._far_next_reading()])
+        progress = agent.progress()
+        self.assertEqual(progress.target_anchor_index, 2)
+        self.assertAlmostEqual(progress.distance_to_anchor_m, 1.5, places=3)
+        self.assertEqual(agent._target_anchor_index, 2, "far next reading must not have promoted")
+
+    def test_flag_on_reports_next_anchor_instead(self):
+        agent = self._agent_with_pair(sequential_pair_report_next_anchor=True)
+        agent.update_relocalization(relocalization=[self._current_reading(), self._far_next_reading()])
+        progress = agent.progress()
+        # Still tracking current=2 internally (no promotion) -- only the REPORTED
+        # hint target changes, the underlying pair-tracking/promotion logic doesn't.
+        self.assertEqual(agent._target_anchor_index, 2)
+        self.assertEqual(progress.target_anchor_index, 1, "hint must now describe the next candidate, not current")
+        self.assertAlmostEqual(progress.distance_to_anchor_m, math.hypot(3.0, 0.5), places=3)
+        self.assertAlmostEqual(progress.anchor_dx_m, -3.0, places=3)
+        self.assertAlmostEqual(progress.anchor_dy_m, 0.5, places=3)
+
+    def test_flag_on_falls_back_to_current_when_no_next_estimate_exists_yet(self):
+        agent = self._agent_with_pair(sequential_pair_report_next_anchor=True)
+        # Only a current-anchor reading this attempt (e.g. next's ICP failed) --
+        # no next-role estimate has ever been recorded, must fall back gracefully.
+        agent.update_relocalization(relocalization=[self._current_reading()])
+        progress = agent.progress()
+        self.assertEqual(progress.target_anchor_index, 2)
+
+    def test_flag_on_reports_the_newly_promoted_anchor_at_the_promotion_moment(self):
+        agent = self._agent_with_pair(sequential_pair_report_next_anchor=True)
+        close_next = AnchorRelocalization(anchor_index=1, anchor_dx_m=-0.05, anchor_dy_m=0.0,
+                                           anchor_dtheta_rad=0.0, confidence=0.95,
+                                           backend="sequential_pair", inlier_count=450)
+        agent.update_relocalization(relocalization=[self._current_reading(), close_next])
+        self.assertEqual(agent._target_anchor_index, 1, "must have promoted (immediate mode, close_enough)")
+        progress = agent.progress()
+        self.assertEqual(progress.target_anchor_index, 1)
+        self.assertAlmostEqual(progress.distance_to_anchor_m, 0.05, places=3)
+
+
 class SequentialPairPromotionAliasAwareTest(unittest.TestCase):
     """Anchor-distinctiveness-aware promotion requirement (user-proposed
     2026-07-06, see relocalization.compute_anchor_alias_scores' and
