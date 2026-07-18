@@ -396,6 +396,7 @@ class RouteMemoryAgent:
         sequential_pair_short_baseline_stall_attempts: int = 60,
         sequential_pair_disable_temporal_smoothing: bool = False,
         sequential_pair_closure_reconciliation_signal: str = "dtheta",
+        sequential_pair_report_next_anchor: bool = False,
         quarantine_window_size: int = 6,
         quarantine_min_samples: int = 3,
         quarantine_distance_spread_m: float = 0.5,
@@ -509,6 +510,14 @@ class RouteMemoryAgent:
         self._return_distance_m: float = 0.0
         self._return_frame_buffer: list[tuple[float, list[float], object]] = []
         self._latest_relocalization: Optional[AnchorRelocalization] = None
+        # 2026-07-18: mirrors _latest_relocalization but for the "next" role's
+        # own most recent estimate (post closure-precheck / short-baseline
+        # heading-reliability downgrade, same estimate the promotion-vote gates
+        # see) -- populated every attempt a next-role candidate exists,
+        # independent of sequential_pair_report_next_anchor being on, so the
+        # flag can be flipped without needing a fresh code path. Only consumed
+        # by _anchor_progress() when that flag is enabled.
+        self._latest_next_candidate_relocalization: Optional[AnchorRelocalization] = None
         self._arc_length_filter: Optional[ArcLengthParticleFilter] = None
         self._arc_observation: Optional[dict] = None
         self._sequence_observation: Optional[SequenceArcObservation] = None
@@ -782,6 +791,27 @@ class RouteMemoryAgent:
         self.sequential_pair_closure_reconciliation_signal: str = str(
             sequential_pair_closure_reconciliation_signal
         )
+        # 2026-07-18: the hint text's target_anchor_index has always been the
+        # "current" role (whichever anchor was most recently promoted to /
+        # confirmed reached) -- NOT the "next" role (the upcoming, unconfirmed
+        # candidate), despite the hint text's own "next-anchor vector" label
+        # implying otherwise. Real data (ep367, shadow_hint_swap_50ep_20260714)
+        # confirms this reports a target that is frequently behind the robot
+        # (bearing swinging to +-150-179 deg mid-dwell) -- current is a
+        # backward-looking "where you were last confirmed" signal, not a
+        # forward-looking "where to go next" one, unlike direct_oracle_route_
+        # anchor_progress's continuous lookahead-based target selection.
+        # When enabled, hint generation reports the "next" role's own estimate
+        # instead (see _latest_next_candidate_relocalization / _anchor_progress
+        # below) -- reusing the EXISTING next-role reliability machinery
+        # (quarantine, quarantine_next_quality, short_baseline_disambiguation's
+        # anchor_heading_reliable downgrade) rather than inventing new
+        # degradation logic, since next is already the one role all of that
+        # machinery was built to judge. Falls back to reporting current's own
+        # estimate when no next-role estimate is available this attempt (e.g.
+        # already at the final anchor, or next's ICP failed this attempt).
+        # Off by default -- no behavior change to any existing/validated batch.
+        self.sequential_pair_report_next_anchor: bool = bool(sequential_pair_report_next_anchor)
         # Bad-anchor quarantine (user-proposed 2026-07-04): an anchor whose ICP
         # fit bounces around wildly across consecutive attempts while it is still
         # "next" (not yet promoted to _target_anchor_index) is flagged and
@@ -1675,6 +1705,13 @@ class RouteMemoryAgent:
             else min(self._target_anchor_min_distance_m, selected.distance_to_anchor_m)
         )
         observation.source = f"{observation.source}:{selection_reason}"
+        # 2026-07-18: mirrors _latest_relocalization's own "hold the last
+        # accepted value" convention (only updated on a non-reject attempt) --
+        # captured unconditionally (even on a promotion attempt, where next_est
+        # also becomes `selected`/the new current) since the two are the exact
+        # same object at that instant, so this needs no special-casing.
+        if next_est is not None:
+            self._latest_next_candidate_relocalization = next_est
         return selected, observation, None
 
     def update_latest_anchor_metadata(self, metadata: dict) -> None:
@@ -3246,7 +3283,17 @@ class RouteMemoryAgent:
         )
 
     def _anchor_progress(self) -> Optional[RelativeStartProgress]:
-        estimate = self._latest_relocalization
+        # 2026-07-18: sequential_pair_report_next_anchor prefers the "next"
+        # role's own estimate (a forward-looking, not-yet-confirmed target)
+        # over "current" (backward-looking, last-confirmed target) -- see the
+        # flag's docstring at __init__. Falls back to current when no next
+        # estimate is available yet (e.g. at the final anchor, or next's ICP
+        # simply failed on the attempt that produced the latest accepted
+        # estimate).
+        if self.sequential_pair_report_next_anchor and self._latest_next_candidate_relocalization is not None:
+            estimate = self._latest_next_candidate_relocalization
+        else:
+            estimate = self._latest_relocalization
         if estimate is None:
             return None
         return self._anchor_progress_from_estimate(estimate)
