@@ -1,0 +1,43 @@
+# Canonical `sequential_pair` config (as of 2026-07-19)
+
+This file tracks the currently-adopted `sequential_pair` flag configuration for live batches, and is meant to be updated in place going forward rather than superseded by a new file each time. Seeded from the validated `shadow_hint_swap_50ep_20260714_accumulated` baseline (the 14/22=63.6% round-trip reference), verified directly against that batch's own measurement JSON (`round_trip.*` config fields), with one deliberate change from that baseline: **`--sequential_pair_closure_check` is re-enabled** (see rationale below). Everything else is unchanged from the 14/22 baseline.
+
+## Full flag table
+
+| Flag | Value | Monitors | What it does / why it exists |
+|---|---|---|---|
+| `--sequential_pair_anchor_geometry_source` | `accumulated` | infra (both) | Anchor-to-anchor geometry for reprojection/cross-check uses the non-privileged edge chain, not oracle ground truth. |
+| `--sequential_pair_closure_check` | **`True` (changed from 14/22's `False`)** | both | Cross-checks the simultaneously-read current-anchor and next-anchor ICP fits against each other every attempt; reconstructs the weaker side from the stronger on a one-sided mismatch. See "Why closure_check is back on" below. |
+| `--sequential_pair_closure_mode` | `threshold` (unchanged default) | both | Original 2026-07-04 design: reconstruct the weaker side on a 1.5x quality-ratio mismatch, else reject outright. (`belief` mode + `trust_aware_guard` were not requested to be enabled — revisit if the plain `threshold` mode's outright-reject behavior turns out to stall episodes, the same failure `belief` mode was created to avoid.) |
+| `--sequential_pair_closure_belief_trust_aware_guard` | `False` (unchanged) | both | Only relevant in `belief` mode — not in effect while `closure_mode=threshold`. |
+| `--sequential_pair_quarantine` | `True`, mode=`trend` | next only | Permanently bans a next candidate from ever promoting if its disagreement vs. current doesn't shrink as the robot approaches. Explicitly never monitors current. |
+| `--sequential_pair_promotion_mode` | `bounded_evidence` (window=5, min_votes=3) | next only | Requires repeated confirming votes across attempts before a next candidate promotes to current — gates promotion, not what gets reported. |
+| `--sequential_pair_promotion_alias_aware` | `True` (threshold=0.6, window=8, min_votes=5, stall_attempts=200) | next only | Stricter promotion vote requirement for next candidates whose anchor shape closely resembles a non-adjacent anchor (self-similarity risk). |
+| `--sequential_pair_promotion_use_pre_closure_estimates` | `True` | both | Promotion vote gates read each side's pre-closure-check raw estimate rather than the post-fusion one. Was a no-op in the 14/22 baseline (closure_check was off); **now has a live effect** since closure_check is on again. |
+| `--sequential_pair_short_baseline_disambiguation` | `True` (min_travel=0.3m, max_rotation_disagreement=20°) | next only | Cross-checks a next candidate's ICP reading against a second reading from a different vantage point; sets `anchor_heading_reliable=False` on disagreement (does not correct, only flags). |
+| `--sequential_pair_disable_temporal_smoothing` | `True` (unchanged) | current only | Keeps `_temporally_smooth_relocalization` (across-time EMA blend of current's own successive readings) turned OFF — see rationale below, this is the mechanism actually proven harmful. |
+| `--sequential_pair_closure_reconciliation_signal` | `dtheta` (unchanged default) | both | Only relevant if closure disagreement/trust were judged via bearing instead — not changed from baseline. |
+| `--sequential_pair_loftr_rear_yaw_check` | `False` (unchanged) | diagnostic only | Off — expensive, diagnostic-only, not part of live decision-making regardless. |
+
+## Deliberately NOT included in this canonical config (post-dates 14/22 or has known open issues)
+
+| Flag | Status | Why excluded |
+|---|---|---|
+| `--sequential_pair_quarantine_next_quality` | off | 2026-07-15: proven to cause an unbounded cascade (no release valve) that quarantines an entire candidate chain on self-similar routes — net regression on live data. Do not re-enable without first adding a stall-relief mechanism. |
+| `--sequential_pair_current_confidence_ambiguity_gate` | off | 2026-07-16: real, validated signal (caps reported confidence for one attempt when current's own ICP is ambiguous) but only offline/small-live-sample tested; not yet folded into a validated main config. |
+| `--sequential_pair_short_baseline_require_resolution` | off | 2026-07-16: fixes short_baseline_disambiguation's 0.1%-firing under-triggering bug by withholding promotion until resolved (bounded by a stall valve). Well-designed but not yet validated at scale in combination with the rest of this config. |
+| `--sequential_pair_report_next_anchor` | off | 2026-07-18: the hint source. Reporting "next" instead of "current" is the historically-correct intent (matches the hint's own "next-anchor vector" text label) but exposes a real, newly-found staleness/freezing bug — next's cached estimate is never refreshed via dead-reckoning between accepted corrections (unlike a now also-broken equivalent that current briefly had, see below) and has no expiry. **Do not enable in a routine/comparison batch until paired with a staleness fix** (candidate: restore/port the dead-reckoning-propagation approach described below to the next-candidate slot too, or require `quarantine_next_quality`/`short_baseline_require_resolution`-style protection). |
+| `--route_memory_multiframe_anchor_symmetric_enabled` / `--route_memory_return_frame_buffer_enabled` | off | 2026-07-16: real, motivated mechanism (extends anchor/current capture from a single instantaneous frame to a real motion-integrated submap) but effect on live accuracy has not been cleanly isolated yet (last live batch testing it was compounded by a GPU-orphan-process outage, see `investigations/2026-07-19-...` batch forensics). |
+| `--oracle_hint_supervision` / `--oracle_hint_action_supervision` | off | 2026-07-18: research-only, ground-truth-based upper-bound instrument, never meant for a live-deployable config. |
+
+## Why `closure_check` is back on
+
+Turned off in the 14/22 baseline as part of a bundled "Variant 1: no fusion at all" simplification (`investigations/2026-07-13-icp-bearing-error-cross-batch-deep-dive/FUSION_MECHANISM_ANALYSIS.md`), alongside `--sequential_pair_disable_temporal_smoothing`. **Important distinction, re-confirmed 2026-07-19**: that investigation's decisive evidence (93.5% of measured fusion-corruption, 7.13% of readings corrupted vs. only 0.48% fixed) was attributed almost entirely to `_temporally_smooth_relocalization` — the across-*time* EMA blend of current's own successive readings, which has no match_class/near_tie trust check at all. `_sequential_pair_closure_belief_fusion` (what `closure_check` actually gates, an across-*role* current-vs-next cross-check) accounted for only the remaining ~6.5% of that corrupted pool — a real but much smaller, and never independently isolated, contribution. Turning it off was a bundled simplification decision, not an individually-proven indictment; disabling temporal smoothing (which stays off in this config) is what the strong evidence actually supports.
+
+## Why `disable_temporal_smoothing` stays on (i.e. smoothing stays off)
+
+This is the mechanism with the strong, direct evidence (93.5% of measured corruption, ~15x more harmful than helpful) and is not being reconsidered here.
+
+## Open item flagged during this same review (2026-07-19), not yet fixed
+
+`_propagate_latest_relocalization` (defined in `route_memory_agent.py`, dead-reckons a stale cached anchor-relative pose forward using real per-step odometry when no fresh ICP correction lands, originally wired into `update_return_motion` on 2026-06-28 per commit `697dc6a`) has **no live call site anywhere in the current, uncommitted workstation checkout** — the call was silently dropped, most likely as an unintentional side effect of the 2026-07-16 `return_frame_buffer_enabled` rewrite of the same function (no comment or rationale documents an intentional removal). This means neither `current`'s nor (once `report_next_anchor` is used) `next`'s cached estimate currently gets any time-based staleness handling — both freeze completely solid on repeated ICP non-confirmation. Restoring this call (and verifying it's compatible with the newer `return_frame_buffer` code path) is a concrete, small, well-scoped fix candidate, separate from and prerequisite to any `report_next_anchor` staleness fix.
