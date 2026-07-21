@@ -1,0 +1,102 @@
+quarantinable anchor groups (>= 6 readings): 836
+  ground-truth degenerate (majority bad-bearing):        222/836
+  ground-truth degenerate (majority bad AT CLOSE range): 129/707
+
+============================================================================================
+SWEEP vs ground truth = majority-bad-bearing
+============================================================================================
+   thr | #quar | recall   prec | false-quar rate (good anchors wrongly skipped)
+  5.05 |     2 |   0.9% 100.0% |        0.0%   (TP=2 FP=0 FN=220)  <- Injection A default
+  4.50 |    12 |   4.5%  83.3% |        0.3%   (TP=10 FP=2 FN=212)
+  4.00 |    18 |   7.2%  88.9% |        0.3%   (TP=16 FP=2 FN=206)
+  3.50 |    42 |  14.4%  76.2% |        1.6%   (TP=32 FP=10 FN=190)
+  3.00 |    64 |  20.3%  70.3% |        3.1%   (TP=45 FP=19 FN=177)
+  2.50 |    90 |  28.8%  71.1% |        4.2%   (TP=64 FP=26 FN=158)
+  2.00 |   112 |  35.1%  69.6% |        5.5%   (TP=78 FP=34 FN=144)
+  1.50 |   149 |  46.8%  69.8% |        7.3%   (TP=104 FP=45 FN=118)
+  1.00 |   174 |  54.5%  69.5% |        8.6%   (TP=121 FP=53 FN=101)
+  0.50 |   202 |  60.4%  66.3% |       11.1%   (TP=134 FP=68 FN=88)
+  0.00 |   221 |  64.0%  64.3% |       12.9%   (TP=142 FP=79 FN=80)
+ -0.50 |   247 |  71.6%  64.4% |       14.3%   (TP=159 FP=88 FN=63)
+ -1.00 |   271 |  76.6%  62.7% |       16.4%   (TP=170 FP=101 FN=52)
+
+============================================================================================
+SWEEP vs ground truth = majority-bad-AT-CLOSE
+============================================================================================
+   thr | #quar | recall   prec | false-quar rate (good anchors wrongly skipped)
+  5.05 |     0 |   0.0%   0.0% |        0.0%   (TP=0 FP=0 FN=129)  <- Injection A default
+  4.50 |     1 |   0.0%   0.0% |        0.2%   (TP=0 FP=1 FN=129)
+  4.00 |     4 |   1.6%  50.0% |        0.3%   (TP=2 FP=2 FN=127)
+  3.50 |    12 |   3.9%  41.7% |        1.2%   (TP=5 FP=7 FN=124)
+  3.00 |    21 |   8.5%  52.4% |        1.7%   (TP=11 FP=10 FN=118)
+  2.50 |    32 |  14.0%  56.2% |        2.4%   (TP=18 FP=14 FN=111)
+  2.00 |    45 |  18.6%  53.3% |        3.6%   (TP=24 FP=21 FN=105)
+  1.50 |    61 |  24.8%  52.5% |        5.0%   (TP=32 FP=29 FN=97)
+  1.00 |    77 |  30.2%  50.6% |        6.6%   (TP=39 FP=38 FN=90)
+  0.50 |    98 |  37.2%  49.0% |        8.7%   (TP=48 FP=50 FN=81)
+  0.00 |   112 |  43.4%  50.0% |        9.7%   (TP=56 FP=56 FN=73)
+ -0.50 |   136 |  55.0%  52.2% |       11.2%   (TP=71 FP=65 FN=58)
+ -1.00 |   155 |  60.5%  50.3% |       13.3%   (TP=78 FP=77 FN=51)
+
+============================================================================================
+FOCUSED: pin-episode anchors at/below the pin (the stuck `next` chain)
+============================================================================================
+For each captured pin episode, the anchors near the pin that Injection A would score as `next`.
+   ep  pin | per-anchor: idx(frac_bad, n, U@thr-quarantined?) at a few thresholds
+ep5    a11:
+    a10 [        next] n= 302 frac_bad=0.37 gt=ok  | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:Q t1.0:Q
+    a11 [PIN(current)] n= 543 frac_bad=0.40 gt=ok  | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:Q t1.0:Q
+ep20   a8:
+    a7  [        next] n= 181 frac_bad=0.74 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:Q t1.0:Q
+    a8  [PIN(current)] n= 181 frac_bad=0.76 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:Q
+ep319  a4:
+    a3  [        next] n= 558 frac_bad=0.90 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:Q
+    a4  [PIN(current)] n=1001 frac_bad=0.61 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:.
+ep367  a11:
+    a10 [        next] n= 914 frac_bad=0.98 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:Q
+    a11 [PIN(current)] n=1001 frac_bad=0.68 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:.
+ep498  a5:
+    a4  [        next] n= 882 frac_bad=0.68 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+    a5  [PIN(current)] n= 896 frac_bad=0.91 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:Q t1.0:Q
+ep500  a10:
+    a9  [        next] n= 636 frac_bad=0.70 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+    a10 [PIN(current)] n= 925 frac_bad=0.74 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+ep653  a10:
+    a9  [        next] n= 833 frac_bad=0.84 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+    a10 [PIN(current)] n= 843 frac_bad=0.02 gt=ok  | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+ep680  a6:
+    a5  [        next] n= 728 frac_bad=0.57 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:Q t1.0:Q
+    a6  [PIN(current)] n= 763 frac_bad=0.43 gt=ok  | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:Q t1.0:Q
+ep813  a6:
+    a2  [        next] n= 263 frac_bad=0.00 gt=ok  | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:.
+    a3  [        next] n= 269 frac_bad=0.01 gt=ok  | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:.
+    a4  [        next] n=  24 frac_bad=1.00 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:.
+    a5  [        next] n= 361 frac_bad=0.81 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:Q
+    a6  [PIN(current)] n= 343 frac_bad=0.64 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+ep889  a9:
+    a8  [        next] n= 475 frac_bad=0.00 gt=ok  | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+    a9  [PIN(current)] n= 757 frac_bad=0.58 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+ep994  a6:
+    a5  [        next] n= 781 frac_bad=0.64 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+    a6  [PIN(current)] n= 802 frac_bad=0.53 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+ep1038 a4:
+    a3  [        next] n= 803 frac_bad=0.85 gt=BAD | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:. t2.0:. t1.0:Q
+    a4  [PIN(current)] n= 810 frac_bad=0.35 gt=ok  | quar@[5.05/3.0/2.0/1.0]= t5.05:. t3.0:Q t2.0:Q t1.0:Q
+
+============================================================================================
+RECOMMENDATION
+============================================================================================
+Max anchor-level Youden J (recall - false-quar) at thr=-1.00: J=0.601  recall=76.6% false-quar=16.4% prec=62.7%
+
+Pin `next` anchors (idx=pin-1), ground-truth degenerate ones only:
+   ep next frac_bad medianU   p75U | catchable?
+   20 a7       0.74    2.08   3.61 | CONFIDENTLY-WRONG (U clean; no safe thr → vision residual)
+  319 a3       0.90    1.76   3.09 | CONFIDENTLY-WRONG (U clean; no safe thr → vision residual)
+  367 a10      0.98    1.40   2.62 | CONFIDENTLY-WRONG (U clean; no safe thr → vision residual)
+  498 a4       0.68    4.76   5.85 | U-detectable (thr~2.5-3)
+  500 a9       0.70    4.33   4.49 | U-detectable (thr~2.5-3)
+  653 a9       0.84    3.93   5.70 | U-detectable (thr~2.5-3)
+  680 a5       0.57    2.53   3.42 | U-detectable (thr~2.5-3)
+  813 a5       0.81    1.72   3.03 | CONFIDENTLY-WRONG (U clean; no safe thr → vision residual)
+  994 a5       0.64    4.09   5.04 | U-detectable (thr~2.5-3)
+ 1038 a3       0.85    1.25   2.50 | CONFIDENTLY-WRONG (U clean; no safe thr → vision residual)

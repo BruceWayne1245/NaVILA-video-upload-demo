@@ -1,0 +1,114 @@
+--- upstream_snapshot/round_trip_eval.py	2026-07-21 14:52:16.223722633 +0100
++++ candidate/round_trip_eval.py	2026-07-21 22:17:24.338073931 +0100
+@@ -348,6 +348,76 @@
+     ),
+ )
+ parser.add_argument(
++    "--sequential_pair_reliability_quarantine",
++    action="store_true",
++    default=False,
++    help=(
++        "sequential_pair only (2026-07-21, opt-in, off by default; "
++        "investigations/2026-07-21-icp-reliability-signal, Injection A): "
++        "ABSOLUTE, current-INDEPENDENT per-reading reliability quarantine of the "
++        "'next' candidate. Unlike --sequential_pair_quarantine (trend/window), "
++        "which measures disagreement RELATIVE TO current and fired 0/13 on the "
++        "batch2 stuck episodes because the defect is rotational not positional, "
++        "this scores each next reading on its own diagnostics (an absolute "
++        "AUC~0.80 combination of inlier_count, icp_best_to_second_score_ratio, "
++        "near_tie_basin_count, confidence) and blacklists it when its OWN "
++        "reliability is persistently low -- so a bad 'current' cannot hide a bad "
++        "'next'. Carries the stall-relief valve (max_chain + per-anchor "
++        "stall_attempts, reset on promotion) that --sequential_pair_quarantine_"
++        "next_quality lacked, which is why that one cascaded."
++    ),
++)
++parser.add_argument(
++    "--reliability_quarantine_threshold",
++    type=float,
++    default=2.5,
++    help=(
++        "Only used with --sequential_pair_reliability_quarantine (and the demote/"
++        "distrust flags below). Per-reading unreliability score U above which a "
++        "reading counts as 'bad'; an anchor is quarantined once >bad_fraction of "
++        "its >=min_history readings are bad. Calibrated 2026-07-21 against 90k "
++        "ground-truth-labeled readings (default 5.05 = the Injection-C 70%-"
++        "precision point fired essentially never for quarantine: anchor-level "
++        "recall 0.9%); 2.5 catches the U-detectable degenerate next anchors at "
++        "~4% false-quarantine rate. The confidently-wrong pins (U looks clean) "
++        "are NOT catchable at any safe threshold -- that is the vision residual."
++    ),
++)
++parser.add_argument("--reliability_quarantine_min_history", type=int, default=6, help=argparse.SUPPRESS)
++parser.add_argument("--reliability_quarantine_bad_fraction", type=float, default=0.5, help=argparse.SUPPRESS)
++parser.add_argument("--reliability_quarantine_stall_attempts", type=int, default=200, help=argparse.SUPPRESS)
++parser.add_argument("--reliability_quarantine_max_chain", type=int, default=4, help=argparse.SUPPRESS)
++parser.add_argument(
++    "--sequential_pair_reliability_demote_current",
++    action="store_true",
++    default=False,
++    help=(
++        "sequential_pair only (2026-07-21, opt-in, off by default; Injection B): "
++        "when the CURRENT anchor's own reliability (same U score / threshold as "
++        "--sequential_pair_reliability_quarantine) is persistently low, stop "
++        "letting it veto next's promotion -- (i) a closure current/next mismatch "
++        "no longer forces the promotion vote to False and (ii) the current-"
++        "quality dominance bar is waived -- so a reliable next can promote past a "
++        "degenerate pinned current (the batch2 pin had no mechanism to leave a "
++        "bad current). Current is never itself quarantined."
++    ),
++)
++parser.add_argument(
++    "--sequential_pair_reliability_distrust_downstream",
++    action="store_true",
++    default=False,
++    help=(
++        "sequential_pair only (2026-07-21, opt-in, off by default; Injection C): "
++        "when the reported estimate's own reliability is low (U >= "
++        "--reliability_quarantine_threshold), cap its reported confidence to "
++        "--reliability_low_confidence_floor and flag the distance authority as "
++        "low-reliability, so stop_gate DEFERS to the VLM instead of vetoing its "
++        "stop. Targets the ep680 class (gate vetoed 258 correct within-radius "
++        "stops because a pinned current over-reported distance)."
++    ),
++)
++parser.add_argument("--reliability_low_confidence_floor", type=float, default=0.2, help=argparse.SUPPRESS)
++parser.add_argument(
+     "--sequential_pair_current_confidence_ambiguity_gate",
+     action="store_true",
+     default=False,
+@@ -2725,6 +2795,16 @@
+         quarantine_next_quality_enabled=bool(args_cli.sequential_pair_quarantine_next_quality),
+         quarantine_next_quality_threshold=args_cli.sequential_pair_quarantine_next_quality_threshold,
+         quarantine_next_quality_min_samples=args_cli.sequential_pair_quarantine_next_quality_min_samples,
++        # 2026-07-21 reliability gating (Injection A/B/C), all default-off.
++        sequential_pair_reliability_quarantine_enabled=bool(args_cli.sequential_pair_reliability_quarantine),
++        reliability_quarantine_threshold=args_cli.reliability_quarantine_threshold,
++        reliability_quarantine_min_history=args_cli.reliability_quarantine_min_history,
++        reliability_quarantine_bad_fraction=args_cli.reliability_quarantine_bad_fraction,
++        reliability_quarantine_stall_attempts=args_cli.reliability_quarantine_stall_attempts,
++        reliability_quarantine_max_chain=args_cli.reliability_quarantine_max_chain,
++        sequential_pair_reliability_demote_current=bool(args_cli.sequential_pair_reliability_demote_current),
++        sequential_pair_reliability_distrust_downstream=bool(args_cli.sequential_pair_reliability_distrust_downstream),
++        reliability_low_confidence_floor=args_cli.reliability_low_confidence_floor,
+         current_confidence_ambiguity_gate_enabled=bool(
+             args_cli.sequential_pair_current_confidence_ambiguity_gate
+         ),
+@@ -3396,6 +3476,17 @@
+         "sequential_pair_quarantine_next_quality_min_samples": int(
+             args_cli.sequential_pair_quarantine_next_quality_min_samples
+         ),
++        "sequential_pair_reliability_quarantine": bool(args_cli.sequential_pair_reliability_quarantine),
++        "reliability_quarantine_threshold": float(args_cli.reliability_quarantine_threshold),
++        "reliability_quarantine_min_history": int(args_cli.reliability_quarantine_min_history),
++        "reliability_quarantine_bad_fraction": float(args_cli.reliability_quarantine_bad_fraction),
++        "reliability_quarantine_stall_attempts": int(args_cli.reliability_quarantine_stall_attempts),
++        "reliability_quarantine_max_chain": int(args_cli.reliability_quarantine_max_chain),
++        "sequential_pair_reliability_demote_current": bool(args_cli.sequential_pair_reliability_demote_current),
++        "sequential_pair_reliability_distrust_downstream": bool(
++            args_cli.sequential_pair_reliability_distrust_downstream
++        ),
++        "reliability_low_confidence_floor": float(args_cli.reliability_low_confidence_floor),
+         "sequential_pair_current_confidence_ambiguity_gate": bool(
+             args_cli.sequential_pair_current_confidence_ambiguity_gate
+         ),

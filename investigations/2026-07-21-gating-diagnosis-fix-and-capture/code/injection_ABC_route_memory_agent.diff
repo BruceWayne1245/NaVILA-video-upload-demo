@@ -1,0 +1,306 @@
+--- upstream_snapshot/route_memory_agent.py	2026-07-21 14:09:38.313868773 +0100
++++ candidate/route_memory_agent.py	2026-07-21 22:16:01.060020632 +0100
+@@ -136,6 +136,10 @@
+     anchor_route_remaining_m: Optional[float] = None
+     anchor_heading_reliable: Optional[bool] = None
+     relocalization_confidence: Optional[float] = None
++    # Injection C (2026-07-21): set True when the estimate that produced this
++    # progress had low absolute reliability (U >= threshold). stop_gate reads it
++    # to DEFER to the VLM instead of vetoing its stop on an untrusted distance.
++    distance_authority_low_reliability: Optional[bool] = None
+     relocalization_backend: Optional[str] = None
+     filter_std_m: Optional[float] = None
+     oracle_route_current_s_m: Optional[float] = None
+@@ -408,6 +412,38 @@
+         quarantine_next_quality_enabled: bool = False,
+         quarantine_next_quality_threshold: float = 0.75,
+         quarantine_next_quality_min_samples: int = 5,
++        # 2026-07-21 (investigations/2026-07-21-icp-reliability-signal, Injection A):
++        # ABSOLUTE, current-INDEPENDENT per-reading reliability quarantine of the
++        # "next" candidate. Unlike quarantine (trend/window), which measures
++        # position disagreement RELATIVE TO current (and fired 0/13 on the stuck
++        # episodes because the defect is rotational, not positional), this scores
++        # each next reading on its own diagnostics and blacklists it when its own
++        # reliability is persistently low -- so a bad `current` cannot hide a bad
++        # `next`. Carries the stall-relief valve that quarantine_next_quality
++        # (2026-07-15) lacked, which is why that one cascaded and was disabled.
++        sequential_pair_reliability_quarantine_enabled: bool = False,
++        reliability_quarantine_threshold: float = 2.5,
++        reliability_quarantine_min_history: int = 6,
++        reliability_quarantine_bad_fraction: float = 0.5,
++        reliability_quarantine_stall_attempts: int = 200,
++        reliability_quarantine_max_chain: int = 4,
++        # 2026-07-21 (investigations/2026-07-21-icp-reliability-signal, Injection B):
++        # evict/demote a bad CURRENT. Every next-side gate is measured relative to
++        # current, so a degenerate pinned current poisons closure_precheck and the
++        # promotion quality bar and there is otherwise no mechanism to leave it.
++        # When current's OWN reliability (same U score as Injection A) is
++        # persistently low, (i) do not let a closure current/next mismatch force
++        # the promotion vote to False and (ii) waive the current-quality dominance
++        # requirement, so a reliable next can promote past the bad current.
++        sequential_pair_reliability_demote_current: bool = False,
++        # 2026-07-21 (Injection C): downstream distrust. When the reported
++        # estimate's own reliability is low, cap its reported confidence to
++        # reliability_low_confidence_floor and flag the distance authority as
++        # low-reliability, so stop_gate DEFERS to the VLM instead of vetoing its
++        # stop (the ep680 class: gate vetoed 258 correct within-radius stops
++        # because the pinned current over-reported distance).
++        sequential_pair_reliability_distrust_downstream: bool = False,
++        reliability_low_confidence_floor: float = 0.2,
+         current_confidence_ambiguity_gate_enabled: bool = False,
+         current_confidence_ambiguity_gate_threshold: float = 0.75,
+         current_confidence_ambiguity_gate_floor: float = 0.5,
+@@ -908,6 +944,20 @@
+         self.quarantine_next_quality_threshold: float = float(quarantine_next_quality_threshold)
+         self.quarantine_next_quality_min_samples: int = max(2, int(quarantine_next_quality_min_samples))
+         self._next_anchor_quality_history: dict[int, list[float]] = {}
++        # 2026-07-21 reliability quarantine (Injection A) state.
++        self.sequential_pair_reliability_quarantine_enabled: bool = bool(sequential_pair_reliability_quarantine_enabled)
++        self.reliability_quarantine_threshold: float = float(reliability_quarantine_threshold)
++        self.reliability_quarantine_min_history: int = max(2, int(reliability_quarantine_min_history))
++        self.reliability_quarantine_bad_fraction: float = float(reliability_quarantine_bad_fraction)
++        self.reliability_quarantine_stall_attempts: int = max(1, int(reliability_quarantine_stall_attempts))
++        self.reliability_quarantine_max_chain: int = max(1, int(reliability_quarantine_max_chain))
++        self._next_anchor_reliability_history: dict[int, list[float]] = {}
++        self._reliability_quarantines_since_promotion: int = 0
++        # 2026-07-21 reliability demote-current (Injection B) + distrust-downstream (Injection C) state.
++        self.sequential_pair_reliability_demote_current: bool = bool(sequential_pair_reliability_demote_current)
++        self.sequential_pair_reliability_distrust_downstream: bool = bool(sequential_pair_reliability_distrust_downstream)
++        self.reliability_low_confidence_floor: float = float(reliability_low_confidence_floor)
++        self._current_reliability_history: dict[int, list[float]] = {}
+         # 2026-07-16 (investigations/2026-07-16-.../CODE_CHANGE_current_confidence_gate.md):
+         # deliberately NOT a quarantine -- no persistent per-anchor state, no
+         # blacklisting, nothing to cascade. quarantine_next_quality_enabled
+@@ -1146,6 +1196,8 @@
+             return None
+         self._record_next_anchor_stability(estimates)
+         self._record_next_anchor_quality(estimates)
++        self._record_next_anchor_reliability(estimates)
++        self._record_current_anchor_reliability(estimates)
+ 
+         estimate, observation, reject_reason = self._select_sequential_pair_relocalization(estimates)
+         if estimate is None:
+@@ -1320,6 +1372,113 @@
+             if mean_ratio > self.quarantine_next_quality_threshold:
+                 self._quarantined_anchor_indices.add(idx)
+ 
++    # z-stats (mean, std) fit offline on 90,075 labeled readings; see
++    # investigations/2026-07-21-icp-reliability-signal/FINDINGS.md.
++    _RELIABILITY_ZSTATS = {
++        "inlier_count": (288.5561, 113.2020),
++        "best_to_second_score_ratio": (0.7142, 0.2353),
++        "near_tie_basin_count": (0.8686, 1.3620),
++        "confidence": (0.7448, 0.2309),
++    }
++
++    def _reading_unreliability(self, estimate: AnchorRelocalization) -> Optional[float]:
++        """Absolute, current-INDEPENDENT unreliability score for ONE reading
++        (higher = more likely a bad ICP reading). Phase-1 hand combination of
++        dataclass-available diagnostics, validated at AUC ~0.80 offline
++        (investigations/2026-07-21-icp-reliability-signal). Returns None when a
++        required field is missing (treated as 'no basis to distrust')."""
++        inl = estimate.inlier_count
++        ratio = estimate.best_to_second_score_ratio
++        nt = estimate.near_tie_basin_count
++        conf = estimate.confidence
++        if inl is None or ratio is None or nt is None or conf is None:
++            return None
++        z = self._RELIABILITY_ZSTATS
++
++        def zz(key, v):
++            m, s = z[key]
++            return (float(v) - m) / (s if s else 1.0)
++
++        return (
++            - zz("inlier_count", inl)
++            + zz("best_to_second_score_ratio", ratio)
++            + zz("near_tie_basin_count", nt)
++            - zz("confidence", conf)
++        )
++
++    def _record_next_anchor_reliability(self, estimates: list[AnchorRelocalization]) -> None:
++        """Injection A (2026-07-21): absolute-reliability quarantine of the
++        'next' role. Blacklists a next candidate whose OWN reliability is
++        persistently low, independent of current -- the escape hatch the
++        position-only quarantine could not open (it fired 0/13 on the stuck
++        episodes). Stall-relief bounds the self-similar-route cascade that
++        disabled quarantine_next_quality (2026-07-15): never quarantine more
++        than reliability_quarantine_max_chain anchors between two successful
++        promotions, and stop scoring an anchor after
++        reliability_quarantine_stall_attempts observations without a ban."""
++        if not self.sequential_pair_reliability_quarantine_enabled:
++            return
++        if self._reliability_quarantines_since_promotion >= self.reliability_quarantine_max_chain:
++            return
++        current_idx = self._target_anchor_index
++        for estimate in estimates:
++            idx = int(estimate.anchor_index)
++            if idx == current_idx or idx in self._quarantined_anchor_indices:
++                continue
++            u = self._reading_unreliability(estimate)
++            if u is None:
++                continue
++            history = self._next_anchor_reliability_history.setdefault(idx, [])
++            if len(history) >= self.reliability_quarantine_stall_attempts:
++                continue
++            history.append(float(u))
++            if len(history) < self.reliability_quarantine_min_history:
++                continue
++            bad_fraction = sum(
++                1 for uu in history if uu >= self.reliability_quarantine_threshold
++            ) / len(history)
++            if bad_fraction > self.reliability_quarantine_bad_fraction:
++                self._quarantined_anchor_indices.add(idx)
++                self._reliability_quarantines_since_promotion += 1
++
++    def _record_current_anchor_reliability(self, estimates: list[AnchorRelocalization]) -> None:
++        """Injection B (2026-07-21): track the CURRENT role's own per-reading
++        unreliability, so a persistently-degenerate pinned current can be
++        detected independently of next -- mirrors _record_next_anchor_reliability
++        but for the current index, with the same stall-attempts history cap. No
++        blacklisting here (current is never quarantined -- that would leave the
++        tracker with no anchor at all); the recorded history only feeds
++        _current_persistently_unreliable, which relaxes next's promotion gates."""
++        if not self.sequential_pair_reliability_demote_current:
++            return
++        current_idx = self._target_anchor_index
++        if current_idx is None:
++            return
++        for estimate in estimates:
++            if int(estimate.anchor_index) != int(current_idx):
++                continue
++            u = self._reading_unreliability(estimate)
++            if u is None:
++                return
++            history = self._current_reliability_history.setdefault(int(current_idx), [])
++            if len(history) >= self.reliability_quarantine_stall_attempts:
++                return
++            history.append(float(u))
++            return
++
++    def _current_persistently_unreliable(self, current_idx: Optional[int]) -> bool:
++        """True when the current anchor's own readings are persistently low
++        reliability (bad-fraction over min_history), by the same U threshold /
++        bad_fraction as Injection A. Always False when demote-current is off, so
++        callers are unchanged in byte-behaviour with the flag disabled."""
++        if not self.sequential_pair_reliability_demote_current or current_idx is None:
++            return False
++        history = self._current_reliability_history.get(int(current_idx), [])
++        if len(history) < self.reliability_quarantine_min_history:
++            return False
++        bad = sum(1 for u in history if u >= self.reliability_quarantine_threshold)
++        return (bad / len(history)) > self.reliability_quarantine_bad_fraction
++
+     def _current_reported_confidence(self, estimate: AnchorRelocalization) -> float:
+         """The confidence value reported downstream (hint_action_arbiter /
+         stop_gate) for the CURRENT-role estimate, after the optional
+@@ -1333,6 +1492,14 @@
+         between attempts.
+         """
+         confidence = float(estimate.confidence)
++        # Injection C (2026-07-21): cap reported confidence when THIS reading's
++        # own absolute reliability is low, so hint_action_arbiter and stop_gate
++        # distrust a degenerate current/next reading. Applied before (and on top
++        # of) the ambiguity gate below -- both only ever cap downward.
++        if self.sequential_pair_reliability_distrust_downstream:
++            u = self._reading_unreliability(estimate)
++            if u is not None and u >= self.reliability_quarantine_threshold:
++                confidence = min(confidence, self.reliability_low_confidence_floor)
+         if not self.current_confidence_ambiguity_gate_enabled:
+             return confidence
+         ratio = estimate.best_to_second_score_ratio
+@@ -1615,6 +1782,13 @@
+         if current_est is None and next_est is None:
+             return None, None, "no_current_or_next_anchor_candidates"
+ 
++        # Injection B (2026-07-21): is the current anchor itself persistently
++        # unreliable? If so, it must not be allowed to veto next's promotion
++        # (below) -- a degenerate pinned current is exactly the disagreement
++        # source closure_precheck flags, and every next-side gate keyed off it is
++        # poisoned. Always False when demote-current is off.
++        current_unreliable = self._current_persistently_unreliable(current_idx)
++
+         # Short-baseline yaw disambiguation (2026-07-12): runs on EVERY next
+         # candidate reading, not gated on match_class being flagged ambiguous
+         # -- an offline smoke test on ep1040 (this project's own flagship
+@@ -1671,10 +1845,15 @@
+             trend_ok = self._promotion_trend_improving(next_idx)
+             quality_ok = (
+                 gate_current_est is None
++                # Injection B: a persistently-unreliable current is not a valid
++                # quality bar for next to have to beat -- its own quality score
++                # can be inflated even when its pose is wrong ("confidently
++                # wrong"), so requiring next to dominate it keeps next frozen.
++                or current_unreliable
+                 or next_quality >= self.promotion_score_ratio * max(current_quality, 1e-9)
+             )
+             candidate_promote = bool(quality_ok and (close_enough or trend_ok or gate_current_est is None))
+-            if closure_reject_reason is not None:
++            if closure_reject_reason is not None and not current_unreliable:
+                 # A genuine, unresolved current/next mismatch (see the
+                 # deferred-reject comment above) counts as an explicit failed
+                 # vote regardless of what this attempt's own close_enough/
+@@ -1686,6 +1865,11 @@
+                 # the whole point of this fix: bounded_evidence's window and
+                 # promotion_alias_stall_attempts's counter both still see and
+                 # count this attempt, they just see it as a "no".
++                # Injection B (2026-07-21): but when current is itself
++                # persistently unreliable, the disagreement is most likely
++                # current's fault, not next's -- do NOT let a bad current veto a
++                # promotable next this way (that is exactly the pin). The vote
++                # then reflects next's own merits computed just above.
+                 candidate_promote = False
+             if gate_current_est is None or self.sequential_pair_promotion_mode != "bounded_evidence":
+                 # Nothing to hold onto (current has no estimate at all) -- or
+@@ -1732,6 +1916,19 @@
+             self._next_anchor_quality_history = {
+                 k: v for k, v in self._next_anchor_quality_history.items() if k < next_idx
+             }
++            # 2026-07-21 Injection A: a successful promotion resets the anti-cascade
++            # budget and forgets reliability history for anchors at/behind the new
++            # current, mirroring the pruning above.
++            self._next_anchor_reliability_history = {
++                k: v for k, v in self._next_anchor_reliability_history.items() if k < next_idx
++            }
++            self._reliability_quarantines_since_promotion = 0
++            # Injection B: forget current-reliability history for the anchor(s)
++            # at/behind the new current, so the freshly-promoted current starts
++            # its own reliability tally clean.
++            self._current_reliability_history = {
++                k: v for k, v in self._current_reliability_history.items() if k < next_idx
++            }
+             selection_reason = "next_promoted"
+         else:
+             selected = current_est if current_est is not None else next_est
+@@ -1850,7 +2047,11 @@
+         # _quarantined_anchor_indices set via a different mechanism (see
+         # _record_next_anchor_quality) and must also trigger skip-ahead here
+         # even if sequential_pair_quarantine_enabled itself is off.
+-        if self.sequential_pair_quarantine_enabled or self.quarantine_next_quality_enabled:
++        if (
++            self.sequential_pair_quarantine_enabled
++            or self.quarantine_next_quality_enabled
++            or self.sequential_pair_reliability_quarantine_enabled
++        ):
+             while next_index in self._quarantined_anchor_indices and next_index >= 0:
+                 next_index -= 1
+         return next_index
+@@ -3331,6 +3532,10 @@
+         # actually engage instead of being silently dead code on this path.
+         reported_confidence = self._current_reported_confidence(estimate)
+         filter_std_m = self._closure_disagreement_sigma_m(estimate) / max(0.05, reported_confidence)
++        low_reliability = None
++        if self.sequential_pair_reliability_distrust_downstream:
++            u = self._reading_unreliability(estimate)
++            low_reliability = bool(u is not None and u >= self.reliability_quarantine_threshold)
+         return RelativeStartProgress(
+             target_dx_m=float(dx),
+             target_dy_m=float(dy),
+@@ -3350,6 +3555,7 @@
+             relocalization_confidence=float(reported_confidence),
+             relocalization_backend=estimate.backend,
+             filter_std_m=float(filter_std_m),
++            distance_authority_low_reliability=low_reliability,
+         )
+ 
+     def _anchor_progress(self) -> Optional[RelativeStartProgress]:

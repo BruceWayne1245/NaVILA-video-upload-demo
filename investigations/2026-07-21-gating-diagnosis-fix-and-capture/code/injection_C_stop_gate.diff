@@ -1,0 +1,34 @@
+--- upstream_snapshot/stop_gate.py	2026-07-21 22:13:12.823867277 +0100
++++ candidate/stop_gate.py	2026-07-21 22:16:16.587403591 +0100
+@@ -173,6 +173,17 @@
+         d, conf = self._extract_d_and_conf(progress)
+         bearing_deg: Optional[float] = getattr(progress, "bearing_to_start_deg", None)
+         anchor_route_remaining: Optional[float] = getattr(progress, "anchor_route_remaining_m", None)
++        # Injection C (2026-07-21): the estimate behind this distance/bearing was
++        # flagged low-reliability by route-memory (its own absolute U >=
++        # threshold). Defer to the VLM's own stop decision rather than vetoing it
++        # on an untrusted "you're far" reading -- the ep680 class, where a pinned
++        # current over-reported distance and the gate suppressed 258 correct
++        # within-radius stops. Anchor-corroborated FORCE (which relies on the
++        # anchor's own fixed distance-from-start, not this noisy reading) is left
++        # intact below.
++        distance_authority_low_reliability: bool = bool(
++            getattr(progress, "distance_authority_low_reliability", False)
++        )
+ 
+         # No authoritative distance → cannot arbitrate
+         if d is None:
+@@ -220,6 +231,13 @@
+             return GateDecision("pass", d, conf, is_teleport)
+ 
+         # --- VLM issued stop ---
++        # Injection C: never veto the VLM's stop on a low-reliability distance
++        # authority -- defer to the VLM instead (its stop is more trustworthy
++        # than an untrusted gate distance). Recovers the ep680 vetoed-correct-
++        # stops class; leaves the anchor-corroborated FORCE path (above) intact.
++        if distance_authority_low_reliability:
++            return GateDecision("deferred", d, conf, is_teleport)
++
+         if not high_conf:
+             # Low confidence: normally defer to VLM entirely. Anchor
+             # corroboration (see module docstring) is the one exception --
