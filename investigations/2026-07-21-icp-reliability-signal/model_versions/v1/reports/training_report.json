@@ -1,0 +1,1265 @@
+{
+  "dataset_sha256": "8f2097ec50287d6c4b4bca71adba9563275483fee020e608e65f0d8ac6028b78",
+  "feature_names": [
+    "overlap_ratio",
+    "overlap_ratio__missing",
+    "corridor_degeneracy_ratio",
+    "corridor_degeneracy_ratio__missing",
+    "icp_near_tie_basin_count",
+    "icp_near_tie_basin_count__missing",
+    "icp_basin_count",
+    "icp_basin_count__missing",
+    "icp_best_to_second_score_ratio",
+    "icp_best_to_second_score_ratio__missing",
+    "icp_best_to_second_rotation_delta_deg",
+    "icp_best_to_second_rotation_delta_deg__missing",
+    "icp_best_to_second_translation_delta_m",
+    "icp_best_to_second_translation_delta_m__missing",
+    "confidence",
+    "confidence__missing",
+    "inlier_count",
+    "inlier_count__missing",
+    "mean_residual_m",
+    "mean_residual_m__missing",
+    "median_residual_m",
+    "median_residual_m__missing",
+    "anchor_points",
+    "anchor_points__missing",
+    "current_points",
+    "current_points__missing",
+    "anchor_z_span_m",
+    "anchor_z_span_m__missing",
+    "current_z_span_m",
+    "current_z_span_m__missing",
+    "estimated_distance_to_anchor_m",
+    "estimated_distance_to_anchor_m__missing",
+    "localizability_min_eigenvalue",
+    "localizability_min_eigenvalue__missing",
+    "localizability_min_normalized_eigenvalue",
+    "localizability_min_normalized_eigenvalue__missing",
+    "localizability_condition_number",
+    "localizability_condition_number__missing",
+    "match_class==__unknown__",
+    "match_class==ambiguous_high_confidence",
+    "match_class==clean_full_pose",
+    "match_class==partial_pose_degenerate",
+    "icp_ambiguity==__unknown__",
+    "icp_ambiguity==high_confidence_multimodal",
+    "icp_ambiguity==ranked_multibasin"
+  ],
+  "heads": {
+    "bearing": {
+      "calibration": {
+        "average_precision": 0.7860890625339753,
+        "brier": 0.10282798546552284,
+        "positive_rate": 0.2887371140274667,
+        "roc_auc": 0.9172793920969482,
+        "rows": 2740,
+        "trusted_bad_rate": 0.0999831692375235,
+        "trusted_coverage": 0.7092786660422948,
+        "trusted_threshold": 0.5086168117583176
+      },
+      "calibrator": {
+        "intercept": -0.5674953141600544,
+        "slope": 0.9387126870660137,
+        "type": "weighted_monotonic_platt"
+      },
+      "model": "LogisticRegression",
+      "test": {
+        "average_precision": 0.6873447022479213,
+        "brier": 0.18244514473443468,
+        "positive_rate": 0.3991581639553358,
+        "roc_auc": 0.8159222985229193,
+        "rows": 52027,
+        "trusted_bad_rate": 0.2571693340072146,
+        "trusted_coverage": 0.6712570861870052,
+        "trusted_threshold": 0.5086168117583176
+      },
+      "test_by_episode": [
+        {
+          "episode_id": 4,
+          "mean_probability": 0.128897968809667,
+          "positive_rate": 0.095703125,
+          "rows": 512,
+          "trusted_bad_rate": 0.0811965811965812,
+          "trusted_coverage": 0.9140625
+        },
+        {
+          "episode_id": 5,
+          "mean_probability": 0.2912840867200828,
+          "positive_rate": 0.40693430656934304,
+          "rows": 1096,
+          "trusted_bad_rate": 0.3377777777777778,
+          "trusted_coverage": 0.8211678832116789
+        },
+        {
+          "episode_id": 20,
+          "mean_probability": 0.4033360473611424,
+          "positive_rate": 0.580110497237569,
+          "rows": 362,
+          "trusted_bad_rate": 0.5041666666666667,
+          "trusted_coverage": 0.6629834254143646
+        },
+        {
+          "episode_id": 88,
+          "mean_probability": 0.08532220398834278,
+          "positive_rate": 0.4166666666666667,
+          "rows": 492,
+          "trusted_bad_rate": 0.4176954732510288,
+          "trusted_coverage": 0.9878048780487805
+        },
+        {
+          "episode_id": 89,
+          "mean_probability": 0.053741284040636744,
+          "positive_rate": 0.4926739926739927,
+          "rows": 546,
+          "trusted_bad_rate": 0.49074074074074076,
+          "trusted_coverage": 0.989010989010989
+        },
+        {
+          "episode_id": 166,
+          "mean_probability": 0.23230700793689563,
+          "positive_rate": 0.22377622377622378,
+          "rows": 2002,
+          "trusted_bad_rate": 0.09377007064868337,
+          "trusted_coverage": 0.7777222777222778
+        },
+        {
+          "episode_id": 189,
+          "mean_probability": 0.125199765380091,
+          "positive_rate": 0.16747572815533981,
+          "rows": 412,
+          "trusted_bad_rate": 0.07377049180327869,
+          "trusted_coverage": 0.8883495145631068
+        },
+        {
+          "episode_id": 214,
+          "mean_probability": 0.4299984903240252,
+          "positive_rate": 0.5960960960960962,
+          "rows": 1332,
+          "trusted_bad_rate": 0.4027603513174404,
+          "trusted_coverage": 0.5983483483483484
+        },
+        {
+          "episode_id": 268,
+          "mean_probability": 0.20995018232017643,
+          "positive_rate": 0.2223719676549865,
+          "rows": 742,
+          "trusted_bad_rate": 0.14735099337748345,
+          "trusted_coverage": 0.8140161725067385
+        },
+        {
+          "episode_id": 277,
+          "mean_probability": 0.09419589786700688,
+          "positive_rate": 0.1111111111111111,
+          "rows": 666,
+          "trusted_bad_rate": 0.08146964856230032,
+          "trusted_coverage": 0.93993993993994
+        },
+        {
+          "episode_id": 295,
+          "mean_probability": 0.09764705470420695,
+          "positive_rate": 0.1640625,
+          "rows": 512,
+          "trusted_bad_rate": 0.1069182389937107,
+          "trusted_coverage": 0.931640625
+        },
+        {
+          "episode_id": 319,
+          "mean_probability": 0.3309728563650673,
+          "positive_rate": 0.6423576423576424,
+          "rows": 2002,
+          "trusted_bad_rate": 0.6117720726361928,
+          "trusted_coverage": 0.7977022977022977
+        },
+        {
+          "episode_id": 337,
+          "mean_probability": 0.20854353877244153,
+          "positive_rate": 0.13650075414781296,
+          "rows": 1326,
+          "trusted_bad_rate": 0.08791208791208792,
+          "trusted_coverage": 0.8235294117647058
+        },
+        {
+          "episode_id": 347,
+          "mean_probability": 0.11588425366679962,
+          "positive_rate": 0.11538461538461539,
+          "rows": 182,
+          "trusted_bad_rate": 0.06470588235294118,
+          "trusted_coverage": 0.9340659340659341
+        },
+        {
+          "episode_id": 367,
+          "mean_probability": 0.5759781268361217,
+          "positive_rate": 0.8281718281718282,
+          "rows": 2002,
+          "trusted_bad_rate": 0.5688073394495413,
+          "trusted_coverage": 0.32667332667332666
+        },
+        {
+          "episode_id": 368,
+          "mean_probability": 0.22169669694949148,
+          "positive_rate": 0.1286549707602339,
+          "rows": 684,
+          "trusted_bad_rate": 0.10106382978723404,
+          "trusted_coverage": 0.8245614035087719
+        },
+        {
+          "episode_id": 382,
+          "mean_probability": 0.28134466546399695,
+          "positive_rate": 0.27976190476190477,
+          "rows": 1512,
+          "trusted_bad_rate": 0.18840579710144928,
+          "trusted_coverage": 0.7757936507936508
+        },
+        {
+          "episode_id": 386,
+          "mean_probability": 0.11788638972607506,
+          "positive_rate": 0.15853658536585366,
+          "rows": 82,
+          "trusted_bad_rate": 0.10666666666666667,
+          "trusted_coverage": 0.9146341463414634
+        },
+        {
+          "episode_id": 447,
+          "mean_probability": 0.1833401258390865,
+          "positive_rate": 0.3134920634920635,
+          "rows": 252,
+          "trusted_bad_rate": 0.18090452261306533,
+          "trusted_coverage": 0.7896825396825397
+        },
+        {
+          "episode_id": 491,
+          "mean_probability": 0.5090918893465972,
+          "positive_rate": 0.6068931068931069,
+          "rows": 2002,
+          "trusted_bad_rate": 0.3194600674915636,
+          "trusted_coverage": 0.44405594405594406
+        },
+        {
+          "episode_id": 498,
+          "mean_probability": 0.6099091907667369,
+          "positive_rate": 0.7592788971367974,
+          "rows": 1886,
+          "trusted_bad_rate": 0.7279752704791345,
+          "trusted_coverage": 0.3430540827147402
+        },
+        {
+          "episode_id": 500,
+          "mean_probability": 0.7289903703098788,
+          "positive_rate": 0.6573426573426573,
+          "rows": 2002,
+          "trusted_bad_rate": 0.2619718309859155,
+          "trusted_coverage": 0.1773226773226773
+        },
+        {
+          "episode_id": 515,
+          "mean_probability": 0.575831583860222,
+          "positive_rate": 0.782608695652174,
+          "rows": 552,
+          "trusted_bad_rate": 0.7070707070707071,
+          "trusted_coverage": 0.358695652173913
+        },
+        {
+          "episode_id": 525,
+          "mean_probability": 0.5002670776464038,
+          "positive_rate": 0.498001998001998,
+          "rows": 2002,
+          "trusted_bad_rate": 0.39764936336924583,
+          "trusted_coverage": 0.50999000999001
+        },
+        {
+          "episode_id": 537,
+          "mean_probability": 0.46336559291407536,
+          "positive_rate": 0.3916083916083916,
+          "rows": 2002,
+          "trusted_bad_rate": 0.16683417085427135,
+          "trusted_coverage": 0.497002997002997
+        },
+        {
+          "episode_id": 639,
+          "mean_probability": 0.32002318962377874,
+          "positive_rate": 0.2756756756756757,
+          "rows": 1480,
+          "trusted_bad_rate": 0.19345794392523363,
+          "trusted_coverage": 0.722972972972973
+        },
+        {
+          "episode_id": 647,
+          "mean_probability": 0.2439936080033173,
+          "positive_rate": 0.15776699029126215,
+          "rows": 412,
+          "trusted_bad_rate": 0.07692307692307693,
+          "trusted_coverage": 0.7572815533980582
+        },
+        {
+          "episode_id": 651,
+          "mean_probability": 0.07061741133185853,
+          "positive_rate": 0.17615658362989323,
+          "rows": 562,
+          "trusted_bad_rate": 0.16,
+          "trusted_coverage": 0.9786476868327402
+        },
+        {
+          "episode_id": 652,
+          "mean_probability": 0.3972524681961096,
+          "positive_rate": 0.538961038961039,
+          "rows": 2002,
+          "trusted_bad_rate": 0.5324494068387997,
+          "trusted_coverage": 0.7157842157842158
+        },
+        {
+          "episode_id": 653,
+          "mean_probability": 0.3737555901074172,
+          "positive_rate": 0.3811188811188811,
+          "rows": 2002,
+          "trusted_bad_rate": 0.18622848200312989,
+          "trusted_coverage": 0.6383616383616384
+        },
+        {
+          "episode_id": 669,
+          "mean_probability": 0.5136544153074807,
+          "positive_rate": 0.6903096903096904,
+          "rows": 2002,
+          "trusted_bad_rate": 0.4994523548740416,
+          "trusted_coverage": 0.45604395604395603
+        },
+        {
+          "episode_id": 670,
+          "mean_probability": 0.2257341507377305,
+          "positive_rate": 0.13557483731019523,
+          "rows": 922,
+          "trusted_bad_rate": 0.08235294117647059,
+          "trusted_coverage": 0.8297180043383948
+        },
+        {
+          "episode_id": 680,
+          "mean_probability": 0.49557042919130906,
+          "positive_rate": 0.4240759240759241,
+          "rows": 2002,
+          "trusted_bad_rate": 0.2526427061310782,
+          "trusted_coverage": 0.4725274725274725
+        },
+        {
+          "episode_id": 696,
+          "mean_probability": 0.30985362056206855,
+          "positive_rate": 0.5804195804195804,
+          "rows": 2002,
+          "trusted_bad_rate": 0.512549537648613,
+          "trusted_coverage": 0.7562437562437563
+        },
+        {
+          "episode_id": 726,
+          "mean_probability": 0.12244435957989244,
+          "positive_rate": 0.1647940074906367,
+          "rows": 267,
+          "trusted_bad_rate": 0.12033195020746888,
+          "trusted_coverage": 0.9026217228464419
+        },
+        {
+          "episode_id": 758,
+          "mean_probability": 0.6532004998223223,
+          "positive_rate": 0.6998001998001998,
+          "rows": 2002,
+          "trusted_bad_rate": 0.35319148936170214,
+          "trusted_coverage": 0.23476523476523475
+        },
+        {
+          "episode_id": 783,
+          "mean_probability": 0.36463774300653645,
+          "positive_rate": 0.11464968152866242,
+          "rows": 314,
+          "trusted_bad_rate": 0.08333333333333333,
+          "trusted_coverage": 0.6878980891719745
+        },
+        {
+          "episode_id": 813,
+          "mean_probability": 0.3691467017714416,
+          "positive_rate": 0.4112519809825674,
+          "rows": 1262,
+          "trusted_bad_rate": 0.07823613086770982,
+          "trusted_coverage": 0.5570522979397782
+        },
+        {
+          "episode_id": 889,
+          "mean_probability": 0.5129012341755539,
+          "positive_rate": 0.38636363636363635,
+          "rows": 1628,
+          "trusted_bad_rate": 0.4314002828854314,
+          "trusted_coverage": 0.4342751842751843
+        },
+        {
+          "episode_id": 932,
+          "mean_probability": 0.514965092875782,
+          "positive_rate": 0.8531468531468531,
+          "rows": 2002,
+          "trusted_bad_rate": 0.8477822580645161,
+          "trusted_coverage": 0.4955044955044955
+        },
+        {
+          "episode_id": 994,
+          "mean_probability": 0.6102153417541378,
+          "positive_rate": 0.5094905094905094,
+          "rows": 2002,
+          "trusted_bad_rate": 0.09090909090909091,
+          "trusted_coverage": 0.3076923076923077
+        },
+        {
+          "episode_id": 1038,
+          "mean_probability": 0.5755352100944929,
+          "positive_rate": 0.48951048951048953,
+          "rows": 2002,
+          "trusted_bad_rate": 0.375,
+          "trusted_coverage": 0.4035964035964036
+        }
+      ],
+      "train": {
+        "average_precision": 0.8451839913372906,
+        "brier": 0.09169869410592442,
+        "positive_rate": 0.2990708250266166,
+        "roc_auc": 0.9407514735740983,
+        "rows": 9596,
+        "trusted_bad_rate": 0.12562262439230654,
+        "trusted_coverage": 0.7509795509567054,
+        "trusted_threshold": 0.5086168117583176
+      }
+    },
+    "distance": {
+      "calibration": {
+        "average_precision": 0.6991000033509717,
+        "brier": 0.08640244648911566,
+        "positive_rate": 0.19224316263243021,
+        "roc_auc": 0.9281268869268546,
+        "rows": 2740,
+        "trusted_bad_rate": 0.04971168014863072,
+        "trusted_coverage": 0.7410175260951787,
+        "trusted_threshold": 0.34259094557530434
+      },
+      "calibrator": {
+        "intercept": -0.6112090558171082,
+        "slope": 0.4648116278787409,
+        "type": "weighted_monotonic_platt"
+      },
+      "model": "HistGradientBoostingClassifier",
+      "test": {
+        "average_precision": 0.8931191157993582,
+        "brier": 0.1261900182347423,
+        "positive_rate": 0.49766078069701886,
+        "roc_auc": 0.9343379008967689,
+        "rows": 52027,
+        "trusted_bad_rate": 0.13558166337174135,
+        "trusted_coverage": 0.5090735505548611,
+        "trusted_threshold": 0.34259094557530434
+      },
+      "test_by_episode": [
+        {
+          "episode_id": 4,
+          "mean_probability": 0.08574084185081718,
+          "positive_rate": 0.125,
+          "rows": 512,
+          "trusted_bad_rate": 0.06222222222222222,
+          "trusted_coverage": 0.87890625
+        },
+        {
+          "episode_id": 5,
+          "mean_probability": 0.5650481800438207,
+          "positive_rate": 0.7317518248175182,
+          "rows": 1096,
+          "trusted_bad_rate": 0.20238095238095238,
+          "trusted_coverage": 0.22992700729927007
+        },
+        {
+          "episode_id": 20,
+          "mean_probability": 0.48448936946208604,
+          "positive_rate": 0.7679558011049724,
+          "rows": 362,
+          "trusted_bad_rate": 0.5384615384615384,
+          "trusted_coverage": 0.2513812154696133
+        },
+        {
+          "episode_id": 88,
+          "mean_probability": 0.23431686201905147,
+          "positive_rate": 0.3800813008130081,
+          "rows": 492,
+          "trusted_bad_rate": 0.09422492401215805,
+          "trusted_coverage": 0.6686991869918699
+        },
+        {
+          "episode_id": 89,
+          "mean_probability": 0.12471511049347571,
+          "positive_rate": 0.47435897435897434,
+          "rows": 546,
+          "trusted_bad_rate": 0.45229007633587787,
+          "trusted_coverage": 0.9597069597069597
+        },
+        {
+          "episode_id": 166,
+          "mean_probability": 0.21822392572841406,
+          "positive_rate": 0.33966033966033965,
+          "rows": 2002,
+          "trusted_bad_rate": 0.07164179104477612,
+          "trusted_coverage": 0.6693306693306693
+        },
+        {
+          "episode_id": 189,
+          "mean_probability": 0.11242475632981266,
+          "positive_rate": 0.10679611650485436,
+          "rows": 412,
+          "trusted_bad_rate": 0.0028653295128939827,
+          "trusted_coverage": 0.8470873786407767
+        },
+        {
+          "episode_id": 214,
+          "mean_probability": 0.4277304600484605,
+          "positive_rate": 0.6208708708708709,
+          "rows": 1332,
+          "trusted_bad_rate": 0.16985645933014354,
+          "trusted_coverage": 0.3138138138138138
+        },
+        {
+          "episode_id": 268,
+          "mean_probability": 0.22262615956283602,
+          "positive_rate": 0.2776280323450135,
+          "rows": 742,
+          "trusted_bad_rate": 0.033663366336633666,
+          "trusted_coverage": 0.6805929919137467
+        },
+        {
+          "episode_id": 277,
+          "mean_probability": 0.06763315553770867,
+          "positive_rate": 0.07507507507507508,
+          "rows": 666,
+          "trusted_bad_rate": 0.019769357495881382,
+          "trusted_coverage": 0.9114114114114115
+        },
+        {
+          "episode_id": 295,
+          "mean_probability": 0.09678468199286032,
+          "positive_rate": 0.1015625,
+          "rows": 512,
+          "trusted_bad_rate": 0.02027027027027027,
+          "trusted_coverage": 0.8671875
+        },
+        {
+          "episode_id": 319,
+          "mean_probability": 0.36242713616979794,
+          "positive_rate": 0.7467532467532467,
+          "rows": 2002,
+          "trusted_bad_rate": 0.5427995971802618,
+          "trusted_coverage": 0.49600399600399603
+        },
+        {
+          "episode_id": 337,
+          "mean_probability": 0.23356471592322378,
+          "positive_rate": 0.4276018099547511,
+          "rows": 1326,
+          "trusted_bad_rate": 0.1622554660529344,
+          "trusted_coverage": 0.6553544494720965
+        },
+        {
+          "episode_id": 347,
+          "mean_probability": 0.0579274782897094,
+          "positive_rate": 0.06043956043956044,
+          "rows": 182,
+          "trusted_bad_rate": 0.017964071856287425,
+          "trusted_coverage": 0.9175824175824175
+        },
+        {
+          "episode_id": 367,
+          "mean_probability": 0.6483830091776664,
+          "positive_rate": 0.7212787212787213,
+          "rows": 2002,
+          "trusted_bad_rate": 0.0633245382585752,
+          "trusted_coverage": 0.1893106893106893
+        },
+        {
+          "episode_id": 368,
+          "mean_probability": 0.10504567131044897,
+          "positive_rate": 0.1608187134502924,
+          "rows": 684,
+          "trusted_bad_rate": 0.11166666666666666,
+          "trusted_coverage": 0.8771929824561403
+        },
+        {
+          "episode_id": 382,
+          "mean_probability": 0.4033202396261264,
+          "positive_rate": 0.4556878306878307,
+          "rows": 1512,
+          "trusted_bad_rate": 0.07582260371959942,
+          "trusted_coverage": 0.4623015873015873
+        },
+        {
+          "episode_id": 386,
+          "mean_probability": 0.04979180830215994,
+          "positive_rate": 0.036585365853658534,
+          "rows": 82,
+          "trusted_bad_rate": 0.025,
+          "trusted_coverage": 0.975609756097561
+        },
+        {
+          "episode_id": 447,
+          "mean_probability": 0.1800286450064756,
+          "positive_rate": 0.24603174603174602,
+          "rows": 252,
+          "trusted_bad_rate": 0.07526881720430108,
+          "trusted_coverage": 0.7380952380952381
+        },
+        {
+          "episode_id": 491,
+          "mean_probability": 0.3664908838739913,
+          "positive_rate": 0.7042957042957043,
+          "rows": 2002,
+          "trusted_bad_rate": 0.40298507462686567,
+          "trusted_coverage": 0.43506493506493504
+        },
+        {
+          "episode_id": 498,
+          "mean_probability": 0.7351007719759042,
+          "positive_rate": 0.6702014846235419,
+          "rows": 1886,
+          "trusted_bad_rate": 0.046948356807511735,
+          "trusted_coverage": 0.1129374337221633
+        },
+        {
+          "episode_id": 500,
+          "mean_probability": 0.7228707838017991,
+          "positive_rate": 0.7937062937062938,
+          "rows": 2002,
+          "trusted_bad_rate": 0.12987012987012986,
+          "trusted_coverage": 0.11538461538461539
+        },
+        {
+          "episode_id": 515,
+          "mean_probability": 0.5942202108334615,
+          "positive_rate": 0.7898550724637681,
+          "rows": 552,
+          "trusted_bad_rate": 0.38461538461538464,
+          "trusted_coverage": 0.11775362318840579
+        },
+        {
+          "episode_id": 525,
+          "mean_probability": 0.5745816645481926,
+          "positive_rate": 0.8541458541458542,
+          "rows": 2002,
+          "trusted_bad_rate": 0.3935483870967742,
+          "trusted_coverage": 0.15484515484515485
+        },
+        {
+          "episode_id": 537,
+          "mean_probability": 0.321346198902091,
+          "positive_rate": 0.4955044955044955,
+          "rows": 2002,
+          "trusted_bad_rate": 0.32914572864321606,
+          "trusted_coverage": 0.5964035964035964
+        },
+        {
+          "episode_id": 639,
+          "mean_probability": 0.4890030203182895,
+          "positive_rate": 0.6425675675675676,
+          "rows": 1480,
+          "trusted_bad_rate": 0.19152854511970535,
+          "trusted_coverage": 0.3668918918918919
+        },
+        {
+          "episode_id": 647,
+          "mean_probability": 0.19949477180459135,
+          "positive_rate": 0.1820388349514563,
+          "rows": 412,
+          "trusted_bad_rate": 0.010344827586206896,
+          "trusted_coverage": 0.7038834951456311
+        },
+        {
+          "episode_id": 651,
+          "mean_probability": 0.051076962949228234,
+          "positive_rate": 0.1103202846975089,
+          "rows": 562,
+          "trusted_bad_rate": 0.08067542213883677,
+          "trusted_coverage": 0.9483985765124555
+        },
+        {
+          "episode_id": 652,
+          "mean_probability": 0.6788491885328434,
+          "positive_rate": 0.9110889110889111,
+          "rows": 2002,
+          "trusted_bad_rate": 0.050359712230215826,
+          "trusted_coverage": 0.06943056943056942
+        },
+        {
+          "episode_id": 653,
+          "mean_probability": 0.4883506762138349,
+          "positive_rate": 0.6813186813186813,
+          "rows": 2002,
+          "trusted_bad_rate": 0.19666666666666666,
+          "trusted_coverage": 0.2997002997002997
+        },
+        {
+          "episode_id": 669,
+          "mean_probability": 0.3812897548864465,
+          "positive_rate": 0.7007992007992008,
+          "rows": 2002,
+          "trusted_bad_rate": 0.3725992317541613,
+          "trusted_coverage": 0.3901098901098901
+        },
+        {
+          "episode_id": 670,
+          "mean_probability": 0.09572520181077522,
+          "positive_rate": 0.1399132321041215,
+          "rows": 922,
+          "trusted_bad_rate": 0.0815822002472188,
+          "trusted_coverage": 0.8774403470715835
+        },
+        {
+          "episode_id": 680,
+          "mean_probability": 0.4782335630066839,
+          "positive_rate": 0.7322677322677322,
+          "rows": 2002,
+          "trusted_bad_rate": 0.21809369951534732,
+          "trusted_coverage": 0.3091908091908092
+        },
+        {
+          "episode_id": 696,
+          "mean_probability": 0.5226528129375582,
+          "positive_rate": 0.9175824175824175,
+          "rows": 2002,
+          "trusted_bad_rate": 0.7135922330097088,
+          "trusted_coverage": 0.2057942057942058
+        },
+        {
+          "episode_id": 726,
+          "mean_probability": 0.07991789611627205,
+          "positive_rate": 0.08239700374531835,
+          "rows": 267,
+          "trusted_bad_rate": 0.00425531914893617,
+          "trusted_coverage": 0.8801498127340824
+        },
+        {
+          "episode_id": 758,
+          "mean_probability": 0.6618162278041252,
+          "positive_rate": 0.9005994005994006,
+          "rows": 2002,
+          "trusted_bad_rate": 0.22839506172839505,
+          "trusted_coverage": 0.08091908091908091
+        },
+        {
+          "episode_id": 783,
+          "mean_probability": 0.13150237348139657,
+          "positive_rate": 0.10191082802547771,
+          "rows": 314,
+          "trusted_bad_rate": 0.057692307692307696,
+          "trusted_coverage": 0.8280254777070064
+        },
+        {
+          "episode_id": 813,
+          "mean_probability": 0.34904127956274483,
+          "positive_rate": 0.35974643423137875,
+          "rows": 1262,
+          "trusted_bad_rate": 0.008888888888888889,
+          "trusted_coverage": 0.53486529318542
+        },
+        {
+          "episode_id": 889,
+          "mean_probability": 0.5586285977900809,
+          "positive_rate": 0.9269041769041769,
+          "rows": 1628,
+          "trusted_bad_rate": 0.704119850187266,
+          "trusted_coverage": 0.16400491400491402
+        },
+        {
+          "episode_id": 932,
+          "mean_probability": 0.6536750993291879,
+          "positive_rate": 0.9425574425574426,
+          "rows": 2002,
+          "trusted_bad_rate": 0.3333333333333333,
+          "trusted_coverage": 0.07792207792207792
+        },
+        {
+          "episode_id": 994,
+          "mean_probability": 0.6289049073259289,
+          "positive_rate": 0.7412587412587412,
+          "rows": 2002,
+          "trusted_bad_rate": 0.07586206896551724,
+          "trusted_coverage": 0.21728271728271728
+        },
+        {
+          "episode_id": 1038,
+          "mean_probability": 0.49202599765950245,
+          "positive_rate": 0.6648351648351648,
+          "rows": 2002,
+          "trusted_bad_rate": 0.024549918166939442,
+          "trusted_coverage": 0.3051948051948052
+        }
+      ],
+      "train": {
+        "average_precision": 0.99999713117693,
+        "brier": 0.015720824281446614,
+        "positive_rate": 0.30753847640562365,
+        "roc_auc": 0.9999987209788421,
+        "rows": 9596,
+        "trusted_bad_rate": 0.0002326157074299063,
+        "trusted_coverage": 0.6924863793944501,
+        "trusted_threshold": 0.34259094557530434
+      }
+    },
+    "pose": {
+      "calibration": {
+        "average_precision": 0.8780786994353552,
+        "brier": 0.062411813722091855,
+        "positive_rate": 0.33491106028950307,
+        "roc_auc": 0.9635006793122117,
+        "rows": 2740,
+        "trusted_bad_rate": 0.04949826403191938,
+        "trusted_coverage": 0.6465575755109841,
+        "trusted_threshold": 0.47625407659005425
+      },
+      "calibrator": {
+        "intercept": -0.8727083563307434,
+        "slope": 0.48905451618167445,
+        "type": "weighted_monotonic_platt"
+      },
+      "model": "HistGradientBoostingClassifier",
+      "test": {
+        "average_precision": 0.9717295361512484,
+        "brier": 0.06813855195069342,
+        "positive_rate": 0.5731515106980186,
+        "roc_auc": 0.9734077322363867,
+        "rows": 52027,
+        "trusted_bad_rate": 0.12939577085261855,
+        "trusted_coverage": 0.4570200140429121,
+        "trusted_threshold": 0.47625407659005425
+      },
+      "test_by_episode": [
+        {
+          "episode_id": 4,
+          "mean_probability": 0.14118730904808446,
+          "positive_rate": 0.1796875,
+          "rows": 512,
+          "trusted_bad_rate": 0.10738255033557047,
+          "trusted_coverage": 0.873046875
+        },
+        {
+          "episode_id": 5,
+          "mean_probability": 0.6362023363327798,
+          "positive_rate": 0.8065693430656934,
+          "rows": 1096,
+          "trusted_bad_rate": 0.27340823970037453,
+          "trusted_coverage": 0.24361313868613138
+        },
+        {
+          "episode_id": 20,
+          "mean_probability": 0.7397597176454458,
+          "positive_rate": 0.9116022099447514,
+          "rows": 362,
+          "trusted_bad_rate": 0.17857142857142858,
+          "trusted_coverage": 0.07734806629834254
+        },
+        {
+          "episode_id": 88,
+          "mean_probability": 0.24690328769971084,
+          "positive_rate": 0.46747967479674796,
+          "rows": 492,
+          "trusted_bad_rate": 0.28690807799442897,
+          "trusted_coverage": 0.7296747967479674
+        },
+        {
+          "episode_id": 89,
+          "mean_probability": 0.11373676393825316,
+          "positive_rate": 0.5036630036630036,
+          "rows": 546,
+          "trusted_bad_rate": 0.4906015037593985,
+          "trusted_coverage": 0.9743589743589743
+        },
+        {
+          "episode_id": 166,
+          "mean_probability": 0.2921791989615776,
+          "positive_rate": 0.3916083916083916,
+          "rows": 2002,
+          "trusted_bad_rate": 0.10989010989010989,
+          "trusted_coverage": 0.6818181818181818
+        },
+        {
+          "episode_id": 189,
+          "mean_probability": 0.16172223522681412,
+          "positive_rate": 0.17233009708737865,
+          "rows": 412,
+          "trusted_bad_rate": 0.02608695652173913,
+          "trusted_coverage": 0.837378640776699
+        },
+        {
+          "episode_id": 214,
+          "mean_probability": 0.6586475464811085,
+          "positive_rate": 0.7687687687687688,
+          "rows": 1332,
+          "trusted_bad_rate": 0.21739130434782608,
+          "trusted_coverage": 0.27627627627627627
+        },
+        {
+          "episode_id": 268,
+          "mean_probability": 0.3198245785732557,
+          "positive_rate": 0.33153638814016173,
+          "rows": 742,
+          "trusted_bad_rate": 0.05702647657841141,
+          "trusted_coverage": 0.6617250673854448
+        },
+        {
+          "episode_id": 277,
+          "mean_probability": 0.10943801488210674,
+          "positive_rate": 0.14414414414414414,
+          "rows": 666,
+          "trusted_bad_rate": 0.06408094435075885,
+          "trusted_coverage": 0.8903903903903904
+        },
+        {
+          "episode_id": 295,
+          "mean_probability": 0.15723876780953047,
+          "positive_rate": 0.17578125,
+          "rows": 512,
+          "trusted_bad_rate": 0.02097902097902098,
+          "trusted_coverage": 0.837890625
+        },
+        {
+          "episode_id": 319,
+          "mean_probability": 0.578406064494816,
+          "positive_rate": 0.8126873126873126,
+          "rows": 2002,
+          "trusted_bad_rate": 0.44844517184942717,
+          "trusted_coverage": 0.3051948051948052
+        },
+        {
+          "episode_id": 337,
+          "mean_probability": 0.41333677307304156,
+          "positive_rate": 0.45324283559577677,
+          "rows": 1326,
+          "trusted_bad_rate": 0.0845442536327609,
+          "trusted_coverage": 0.5708898944193062
+        },
+        {
+          "episode_id": 347,
+          "mean_probability": 0.10197963144397094,
+          "positive_rate": 0.15384615384615385,
+          "rows": 182,
+          "trusted_bad_rate": 0.0783132530120482,
+          "trusted_coverage": 0.9120879120879121
+        },
+        {
+          "episode_id": 367,
+          "mean_probability": 0.7906318798823826,
+          "positive_rate": 0.8521478521478522,
+          "rows": 2002,
+          "trusted_bad_rate": 0.1437308868501529,
+          "trusted_coverage": 0.16333666333666333
+        },
+        {
+          "episode_id": 368,
+          "mean_probability": 0.19174750785352784,
+          "positive_rate": 0.2543859649122807,
+          "rows": 684,
+          "trusted_bad_rate": 0.12545454545454546,
+          "trusted_coverage": 0.804093567251462
+        },
+        {
+          "episode_id": 382,
+          "mean_probability": 0.5202362024363995,
+          "positive_rate": 0.5138888888888888,
+          "rows": 1512,
+          "trusted_bad_rate": 0.051829268292682924,
+          "trusted_coverage": 0.43386243386243384
+        },
+        {
+          "episode_id": 386,
+          "mean_probability": 0.14081505663510657,
+          "positive_rate": 0.18292682926829268,
+          "rows": 82,
+          "trusted_bad_rate": 0.04411764705882353,
+          "trusted_coverage": 0.8292682926829268
+        },
+        {
+          "episode_id": 447,
+          "mean_probability": 0.23305919189322039,
+          "positive_rate": 0.3611111111111111,
+          "rows": 252,
+          "trusted_bad_rate": 0.16753926701570682,
+          "trusted_coverage": 0.7579365079365079
+        },
+        {
+          "episode_id": 491,
+          "mean_probability": 0.7062546108597024,
+          "positive_rate": 0.7477522477522478,
+          "rows": 2002,
+          "trusted_bad_rate": 0.09004739336492891,
+          "trusted_coverage": 0.21078921078921078
+        },
+        {
+          "episode_id": 498,
+          "mean_probability": 0.8074573901572104,
+          "positive_rate": 0.8907741251325557,
+          "rows": 1886,
+          "trusted_bad_rate": 0.061452513966480445,
+          "trusted_coverage": 0.09490986214209968
+        },
+        {
+          "episode_id": 500,
+          "mean_probability": 0.8575925041515016,
+          "positive_rate": 0.8711288711288712,
+          "rows": 2002,
+          "trusted_bad_rate": 0.05172413793103448,
+          "trusted_coverage": 0.08691308691308691
+        },
+        {
+          "episode_id": 515,
+          "mean_probability": 0.838397396200962,
+          "positive_rate": 0.8931159420289855,
+          "rows": 552,
+          "trusted_bad_rate": 0.1794871794871795,
+          "trusted_coverage": 0.07065217391304347
+        },
+        {
+          "episode_id": 525,
+          "mean_probability": 0.8130750345035703,
+          "positive_rate": 0.9055944055944056,
+          "rows": 2002,
+          "trusted_bad_rate": 0.14432989690721648,
+          "trusted_coverage": 0.0969030969030969
+        },
+        {
+          "episode_id": 537,
+          "mean_probability": 0.6230194530614099,
+          "positive_rate": 0.5954045954045954,
+          "rows": 2002,
+          "trusted_bad_rate": 0.030303030303030304,
+          "trusted_coverage": 0.2802197802197802
+        },
+        {
+          "episode_id": 639,
+          "mean_probability": 0.5885133920911297,
+          "positive_rate": 0.6885135135135135,
+          "rows": 1480,
+          "trusted_bad_rate": 0.15074309978768577,
+          "trusted_coverage": 0.31824324324324327
+        },
+        {
+          "episode_id": 647,
+          "mean_probability": 0.2973570147339149,
+          "positive_rate": 0.28640776699029125,
+          "rows": 412,
+          "trusted_bad_rate": 0.07042253521126761,
+          "trusted_coverage": 0.6893203883495146
+        },
+        {
+          "episode_id": 651,
+          "mean_probability": 0.1335816374472554,
+          "positive_rate": 0.24377224199288255,
+          "rows": 562,
+          "trusted_bad_rate": 0.1326530612244898,
+          "trusted_coverage": 0.8718861209964412
+        },
+        {
+          "episode_id": 652,
+          "mean_probability": 0.8880031870137879,
+          "positive_rate": 0.9335664335664335,
+          "rows": 2002,
+          "trusted_bad_rate": 0.0390625,
+          "trusted_coverage": 0.06393606393606394
+        },
+        {
+          "episode_id": 653,
+          "mean_probability": 0.682976618527076,
+          "positive_rate": 0.7342657342657343,
+          "rows": 2002,
+          "trusted_bad_rate": 0.11451942740286299,
+          "trusted_coverage": 0.24425574425574426
+        },
+        {
+          "episode_id": 669,
+          "mean_probability": 0.6871943803255938,
+          "positive_rate": 0.7762237762237763,
+          "rows": 2002,
+          "trusted_bad_rate": 0.10759493670886076,
+          "trusted_coverage": 0.23676323676323677
+        },
+        {
+          "episode_id": 670,
+          "mean_probability": 0.1773435889486895,
+          "positive_rate": 0.21366594360086769,
+          "rows": 922,
+          "trusted_bad_rate": 0.11284046692607004,
+          "trusted_coverage": 0.8362255965292842
+        },
+        {
+          "episode_id": 680,
+          "mean_probability": 0.6550267968320191,
+          "positive_rate": 0.7767232767232767,
+          "rows": 2002,
+          "trusted_bad_rate": 0.20430107526881722,
+          "trusted_coverage": 0.2787212787212787
+        },
+        {
+          "episode_id": 696,
+          "mean_probability": 0.6829381858192969,
+          "positive_rate": 0.9545454545454546,
+          "rows": 2002,
+          "trusted_bad_rate": 0.7506849315068493,
+          "trusted_coverage": 0.1823176823176823
+        },
+        {
+          "episode_id": 726,
+          "mean_probability": 0.1830994583890765,
+          "positive_rate": 0.18352059925093633,
+          "rows": 267,
+          "trusted_bad_rate": 0.05116279069767442,
+          "trusted_coverage": 0.8052434456928839
+        },
+        {
+          "episode_id": 758,
+          "mean_probability": 0.8547347035569545,
+          "positive_rate": 0.9430569430569431,
+          "rows": 2002,
+          "trusted_bad_rate": 0.1574074074074074,
+          "trusted_coverage": 0.053946053946053944
+        },
+        {
+          "episode_id": 783,
+          "mean_probability": 0.23939619688883348,
+          "positive_rate": 0.14968152866242038,
+          "rows": 314,
+          "trusted_bad_rate": 0.01293103448275862,
+          "trusted_coverage": 0.7388535031847133
+        },
+        {
+          "episode_id": 813,
+          "mean_probability": 0.45636264687704214,
+          "positive_rate": 0.4762282091917591,
+          "rows": 1262,
+          "trusted_bad_rate": 0.03374233128834356,
+          "trusted_coverage": 0.5166402535657686
+        },
+        {
+          "episode_id": 889,
+          "mean_probability": 0.8457476923295997,
+          "positive_rate": 0.9539312039312039,
+          "rows": 1628,
+          "trusted_bad_rate": 0.5602409638554217,
+          "trusted_coverage": 0.10196560196560196
+        },
+        {
+          "episode_id": 932,
+          "mean_probability": 0.8556659565990433,
+          "positive_rate": 0.949050949050949,
+          "rows": 2002,
+          "trusted_bad_rate": 0.1935483870967742,
+          "trusted_coverage": 0.061938061938061936
+        },
+        {
+          "episode_id": 994,
+          "mean_probability": 0.745525837555503,
+          "positive_rate": 0.7677322677322678,
+          "rows": 2002,
+          "trusted_bad_rate": 0.06987951807228916,
+          "trusted_coverage": 0.2072927072927073
+        },
+        {
+          "episode_id": 1038,
+          "mean_probability": 0.6652268732826588,
+          "positive_rate": 0.7002997002997003,
+          "rows": 2002,
+          "trusted_bad_rate": 0.017421602787456445,
+          "trusted_coverage": 0.2867132867132867
+        }
+      ],
+      "train": {
+        "average_precision": 0.999999977106054,
+        "brier": 0.010326538022594775,
+        "positive_rate": 0.3928714905641399,
+        "roc_auc": 0.9999999851824443,
+        "rows": 9596,
+        "trusted_bad_rate": 0.004589248756774284,
+        "trusted_coverage": 0.6099276190030923,
+        "trusted_threshold": 0.47625407659005425
+      }
+    }
+  },
+  "model_version": "reliability-v1-8f2097ec5028",
+  "schema_version": "reliability-v1.0",
+  "sklearn_version": "1.7.2",
+  "split": {
+    "episode_ids": {
+      "calibration": [
+        96,
+        488,
+        1040
+      ],
+      "test": [
+        4,
+        5,
+        20,
+        88,
+        89,
+        166,
+        189,
+        214,
+        268,
+        277,
+        295,
+        319,
+        337,
+        347,
+        367,
+        368,
+        382,
+        386,
+        447,
+        491,
+        498,
+        500,
+        515,
+        525,
+        537,
+        639,
+        647,
+        651,
+        652,
+        653,
+        669,
+        670,
+        680,
+        696,
+        726,
+        758,
+        783,
+        813,
+        889,
+        932,
+        994,
+        1038
+      ],
+      "train": [
+        134,
+        187,
+        281,
+        354,
+        408,
+        430,
+        640,
+        708,
+        875,
+        1000,
+        1011
+      ]
+    },
+    "overlaps": {
+      "calibration_test": [],
+      "train_calibration": [],
+      "train_test": []
+    },
+    "rows": {
+      "calibration": 2740,
+      "test": 52027,
+      "train": 9596
+    },
+    "strategy": "strict_chronological_episode_disjoint"
+  },
+  "trusted_thresholds": {
+    "bearing": 0.5086168117583176,
+    "distance": 0.34259094557530434,
+    "pose": 0.47625407659005425
+  }
+}

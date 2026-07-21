@@ -1,0 +1,44 @@
+{
+  "schema_version": "reliability-v1.0",
+  "evaluation_root": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results",
+  "batches": [
+    "shadow_hint_swap_50ep_20260714",
+    "canonical_report_next_stopgate_50ep_20260719",
+    "canonical_report_next_stopgate_100ep_20260720"
+  ],
+  "split": {
+    "train_batches": ["shadow_hint_swap_50ep_20260714"],
+    "calibration_batches": ["canonical_report_next_stopgate_50ep_20260719"],
+    "test_batches": ["canonical_report_next_stopgate_100ep_20260720"],
+    "group_column": "episode_id"
+  },
+  "labels": {
+    "bearing_bad_deg": 30.0,
+    "distance_bad_m": 0.5
+  },
+  "trusted_bad_rate_targets": {
+    "bearing": 0.10,
+    "distance": 0.05,
+    "pose": 0.05
+  },
+  "offline_audit": {
+    "episode_dataset": "/mnt/SSD4T/teambruce/projects/navila-isaac/vlnce_assets/vln_ce_isaac_v1.json.gz",
+    "label_sample_size": 100,
+    "label_sample_seed": 20260721,
+    "bootstrap_samples": 1000,
+    "bootstrap_seed": 20260721
+  },
+  "temporal_policy": {
+    "pose_high_risk_threshold": 0.7,
+    "high_risk_consecutive": 10,
+    "trusted_consecutive": 2,
+    "release_after_attempts": 200
+  },
+  "integration": {
+    "mode": "shadow",
+    "enable_hint_arbiter": false,
+    "enable_stop_gate": false,
+    "enable_promotion": false,
+    "enable_current_eviction": false
+  }
+}

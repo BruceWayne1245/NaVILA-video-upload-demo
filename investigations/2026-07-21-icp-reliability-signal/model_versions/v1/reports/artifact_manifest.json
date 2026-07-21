@@ -1,0 +1,13 @@
+{
+  "artifact": "/home/teambruce/navila-reliability-v1/artifacts/reliability_v1.pkl",
+  "enforcement_approved": false,
+  "model_version": "reliability-v1-8f2097ec5028",
+  "portable_artifact": "/home/teambruce/navila-reliability-v1/artifacts/reliability_v1_portable.json",
+  "portable_sha256": "b6bdd0cda5a414a61fbcad27912d6edab8790846d73c5cb84f3a1433ff40d9c2",
+  "portable_size_bytes": 4869885,
+  "python_version": "3.13.11",
+  "schema_version": "reliability-v1.0",
+  "sha256": "3fc7c2ebc6f2732ab787c137c31d1e54b2883c658858daafb5a82a78eef0eab2",
+  "size_bytes": 1892297,
+  "sklearn_version": "1.7.2"
+}

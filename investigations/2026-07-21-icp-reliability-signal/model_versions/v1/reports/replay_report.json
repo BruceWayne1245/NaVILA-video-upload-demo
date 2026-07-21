@@ -1,0 +1,211 @@
+{
+  "batch": "canonical_report_next_stopgate_100ep_20260720",
+  "current_eviction_false_positives": {
+    "false_positive_rate": 0.0,
+    "false_positive_segments": 0,
+    "false_positives": [],
+    "healthy_current_segments": 113,
+    "healthy_definition": "non-pinned current-anchor segment with actual pose-bad rate <= 0.2"
+  },
+  "model_version": "reliability-v1-8f2097ec5028",
+  "pinned": [
+    {
+      "actual_pose_bad_rate": 1.0,
+      "detected": true,
+      "episode_id": 5,
+      "first_eviction_recommendation_attempt": 285,
+      "high_risk_rate": 0.956953642384106,
+      "mean_predicted_pose_bad": 0.8711881686370477,
+      "pinned_anchor_index": 11,
+      "readings": 302
+    },
+    {
+      "actual_pose_bad_rate": 0.9281767955801105,
+      "detected": true,
+      "episode_id": 20,
+      "first_eviction_recommendation_attempt": 24,
+      "high_risk_rate": 0.7403314917127072,
+      "mean_predicted_pose_bad": 0.7399880332510089,
+      "pinned_anchor_index": 8,
+      "readings": 181
+    },
+    {
+      "actual_pose_bad_rate": 1.0,
+      "detected": true,
+      "episode_id": 319,
+      "first_eviction_recommendation_attempt": 560,
+      "high_risk_rate": 0.6827956989247311,
+      "mean_predicted_pose_bad": 0.7484772137037369,
+      "pinned_anchor_index": 4,
+      "readings": 558
+    },
+    {
+      "actual_pose_bad_rate": 0.7658643326039387,
+      "detected": true,
+      "episode_id": 367,
+      "first_eviction_recommendation_attempt": 331,
+      "high_risk_rate": 0.7483588621444202,
+      "mean_predicted_pose_bad": 0.7252045130611385,
+      "pinned_anchor_index": 11,
+      "readings": 914
+    },
+    {
+      "actual_pose_bad_rate": 0.9342403628117913,
+      "detected": true,
+      "episode_id": 498,
+      "first_eviction_recommendation_attempt": 137,
+      "high_risk_rate": 0.8696145124716553,
+      "mean_predicted_pose_bad": 0.8390405812861833,
+      "pinned_anchor_index": 5,
+      "readings": 882
+    },
+    {
+      "actual_pose_bad_rate": 1.0,
+      "detected": true,
+      "episode_id": 500,
+      "first_eviction_recommendation_attempt": 375,
+      "high_risk_rate": 1.0,
+      "mean_predicted_pose_bad": 0.9559372112712349,
+      "pinned_anchor_index": 10,
+      "readings": 636
+    },
+    {
+      "actual_pose_bad_rate": 0.8018979833926453,
+      "detected": true,
+      "episode_id": 669,
+      "first_eviction_recommendation_attempt": 344,
+      "high_risk_rate": 0.7366548042704626,
+      "mean_predicted_pose_bad": 0.6993102172075195,
+      "pinned_anchor_index": 4,
+      "readings": 843
+    },
+    {
+      "actual_pose_bad_rate": 0.967032967032967,
+      "detected": true,
+      "episode_id": 680,
+      "first_eviction_recommendation_attempt": 390,
+      "high_risk_rate": 0.7596153846153846,
+      "mean_predicted_pose_bad": 0.7832227585759293,
+      "pinned_anchor_index": 6,
+      "readings": 728
+    },
+    {
+      "actual_pose_bad_rate": 0.793002915451895,
+      "detected": true,
+      "episode_id": 813,
+      "first_eviction_recommendation_attempt": 82,
+      "high_risk_rate": 0.7900874635568513,
+      "mean_predicted_pose_bad": 0.7398120426112346,
+      "pinned_anchor_index": 6,
+      "readings": 343
+    },
+    {
+      "actual_pose_bad_rate": 1.0,
+      "detected": true,
+      "episode_id": 889,
+      "first_eviction_recommendation_attempt": 349,
+      "high_risk_rate": 1.0,
+      "mean_predicted_pose_bad": 0.9624050623150181,
+      "pinned_anchor_index": 9,
+      "readings": 475
+    },
+    {
+      "actual_pose_bad_rate": 0.9308578745198464,
+      "detected": true,
+      "episode_id": 994,
+      "first_eviction_recommendation_attempt": 246,
+      "high_risk_rate": 0.9513444302176697,
+      "mean_predicted_pose_bad": 0.8970772666602717,
+      "pinned_anchor_index": 6,
+      "readings": 781
+    },
+    {
+      "actual_pose_bad_rate": 0.7858032378580324,
+      "detected": true,
+      "episode_id": 1038,
+      "first_eviction_recommendation_attempt": 382,
+      "high_risk_rate": 0.7895392278953923,
+      "mean_predicted_pose_bad": 0.7334305236476378,
+      "pinned_anchor_index": 4,
+      "readings": 803
+    },
+    {
+      "actual_pose_bad_rate": 0.8043217286914766,
+      "detected": true,
+      "episode_id": 653,
+      "first_eviction_recommendation_attempt": 379,
+      "high_risk_rate": 0.7334933973589436,
+      "mean_predicted_pose_bad": 0.714310818601986,
+      "pinned_anchor_index": 10,
+      "readings": 833
+    }
+  ],
+  "pinned_detected_count": 13,
+  "stops": {
+    "counterfactual_recovered_count": 0,
+    "episodes": [
+      {
+        "counterfactual_forced_stop_attempt": null,
+        "episode_id": 5,
+        "final_true_distance_to_start_m": 0.0,
+        "recovered": false
+      },
+      {
+        "counterfactual_forced_stop_attempt": null,
+        "episode_id": 20,
+        "final_true_distance_to_start_m": 0.0,
+        "recovered": false
+      },
+      {
+        "counterfactual_forced_stop_attempt": null,
+        "episode_id": 89,
+        "final_true_distance_to_start_m": 2.654981851577759,
+        "recovered": false
+      },
+      {
+        "counterfactual_forced_stop_attempt": null,
+        "episode_id": 382,
+        "final_true_distance_to_start_m": 1.6934823989868164,
+        "recovered": false
+      },
+      {
+        "counterfactual_forced_stop_attempt": null,
+        "episode_id": 498,
+        "final_true_distance_to_start_m": 0.0,
+        "recovered": false
+      },
+      {
+        "counterfactual_forced_stop_attempt": null,
+        "episode_id": 537,
+        "final_true_distance_to_start_m": 2.4231486320495605,
+        "recovered": false
+      },
+      {
+        "counterfactual_forced_stop_attempt": null,
+        "episode_id": 680,
+        "final_true_distance_to_start_m": 0.28565147519111633,
+        "recovered": false
+      },
+      {
+        "counterfactual_forced_stop_attempt": null,
+        "episode_id": 889,
+        "final_true_distance_to_start_m": 1.6217541694641113,
+        "recovered": false
+      }
+    ],
+    "false_stop_streak_count": 0,
+    "false_stop_streak_episode_ids": [],
+    "method": "Representative next-role reading per attempt; counterfactual stop requires three consecutive distance-trusted readings with both estimated and true distance-to-start within radius.",
+    "missed_stop_count": 8,
+    "missed_stop_episode_ids": [
+      5,
+      20,
+      89,
+      382,
+      498,
+      537,
+      680,
+      889
+    ]
+  }
+}

@@ -89,3 +89,20 @@ Three tiers of the confidently-wrong problem:
 - `paths.py`, `batch2.py`, `peranchor.py`, `lockin.py`, `whichlink.py` — the batch2 failure classification, per-anchor ICP breakdown, pin-anchor time-course (H1-vs-H2), and quarantine-firing / position-vs-bearing checks that established the background above.
 
 All scripts are ad hoc (scratch), CPU-only, and read already-saved `eval_results` — no Isaac/VLM needed. Trained with the `navila-vlm` conda env (sklearn 1.2.2).
+
+---
+
+## 2026-07-21 model follow-up
+
+The scalar feasibility result above was followed by two independently isolated
+model versions. V1 confirmed useful ranking but failed all trusted-risk gates;
+V1.1 added full ICP basins, current/next pair consistency, and causal temporal
+features and became much stronger under physical-episode-grouped nested CV.
+V1.1 is still development-only because all historical runs were used for model
+development and no prospective batch has been evaluated.
+
+The complete record is indexed in [`README.md`](README.md), with metrics and a
+fair comparison in [`MODEL_WORK_SUMMARY.md`](MODEL_WORK_SUMMARY.md), provenance
+in [`CODE_AND_PROVENANCE.md`](CODE_AND_PROVENANCE.md), and the frozen execution
+order in [`NEXT_STEPS.md`](NEXT_STEPS.md). Neither model is authorized for
+enforcement.

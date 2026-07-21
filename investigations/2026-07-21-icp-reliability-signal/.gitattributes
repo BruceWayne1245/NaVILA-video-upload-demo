@@ -1,0 +1,4 @@
+# Archived source/report bytes are preserved exactly, including upstream
+# whitespace and CRLF conventions. Do not treat those provenance bytes as new
+# style violations in this parent repository.
+model_versions/** whitespace=-blank-at-eol,-blank-at-eof,-space-before-tab
