@@ -1,0 +1,70 @@
+[stop_gate] enabled: r_in=3.0 r_out=3.0 confirm_steps=3 min_confidence=0.5 anchor_corroboration_enabled=True forced_stop_anchor_confirm_steps=2
+[hint_arbiter] enabled: topdown_map_available=True allow_without_clear_path=False
+[hint_arbiter] step=2401 override=False reason=occupied_in_local_map_path desired=forward bearing=0.7035917927806894 clear=False
+[stop_gate] step=2401 decision=pass d=16.855223504721504 conf=1.000 teleport=False
+[hint_arbiter] step=2451 override=False reason=vlm_action_consistent desired=right bearing=-23.577054097261865 clear=None
+[stop_gate] step=2451 decision=pass d=16.782146903809156 conf=1.000 teleport=False
+[hint_arbiter] step=2526 override=False reason=target_too_close desired=None bearing=-72.90554673308633 clear=None
+[stop_gate] step=2526 decision=pass d=16.44794163586935 conf=1.000 teleport=False
+[hint_arbiter] step=2601 override=True reason=vlm_conflicts_with_clear_hint desired=right bearing=-80.90963194083704 clear=True
+[stop_gate] step=2601 decision=pass d=15.894254162177415 conf=1.000 teleport=False
+[hint_arbiter] step=2676 override=True reason=vlm_conflicts_with_clear_hint desired=right bearing=-60.22333116116242 clear=True
+[stop_gate] step=2676 decision=pass d=15.91891978771508 conf=1.000 teleport=False
+[hint_arbiter] step=2751 override=False reason=vlm_action_consistent desired=right bearing=-35.46261582925962 clear=None
+[stop_gate] step=2751 decision=pass d=15.88528437149368 conf=1.000 teleport=False
+[hint_arbiter] step=2776 override=False reason=vlm_action_consistent desired=right bearing=-27.81288526526765 clear=None
+[stop_gate] step=2776 decision=pass d=15.864799122734011 conf=1.000 teleport=False
+[hint_arbiter] step=2801 override=False reason=vlm_action_consistent desired=left bearing=20.31759303849395 clear=None
+[stop_gate] step=2801 decision=pass d=15.409227969888564 conf=1.000 teleport=False
+[hint_arbiter] step=2876 override=True reason=vlm_conflicts_with_clear_hint desired=left bearing=40.963484717674795 clear=True
+[stop_gate] step=2876 decision=pass d=14.553189176086475 conf=0.911 teleport=False
+[hint_arbiter] step=2951 override=True reason=vlm_conflicts_with_clear_hint desired=forward bearing=13.83864720495049 clear=True
+[stop_gate] step=2951 decision=pass d=14.581505753243231 conf=1.000 teleport=False
+[hint_arbiter] step=3026 override=False reason=vlm_action_consistent desired=forward bearing=12.504871870249122 clear=None
+[stop_gate] step=3026 decision=pass d=14.093193206806669 conf=1.000 teleport=False
+[hint_arbiter] step=3101 override=False reason=low_relocalization_confidence desired=None bearing=8.551902464758896 clear=None
+[stop_gate] step=3101 decision=pass d=13.500153409320022 conf=0.708 teleport=False
+[hint_arbiter] step=3176 override=False reason=vlm_action_consistent desired=forward bearing=0.37419885756152027 clear=None
+[stop_gate] step=3176 decision=pass d=12.516415244102605 conf=1.000 teleport=False
+[hint_arbiter] step=3251 override=False reason=target_too_close desired=None bearing=-172.0078640683843 clear=None
+[stop_gate] step=3251 decision=pass d=11.413857726953962 conf=0.743 teleport=False
+[hint_arbiter] step=3326 override=False reason=low_relocalization_confidence desired=None bearing=-11.357337480227512 clear=None
+[stop_gate] step=3326 decision=pass d=11.388700354751327 conf=0.774 teleport=False
+[hint_arbiter] step=3401 override=False reason=target_too_close desired=None bearing=-86.26100447957845 clear=None
+[stop_gate] step=3401 decision=pass d=9.26898388607061 conf=0.962 teleport=False
+[hint_arbiter] step=3426 override=False reason=target_too_close desired=None bearing=-104.99443344175944 clear=None
+[stop_gate] step=3426 decision=pass d=9.294772302703123 conf=0.998 teleport=False
+[hint_arbiter] step=3451 override=False reason=target_too_close desired=None bearing=-85.29999742183725 clear=None
+[stop_gate] step=3451 decision=pass d=9.28775724596636 conf=0.948 teleport=False
+[hint_arbiter] step=3476 override=False reason=target_too_close desired=None bearing=-85.90888718342093 clear=None
+[stop_gate] step=3476 decision=pass d=9.291117387325661 conf=0.983 teleport=False
+[hint_arbiter] step=3551 override=False reason=vlm_action_consistent desired=right bearing=-18.009398789816327 clear=None
+[stop_gate] step=3551 decision=pass d=9.126172287866087 conf=1.000 teleport=False
+[hint_arbiter] step=3626 override=False reason=vlm_action_consistent desired=right bearing=-23.436885760181447 clear=None
+[stop_gate] step=3626 decision=pass d=7.917717210542889 conf=1.000 teleport=False
+[hint_arbiter] step=3701 override=True reason=vlm_conflicts_with_clear_hint desired=right bearing=-34.49917243007601 clear=True
+[stop_gate] step=3701 decision=pass d=7.668010744074569 conf=1.000 teleport=False
+[hint_arbiter] step=3776 override=True reason=vlm_conflicts_with_clear_hint desired=forward bearing=-11.681604224695741 clear=True
+[stop_gate] step=3776 decision=pass d=7.53009771524422 conf=1.000 teleport=False
+[hint_arbiter] step=3851 override=False reason=target_too_close desired=None bearing=-113.85073033155565 clear=None
+[stop_gate] step=3851 decision=pass d=7.2079504959464655 conf=1.000 teleport=False
+[hint_arbiter] step=3876 override=False reason=target_too_close desired=None bearing=-141.91837804574962 clear=None
+[stop_gate] step=3876 decision=pass d=7.2149542224487275 conf=1.000 teleport=False
+[hint_arbiter] step=3951 override=False reason=occupied_in_local_map_path desired=right bearing=-174.11344384696375 clear=False
+[stop_gate] step=3951 decision=pass d=7.701331295913361 conf=1.000 teleport=False
+[hint_arbiter] step=4026 override=False reason=low_relocalization_confidence desired=None bearing=172.63874744738212 clear=None
+[stop_gate] step=4026 decision=pass d=9.484824316541971 conf=0.200 teleport=False
+[hint_arbiter] step=4101 override=False reason=low_relocalization_confidence desired=None bearing=-160.57584658930628 clear=None
+[stop_gate] step=4101 decision=pass d=8.717514622014335 conf=0.783 teleport=False
+[hint_arbiter] step=4126 override=False reason=low_relocalization_confidence desired=None bearing=23.426567859261063 clear=None
+[stop_gate] step=4126 decision=pass d=8.116805004133203 conf=0.534 teleport=False
+[hint_arbiter] step=4201 override=False reason=low_relocalization_confidence desired=None bearing=35.86993270917582 clear=None
+[stop_gate] step=4201 decision=pass d=7.589256932755031 conf=0.671 teleport=False
+[hint_arbiter] step=4226 override=False reason=low_relocalization_confidence desired=None bearing=32.10533137886449 clear=None
+[stop_gate] step=4226 decision=pass d=7.525207721542458 conf=0.634 teleport=False
+[hint_arbiter] step=4251 override=False reason=low_relocalization_confidence desired=None bearing=44.809472523982016 clear=None
+[stop_gate] step=4251 decision=pass d=7.509983048315605 conf=0.643 teleport=False
+[hint_arbiter] step=4326 override=False reason=low_relocalization_confidence desired=None bearing=6.558826950038221 clear=None
+[stop_gate] step=4326 decision=vetoed d=10.052114271049241 conf=0.596 teleport=False
+[hint_arbiter] step=4336 override=False reason=low_relocalization_confidence desired=None bearing=6.093298202719611 clear=None
+[stop_gate] step=4336 decision=deferred d=9.958595535948021 conf=0.200 teleport=False
