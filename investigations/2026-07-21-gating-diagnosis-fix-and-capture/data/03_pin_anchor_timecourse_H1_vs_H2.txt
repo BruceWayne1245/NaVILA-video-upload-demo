@@ -1,0 +1,33 @@
+   ep  pin    n |    首次距    最近距    末次距 |   ang首次   ang最近  ang早1/3  ang晚1/3 | overlap corrDeg nearTie    loc  conf
+    5 a11   543 |   1.04   0.71   9.20 |     1.7   102.9     41.1     12.7 |    0.66    0.67    2.15   0.00  0.65
+   20 a8    181 |   0.27   0.04   4.15 |    79.8    83.1     87.3     31.1 |    0.70    0.54    1.30   0.00  0.69
+  319 a4   1001 |   0.76   0.72  10.50 |     0.5     0.9     63.3     72.5 |    0.80    0.79    0.99   0.00  0.76
+  367 a11  1001 |   0.23   0.04   2.36 |     1.5     5.8     14.9    124.8 |    0.85    0.49    0.67   0.00  0.82
+  498 a5    896 |   1.16   0.04   7.06 |     2.3    13.6     81.3    123.6 |    0.73    0.75    2.02   0.00  0.77
+  500 a10   925 |   1.08   1.04   6.01 |     7.9    20.6     40.6     63.1 |    0.57    0.57    1.38   0.00  0.57
+  669 a4    850 |   1.54   0.23   6.10 |     1.3     0.3     47.3     61.2 |    0.78    0.74    1.56   0.00  0.78
+  680 a6    763 |   1.48   0.04   4.49 |     7.0    28.5     58.1     68.1 |    0.62    0.54    1.02   0.00  0.62
+  813 a6    343 |   0.31   0.10   3.58 |    25.3    94.0     95.0     41.4 |    0.59    0.77    1.56   0.00  0.59
+  889 a9    757 |   0.80   0.80   7.12 |    28.1    28.1     69.2     53.9 |    0.44    0.90    1.69   0.00  0.40
+  994 a6    802 |   1.49   0.02   9.55 |    19.0   128.3     28.3     73.8 |    0.52    0.70    1.32   0.00  0.48
+ 1038 a4    810 |   1.71   0.45   4.69 |     0.5     0.1     36.0     50.6 |    0.76    0.90    2.11   0.00  0.76
+  653 a10   844 |   1.11   0.58   3.34 |     0.6    25.7      7.7     20.3 |    0.48    0.74    1.45   0.00  0.51
+
+== match_class 分布(每集pin锚点) ==
+  ep5 a11: [('ambiguous_high_confidence', 212), ('clean_full_pose', 179), ('partial_pose_degenerate', 152)]
+  ep20 a8: [('clean_full_pose', 117), ('ambiguous_high_confidence', 64)]
+  ep319 a4: [('clean_full_pose', 616), ('ambiguous_high_confidence', 337), ('partial_pose_degenerate', 48)]
+  ep367 a11: [('clean_full_pose', 647), ('ambiguous_high_confidence', 308), ('partial_pose_degenerate', 46)]
+  ep498 a5: [('clean_full_pose', 452), ('ambiguous_high_confidence', 399), ('partial_pose_degenerate', 45)]
+  ep500 a10: [('ambiguous_high_confidence', 665), ('clean_full_pose', 236), ('partial_pose_degenerate', 24)]
+  ep669 a4: [('clean_full_pose', 483), ('ambiguous_high_confidence', 367)]
+  ep680 a6: [('clean_full_pose', 317), ('ambiguous_high_confidence', 297), ('partial_pose_degenerate', 149)]
+  ep813 a6: [('ambiguous_high_confidence', 232), ('clean_full_pose', 111)]
+  ep889 a9: [('clean_full_pose', 476), ('ambiguous_high_confidence', 272), ('partial_pose_degenerate', 9)]
+  ep994 a6: [('ambiguous_high_confidence', 339), ('clean_full_pose', 279), ('partial_pose_degenerate', 184)]
+  ep1038 a4: [('ambiguous_high_confidence', 514), ('clean_full_pose', 296)]
+  ep653 a10: [('clean_full_pose', 452), ('ambiguous_high_confidence', 327), ('partial_pose_degenerate', 65)]
+
+列说明: 首次/最近/末次距=机器人到pin锚点的真实距离(m); ang最近=机器人离该锚点最近时的角度误差(°);
+  H2判据: 即使在最近距 ang 仍很大 + corrDeg高/nearTie>0/overlap低/loc低 => 锚点内在差(从头就差)
+  H1判据: ang首次/最近小, 但 ang晚1/3 >> ang早1/3, 且末次距>>首次距 => 机器人走开导致误差涨(锁死后恶化)
