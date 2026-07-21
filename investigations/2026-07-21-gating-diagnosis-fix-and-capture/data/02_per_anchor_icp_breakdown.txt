@@ -1,0 +1,50 @@
+   ep  grp #anchor #bad  %bad contig  bad_anchors(mean_ang°)
+    4 SUCC      10    2   20%      N  a9(68°/52%j), a11(84°/31%j)
+    5 FAIL       4    4  100%      Y  a10(22°/0%j), a11(40°/19%j), a12(57°/44%j), a13(59°/40%j)
+   20 FAIL       2    2  100%      Y  a7(69°/10%j), a8(55°/13%j)
+   88 FAIL       5    1   20%      Y  a2(111°/8%j)
+   89 FAIL       5    3   60%      N  a1(80°/0%j), a2(87°/0%j), a5(72°/12%j)
+  189 SUCC      11    2   18%      N  a5(67°/46%j), a11(57°/59%j)
+  268 SUCC      15    5   33%      Y  a3(66°/12%j), a4(10°/0%j), a5(57°/0%j), a6(73°/43%j), a7(88°/38%j)
+  277 FAIL      12    1    8%      Y  a13(123°/0%j)
+  295 SUCC      13    3   23%      N  a8(57°/54%j), a10(55°/33%j), a14(72°/48%j)
+  319 FAIL       3    3  100%      Y  a3(69°/0%j), a4(63°/22%j), a5(45°/22%j)
+  367 FAIL       3    3  100%      Y  a10(131°/0%j), a11(68°/29%j), a12(113°/2%j)
+  368 SUCC      12    1    8%      Y  a12(49°/39%j)
+  382 FAIL       7    1   14%      Y  a13(96°/8%j)
+  491 FAIL       8    5   62%      N  a4(51°/0%j), a5(65°/0%j), a6(67°/22%j), a7(46°/61%j), a11(88°/0%j)
+  498 FAIL       5    2   40%      Y  a4(80°/4%j), a5(106°/8%j)
+  500 FAIL       4    4  100%      Y  a9(115°/0%j), a10(54°/13%j), a11(55°/30%j), a12(120°/3%j)
+  537 FAIL       6    2   33%      N  a5(34°/5%j), a10(9°/0%j)
+  647 SUCC       8    1   12%      Y  a9(76°/17%j)
+  653 FAIL       9    3   33%      N  a9(36°/10%j), a10(15°/20%j), a17(69°/25%j)
+  669 FAIL       7    2   29%      Y  a3(96°/2%j), a4(57°/20%j)
+  680 FAIL      13    3   23%      N  a5(68°/4%j), a6(55°/7%j), a17(86°/7%j)
+  783 SUCC       8    1   12%      Y  a9(74°/45%j)
+  813 FAIL       5    3   60%      Y  a4(73°/0%j), a5(65°/18%j), a6(76°/13%j)
+  889 FAIL       4    3   75%      Y  a8(9°/0%j), a9(46°/0%j), a10(56°/12%j)
+  994 FAIL      12    5   42%      N  a5(64°/12%j), a6(55°/8%j), a7(72°/32%j), a10(68°/43%j), a16(92°/25%j)
+ 1038 FAIL      10    3   30%      N  a3(77°/7%j), a4(44°/22%j), a12(80°/44%j)
+
+== 汇总: 失败集 vs 成功集的 %坏anchor ==
+  SUCC: %坏anchor 中位=18%  范围=8-33%  (每集: [20, 18, 33, 23, 8, 12, 12])
+  FAIL: %坏anchor 中位=42%  范围=8-100%  (每集: [100, 100, 20, 60, 8, 100, 100, 14, 62, 40, 100, 33, 33, 29, 23, 60, 75, 42, 30])
+
+== 卡死集: pin anchor 是否是坏anchor ==
+  ep5 (FAIL): current 卡在 a11 (55%的attempt); 该anchor质量: mean_ang=40° joint=19%
+  ep20 (FAIL): current 卡在 a8 (100%的attempt); 该anchor质量: mean_ang=55° joint=13%
+  ep88 (FAIL): current 卡在 a3 (72%的attempt); 该anchor质量: mean_ang=17° joint=84%
+  ep89 (FAIL): current 卡在 a3 (87%的attempt); 该anchor质量: mean_ang=7° joint=97%
+  ep319 (FAIL): current 卡在 a4 (56%的attempt); 该anchor质量: mean_ang=63° joint=22%
+  ep367 (FAIL): current 卡在 a11 (91%的attempt); 该anchor质量: mean_ang=68° joint=29%
+  ep498 (FAIL): current 卡在 a5 (94%的attempt); 该anchor质量: mean_ang=106° joint=8%
+  ep500 (FAIL): current 卡在 a10 (64%的attempt); 该anchor质量: mean_ang=54° joint=13%
+  ep537 (FAIL): current 卡在 a6 (97%的attempt); 该anchor质量: mean_ang=17° joint=73%
+  ep647 (SUCC): current 卡在 a3 (52%的attempt); 该anchor质量: mean_ang=13° joint=75%
+  ep653 (FAIL): current 卡在 a10 (83%的attempt); 该anchor质量: mean_ang=15° joint=20%
+  ep669 (FAIL): current 卡在 a4 (84%的attempt); 该anchor质量: mean_ang=57° joint=20%
+  ep680 (FAIL): current 卡在 a6 (73%的attempt); 该anchor质量: mean_ang=55° joint=7%
+  ep813 (FAIL): current 卡在 a6 (54%的attempt); 该anchor质量: mean_ang=76° joint=13%
+  ep889 (FAIL): current 卡在 a9 (58%的attempt); 该anchor质量: mean_ang=46° joint=0%
+  ep994 (FAIL): current 卡在 a6 (78%的attempt); 该anchor质量: mean_ang=55° joint=8%
+  ep1038 (FAIL): current 卡在 a4 (80%的attempt); 该anchor质量: mean_ang=44° joint=22%
