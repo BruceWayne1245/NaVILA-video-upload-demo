@@ -1,8 +1,9 @@
 # V1.1 prospective capture-shadow 100ep protocol (2026-07-22)
 
-Status: **predeclared handoff; not chained or scheduled**. The short-lived
-automatic chain was explicitly cancelled on 2026-07-22 so Claude can first
-finish and freeze the next non-model controller changes.
+Status: **launched 2026-07-22 22:26:57 BST** after the short-lived automatic
+chain was cancelled and Claude finished/froze the next non-model controller.
+The launch passed the frozen manifest, artifact, and live-code preflight. See
+`LIVE_RUN_STATUS.md`.
 
 ## What this run is
 

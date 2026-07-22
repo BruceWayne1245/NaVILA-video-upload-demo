@@ -2,10 +2,11 @@
 
 ## Status
 
-This directory is a handoff package for the next Claude-owned 100-episode
-controller run. It is **not currently chained or scheduled**. The previously
-armed systemd chain was stopped and verified inactive on 2026-07-22 while the
-existing fix-ON 100ep run continued normally.
+This directory began as a handoff package for the next Claude-owned
+100-episode controller run. Claude launched the combined controller/capture
+batch at **2026-07-22 22:26:57 BST**. It was not started by the cancelled
+systemd chain. See `LIVE_RUN_STATUS.md` for the audited launch state and
+`POST_RUN_PLAN.md` for the frozen completion/analysis order.
 
 The intended combined use of the next batch is:
 
@@ -28,8 +29,14 @@ not been run under the old controller.
 - `run_batch_template.sh`: the complete runner template, including run tag,
   capture flag, provenance, preflight hashes, resume behavior, and the
   predeclared one-time retry for VLM startup `exit_code=98`.
+- `run_batch_launched_20260722.sh`: byte-for-byte archive of the runner Claude
+  actually launched, including the refreshed hashes and new controller flags.
 - `CLAUDE_INTEGRATION_CHECKLIST.md`: exact steps for rebasing this template on
   Claude's finalized code/config without accidentally enabling the model.
+- `LIVE_RUN_STATUS.md`: launch audit, actual hashes, early capture integrity,
+  runtime paths, and limitations.
+- `POST_RUN_PLAN.md`: required integrity audit, prospective scoring, statistics,
+  and decision branches after all scheduled episodes finish.
 
 The frozen V1.1 model source and artifact remain in
 `../2026-07-21-icp-reliability-signal/model_versions/v1_1/`; they are not
@@ -67,15 +74,13 @@ silently replaced by the older V1 portable runtime.
 
 ## What Claude is expected to change
 
-The template currently records the exact controller flags and source hashes of
-the fix-ON A+B+C batch running on 2026-07-22. Claude should merge his finalized
-non-model changes into `COMMON_EXTRA`, then replace the pinned live source
-hashes. If the shared batch driver's function boundary changes, he must adapt
-the template rather than bypass its manifest, capture, provenance, or retry
-contract.
+The original template records the fix-ON A+B+C baseline. Claude merged the
+shared trend-budget and stuck-recovery changes, refreshed every affected source
+hash, added `stuck_recovery.py` to preflight/provenance, and launched the result
+archived in `run_batch_launched_20260722.sh`.
 
-The old hashes intentionally cause preflight to fail after live code changes.
-That failure is a guardrail, not a reason to disable preflight.
+The old template remains for handoff provenance. Do not use it to resume the
+live run; use the launched runner with the same frozen run tag and manifest.
 
 ## Interpretation boundary
 
