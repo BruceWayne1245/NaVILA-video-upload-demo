@@ -1,0 +1,22 @@
+{
+  "schema": "navila-v11-control-readiness-gates-v1",
+  "scheduled_physical_episodes": 100,
+  "minimum_scoreable_physical_episodes": 40,
+  "maximum_missing_online_truth_rows": 0,
+  "maximum_shadow_or_decision_exceptions": 0,
+  "maximum_control_contract_failures": 0,
+  "current_forwarded_coverage_minimum": 0.35,
+  "current_bad_block_recall_minimum": 0.70,
+  "current_forwarded_bearing_bad_rate_upper_95_maximum": 0.10,
+  "current_forwarded_distance_bad_rate_upper_95_maximum": 0.05,
+  "current_forwarded_pose_bad_rate_upper_95_maximum": 0.05,
+  "episode_any_current_forwarded_fraction_minimum": 0.95,
+  "episode_current_forwarded_within_first_10_fraction_minimum": 0.90,
+  "full_defer_streak_p95_maximum_attempts": 10,
+  "full_defer_streak_absolute_maximum_attempts": 30,
+  "scene_minimum_forwarded_current_rows_for_gate": 100,
+  "scene_forwarded_current_pose_bad_rate_maximum": 0.10,
+  "guarded_active_canary_required_before_active_100ep": true,
+  "guarded_active_canary_episodes": 10,
+  "notes": "Passing authorizes only implementation review plus a 10-episode guarded active canary. It does not itself authorize an unmonitored 100-episode enforcement run."
+}

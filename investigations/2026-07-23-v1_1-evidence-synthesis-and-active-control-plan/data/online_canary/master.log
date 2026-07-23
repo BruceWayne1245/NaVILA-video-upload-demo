@@ -1,0 +1,21 @@
+[preflight] PASS: frozen candidate/runtime/artifact hashes and syntax
+[preflight] PASS: mode=shadow enforcement=False controller_effect=False
+[master] V1.1 5ep online shadow canary started 2026-07-23T18:57:13+01:00
+[master] candidate=/home/teambruce/navila-gating-ab-v1/candidate/round_trip_eval.py
+[master] model outputs cannot reach controller
+[2026-07-23T18:57:13+01:00] starting episode 579 (2azQ1b91cZZ), port=58579, suffix=reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep579
+VLM server ready on port 58579, pid=1418647
+[2026-07-23T19:12:05+01:00] finished episode 579, exit_code=0
+[2026-07-23T19:12:05+01:00] starting episode 448 (EU6Fwq7SyZv), port=58448, suffix=reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep448
+VLM server ready on port 58448, pid=1420028
+[2026-07-23T19:14:58+01:00] finished episode 448, exit_code=0
+[2026-07-23T19:14:58+01:00] starting episode 691 (QUCTc6BB5sX), port=58691, suffix=reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep691
+VLM server ready on port 58691, pid=1420924
+[2026-07-23T19:17:36+01:00] finished episode 691, exit_code=0
+[2026-07-23T19:17:36+01:00] starting episode 539 (TbHJrupSAjP), port=58539, suffix=reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep539
+VLM server ready on port 58539, pid=1421840
+[2026-07-23T19:27:47+01:00] finished episode 539, exit_code=0
+[2026-07-23T19:27:47+01:00] starting episode 688 (X7HyMhZNoso), port=58688, suffix=reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep688
+VLM server ready on port 58688, pid=1422918
+[2026-07-23T19:31:41+01:00] finished episode 688, exit_code=0
+[master] V1.1 5ep online shadow canary finished 2026-07-23T19:31:41+01:00

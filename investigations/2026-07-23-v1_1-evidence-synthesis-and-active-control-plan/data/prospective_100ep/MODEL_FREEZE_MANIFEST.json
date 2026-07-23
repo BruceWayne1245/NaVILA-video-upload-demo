@@ -1,0 +1,148 @@
+{
+  "all_expected_hashes_match": true,
+  "authority": {
+    "github_private_repo_main_commit_read_for_context": "86a6a6f2c7ff3c0e9cbc870c36e70af76be5e493",
+    "run_tag": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+    "v11_source_commit": "bb457488653e386b284bef8e1bcb6f45094d8868"
+  },
+  "expected_hash_checks": {
+    "frozen_development_artifact": true,
+    "frozen_episode_manifest": true,
+    "launched_runner_archive": true,
+    "prospective_v11_dataset": true,
+    "prospective_v1_dataset": true
+  },
+  "files": {
+    "all_capture_frame_validation": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/all_capture_frame_validation.json",
+      "sha256": "77173c31544746fbe6f7fc8fcc11a918848ce476c8ba9dc24e52d43cb1f853aa",
+      "size_bytes": 956
+    },
+    "artifact_validation": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/artifact_validation.json",
+      "sha256": "275e814dfd3e54353723bb60ce8dba90e393b17033b2bcab4fba06963d596572",
+      "size_bytes": 1790
+    },
+    "batch_run_provenance": {
+      "path": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/batch_logs/reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated/run_provenance.txt",
+      "sha256": "565884ad60fbe0870b00d120fa738a3cc880d61665a3ab8f9e2c9ca4d1b7620e",
+      "size_bytes": 960
+    },
+    "batch_summary": {
+      "path": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/batch_logs/reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated/summary.tsv",
+      "sha256": "ad21f2c958df963c92fb92cf918db06c1f95e7ab09d71b23d510703eb4c9ed04",
+      "size_bytes": 77627
+    },
+    "causal_runtime_source": {
+      "path": "/home/teambruce/navila-reliability-v1_1/reliability/v11_runtime.py",
+      "sha256": "fbf45db93521c39b3505848c486d24d8fbb63339e316681cd53be809b66082db",
+      "size_bytes": 14268
+    },
+    "frozen_development_artifact": {
+      "path": "/home/teambruce/navila-reliability-v1_1/artifacts/reliability_v1_1_development.pkl",
+      "sha256": "5f23aba46a45d564131dccd093b1e76160a513162910709503ac8c0a49cb35ce",
+      "size_bytes": 2895059
+    },
+    "frozen_episode_manifest": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-22-prospective-shadow/episodes.tsv",
+      "sha256": "60d2adf33efeaeb985dc2b234a284a4698ff69160b2a284adfa0ed060b1c60c7",
+      "size_bytes": 5020
+    },
+    "launched_runner_archive": {
+      "path": "/home/teambruce/navila-reliability-github-publish-20260721/investigations/2026-07-22-v1_1-prospective-shadow-handoff/run_batch_launched_20260722.sh",
+      "sha256": "e958286f0e9e908434056dd655a114f5487efad997ca3d62c5ed03e71fc05954",
+      "size_bytes": 9527
+    },
+    "parity_tool_source": {
+      "path": "/home/teambruce/navila-reliability-v1_1/tools/validate_v11_portable_parity.py",
+      "sha256": "c2e3ec66e54f1fac5dc426ad6cde44703070065e2473a70534d0046a5f4dcb6c",
+      "size_bytes": 13549
+    },
+    "portable_export_manifest": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/v11_portable_manifest.json",
+      "sha256": "0225889447767a3cb9831da66da229567e9831aa28e7c7199398da33b81a88c2",
+      "size_bytes": 574
+    },
+    "portable_exporter_source": {
+      "path": "/home/teambruce/navila-reliability-v1_1/reliability/v11_portable.py",
+      "sha256": "68d0e69980ea6b19feab2dfa40e657d94d106f7fd73f02c15540dcbcaabeb01a",
+      "size_bytes": 3663
+    },
+    "portable_runtime_source": {
+      "path": "/home/teambruce/navila-reliability-v1_1/candidate/scripts/reliability_v11_portable_runtime.py",
+      "sha256": "7b177ffeeac878ce4125c28f4113c425db4680b028edb81345f0919d87854285",
+      "size_bytes": 4921
+    },
+    "portable_shadow_artifact": {
+      "path": "/home/teambruce/navila-reliability-v1_1/artifacts/reliability_v1_1_portable_shadow.json",
+      "sha256": "3fa7fe22cd5427fdabd19646361a88f0ef24942e64289280e0339268e6bf131a",
+      "size_bytes": 3612944
+    },
+    "portable_tests_source": {
+      "path": "/home/teambruce/navila-reliability-v1_1/tests/test_v11_portable.py",
+      "sha256": "20e3c2b72977956353c0f94779840c8934b4ea091d8ab69324f8d09170c3eee6",
+      "size_bytes": 4183
+    },
+    "prospective_config": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/config.json",
+      "sha256": "016cc411635726247b95bdc09ed0e4604b6b7fd2e5eb0835a411cae19164bdf4",
+      "size_bytes": 662
+    },
+    "prospective_score": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/prospective_score.json",
+      "sha256": "cfd073f96029453065495d771cf6b53bbebb83ab06a585a9cbc567355d502c06",
+      "size_bytes": 126494
+    },
+    "prospective_v11_dataset": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/prospective_v1_1.npz",
+      "sha256": "bb30f3dd367b20cbddb059f4a549c1a5a7a7e3d8baffab40914ba9f4b71a1538",
+      "size_bytes": 25291106
+    },
+    "prospective_v11_manifest": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/prospective_v1_1_manifest.json",
+      "sha256": "5128121bee33717624cefa19b74f7d5eb04ddb5cdc260d0783413f6b89093dd1",
+      "size_bytes": 23512
+    },
+    "prospective_v1_dataset": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/prospective_v1.csv",
+      "sha256": "1e974bfcb9432ad0ea6f8f64b1b5f42b90c541eaafe4f0c27e89233014242d57",
+      "size_bytes": 24905018
+    },
+    "prospective_v1_manifest": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/prospective_v1_manifest.json",
+      "sha256": "2c3a5fa8630258bc87821885e44573de942938b6a9fbd96c2a4fcdff39732318",
+      "size_bytes": 73953
+    },
+    "raw_label_audit": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/raw_label_audit.csv",
+      "sha256": "065fd53e69e1339a436e043065f89380dd0e3ce3880067656972163da34326a5",
+      "size_bytes": 82194
+    },
+    "row_predictions": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/row_predictions.csv",
+      "sha256": "ab8e4c9868dfde4f8efd95dd1c9882e96cff212fabdf81708d8335f0934ec411",
+      "size_bytes": 3809709
+    },
+    "runtime_parity": {
+      "path": "/home/teambruce/navila-reliability-v1_1/experiments/2026-07-23-prospective-results/runtime_parity.json",
+      "sha256": "3945ce5596ee08376873b3fecb17ba9e2d3c904b7f4d7150bc8f71b788d747d0",
+      "size_bytes": 2026
+    }
+  },
+  "freeze_name": "reliability-v1.1-prospective-100ep-model-evidence",
+  "frozen_at_utc": "2026-07-23T17:47:58.108482+00:00",
+  "locks": {
+    "enforcement_approved": false,
+    "no_recalibration": true,
+    "no_refit": true,
+    "portable_mode": "shadow",
+    "thresholds_unchanged": true
+  },
+  "model_evidence": {
+    "causal_feature_parity_passed": true,
+    "physical_episode_clusters": 59,
+    "rows": 37189,
+    "runtime_parity_passed": true,
+    "statistical_gates_passed": true
+  }
+}

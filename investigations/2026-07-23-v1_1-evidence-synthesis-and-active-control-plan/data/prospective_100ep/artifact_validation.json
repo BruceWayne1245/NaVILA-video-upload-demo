@@ -1,0 +1,54 @@
+{
+  "artifact": "artifacts/reliability_v1_1_development.pkl",
+  "artifact_sha256": "5f23aba46a45d564131dccd093b1e76160a513162910709503ac8c0a49cb35ce",
+  "checks": {
+    "all_heads_present": true,
+    "bearing_probability_valid": true,
+    "bearing_threshold_locked": true,
+    "development_only": true,
+    "distance_probability_valid": true,
+    "distance_threshold_locked": true,
+    "feature_names_match": true,
+    "forbidden_features_absent": true,
+    "pose_probability_valid": true,
+    "pose_threshold_locked": true,
+    "prospective_validation_locked": true,
+    "schema_match": true
+  },
+  "dataset": "experiments/2026-07-23-prospective-results/prospective_v1_1.npz",
+  "dataset_sha256": "bb30f3dd367b20cbddb059f4a549c1a5a7a7e3d8baffab40914ba9f4b71a1538",
+  "forbidden_feature_names": [],
+  "passed": true,
+  "sampled_inference": {
+    "bearing": {
+      "candidate": "hgb_full_temporal",
+      "features": 249,
+      "probability_finite": true,
+      "probability_max": 0.9773197825053653,
+      "probability_min": 0.0022532744076002426,
+      "sample_rows": 1024,
+      "trusted_count": 395,
+      "trusted_threshold": 0.3204705300073818
+    },
+    "distance": {
+      "candidate": "hgb_full_temporal",
+      "features": 249,
+      "probability_finite": true,
+      "probability_max": 0.9965449492806218,
+      "probability_min": 0.0005505968402618989,
+      "sample_rows": 1024,
+      "trusted_count": 362,
+      "trusted_threshold": 0.26456558921851075
+    },
+    "pose": {
+      "candidate": "hgb_full_temporal",
+      "features": 249,
+      "probability_finite": true,
+      "probability_max": 0.9994740592446055,
+      "probability_min": 0.001163932441671432,
+      "sample_rows": 1024,
+      "trusted_count": 330,
+      "trusted_threshold": 0.30170109857950944
+    }
+  }
+}

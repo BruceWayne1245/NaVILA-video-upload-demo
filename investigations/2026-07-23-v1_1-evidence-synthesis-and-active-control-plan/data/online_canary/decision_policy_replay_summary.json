@@ -1,0 +1,81 @@
+{
+  "actions": {
+    "would_defer_entire_relocalization_update_current_untrusted": 331,
+    "would_forward_trusted_current_and_next": 154,
+    "would_forward_trusted_current_only": 213
+  },
+  "decisions": 698,
+  "disagreements": {
+    "jointly_trusted_alternate_available": 190,
+    "lower_pose_risk_alternate_available": 129,
+    "selected_untrusted": 328
+  },
+  "episodes": 3,
+  "logs": 3,
+  "passed": true,
+  "per_episode": [
+    {
+      "actions": {
+        "would_defer_entire_relocalization_update_current_untrusted": 241,
+        "would_forward_trusted_current_and_next": 19,
+        "would_forward_trusted_current_only": 81
+      },
+      "controller_snapshots": 341,
+      "decisions": 341,
+      "disagreements": {
+        "jointly_trusted_alternate_available": 27,
+        "lower_pose_risk_alternate_available": 26,
+        "selected_untrusted": 240
+      },
+      "episode_key": "reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep579::ep579",
+      "score_calls": 341,
+      "source_log": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep579/reliability_v11_shadow.jsonl"
+    },
+    {
+      "actions": {
+        "would_defer_entire_relocalization_update_current_untrusted": 23,
+        "would_forward_trusted_current_and_next": 92,
+        "would_forward_trusted_current_only": 121
+      },
+      "controller_snapshots": 236,
+      "decisions": 236,
+      "disagreements": {
+        "jointly_trusted_alternate_available": 112,
+        "lower_pose_risk_alternate_available": 66,
+        "selected_untrusted": 21
+      },
+      "episode_key": "reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep539::ep539",
+      "score_calls": 236,
+      "source_log": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep539/reliability_v11_shadow.jsonl"
+    },
+    {
+      "actions": {
+        "would_defer_entire_relocalization_update_current_untrusted": 67,
+        "would_forward_trusted_current_and_next": 43,
+        "would_forward_trusted_current_only": 11
+      },
+      "controller_snapshots": 121,
+      "decisions": 121,
+      "disagreements": {
+        "jointly_trusted_alternate_available": 51,
+        "lower_pose_risk_alternate_available": 37,
+        "selected_untrusted": 67
+      },
+      "episode_key": "reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep688::ep688",
+      "score_calls": 121,
+      "source_log": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_online_shadow_canary_5ep_20260723_retry2_ep688/reliability_v11_shadow.jsonl"
+    }
+  ],
+  "policy": {
+    "alternate_rank_field": "p_pose_bad",
+    "candidate_gate": "jointly_trusted",
+    "current_role_required": true,
+    "enforcement_approved": false,
+    "identity_override_authorized": false,
+    "mode": "shadow",
+    "name": "role-safe-precontroller-joint-trust-v1",
+    "policy_sha256": "f4199af4559e3ba70c1bdf23a4342129e2260c4b2785c6c4033acb8e4b08684b",
+    "schema": "navila-v11-decision-shadow-policy-v1",
+    "untrusted_candidates_forwarded": false
+  }
+}

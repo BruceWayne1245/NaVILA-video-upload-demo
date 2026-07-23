@@ -1,0 +1,15 @@
+{
+  "enforcement_approved": false,
+  "features": 249,
+  "heads": [
+    "bearing",
+    "distance",
+    "pose"
+  ],
+  "mode": "shadow",
+  "portable_artifact": "/home/teambruce/navila-reliability-v1_1/artifacts/reliability_v1_1_portable_shadow.json",
+  "portable_sha256": "3fa7fe22cd5427fdabd19646361a88f0ef24942e64289280e0339268e6bf131a",
+  "portable_size_bytes": 3612944,
+  "source_artifact": "/home/teambruce/navila-reliability-v1_1/artifacts/reliability_v1_1_development.pkl",
+  "source_artifact_sha256": "5f23aba46a45d564131dccd093b1e76160a513162910709503ac8c0a49cb35ce"
+}

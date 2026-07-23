@@ -1,0 +1,910 @@
+{
+  "dataset": "experiments/2026-07-23-prospective-results/prospective_v1.csv",
+  "episodes_by_batch": {
+    "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated": [
+      3,
+      18,
+      19,
+      87,
+      93,
+      95,
+      100,
+      196,
+      205,
+      264,
+      276,
+      310,
+      333,
+      344,
+      351,
+      355,
+      356,
+      366,
+      385,
+      387,
+      420,
+      427,
+      428,
+      448,
+      484,
+      489,
+      490,
+      539,
+      579,
+      581,
+      613,
+      645,
+      646,
+      654,
+      658,
+      671,
+      672,
+      681,
+      682,
+      687,
+      688,
+      689,
+      691,
+      698,
+      715,
+      764,
+      784,
+      785,
+      814,
+      815,
+      844,
+      888,
+      929,
+      961,
+      962,
+      979,
+      987,
+      1062,
+      1069
+    ]
+  },
+  "rows": 37189,
+  "rows_by_batch": {
+    "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated": 37189
+  },
+  "run_status_counts": {
+    "missing_measurement": 1,
+    "missing_records_or_trajectory": 39,
+    "ok": 59
+  },
+  "runs": [
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 100,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep100/measurements/145.json",
+      "rows": 1862,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep100",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep100/trajectories/output_145.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 1057,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep1057",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 1062,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep1062/measurements/1800.json",
+      "rows": 438,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep1062",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep1062/trajectories/output_1800.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 1069,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep1069/measurements/1807.json",
+      "rows": 396,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep1069",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep1069/trajectories/output_1807.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 114,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep114",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 123,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep123",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 125,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep125",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 18,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep18/measurements/30.json",
+      "rows": 780,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep18",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep18/trajectories/output_30.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 186,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep186",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 188,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep188",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 19,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep19/measurements/31.json",
+      "rows": 156,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep19",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep19/trajectories/output_31.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 196,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep196/measurements/301.json",
+      "rows": 586,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep196",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep196/trajectories/output_301.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 199,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep199",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 205,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep205/measurements/313.json",
+      "rows": 402,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep205",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep205/trajectories/output_313.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 246,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep246",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 247,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep247",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 264,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep264/measurements/417.json",
+      "rows": 352,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep264",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep264/trajectories/output_417.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 276,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep276/measurements/441.json",
+      "rows": 1312,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep276",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep276/trajectories/output_441.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 278,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep278",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 28,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep28",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 288,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep288",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 3,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep3/measurements/6.json",
+      "rows": 282,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep3",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep3/trajectories/output_6.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 310,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep310/measurements/499.json",
+      "rows": 525,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep310",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep310/trajectories/output_499.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 324,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep324",
+      "status": "missing_measurement"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 333,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep333/measurements/543.json",
+      "rows": 262,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep333",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep333/trajectories/output_543.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 344,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep344/measurements/563.json",
+      "rows": 176,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep344",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep344/trajectories/output_563.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 351,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep351/measurements/576.json",
+      "rows": 904,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep351",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep351/trajectories/output_576.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 355,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep355/measurements/583.json",
+      "rows": 1166,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep355",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep355/trajectories/output_583.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 356,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep356/measurements/584.json",
+      "rows": 286,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep356",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep356/trajectories/output_584.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 366,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep366/measurements/600.json",
+      "rows": 1269,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep366",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep366/trajectories/output_600.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 369,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep369",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 383,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep383",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 384,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep384",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 385,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep385/measurements/640.json",
+      "rows": 235,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep385",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep385/trajectories/output_640.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 387,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep387/measurements/645.json",
+      "rows": 482,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep387",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep387/trajectories/output_645.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 413,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep413",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 420,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep420/measurements/711.json",
+      "rows": 944,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep420",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep420/trajectories/output_711.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 427,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep427/measurements/718.json",
+      "rows": 132,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep427",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep427/trajectories/output_718.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 428,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep428/measurements/719.json",
+      "rows": 132,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep428",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep428/trajectories/output_719.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 429,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep429",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 448,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep448/measurements/754.json",
+      "rows": 968,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep448",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep448/trajectories/output_754.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 449,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep449",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 45,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep45",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 484,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep484/measurements/826.json",
+      "rows": 115,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep484",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep484/trajectories/output_826.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 489,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep489/measurements/852.json",
+      "rows": 557,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep489",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep489/trajectories/output_852.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 490,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep490/measurements/853.json",
+      "rows": 272,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep490",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep490/trajectories/output_853.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 502,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep502",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 539,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep539/measurements/929.json",
+      "rows": 492,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep539",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep539/trajectories/output_929.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 579,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep579/measurements/1005.json",
+      "rows": 530,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep579",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep579/trajectories/output_1005.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 581,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep581/measurements/1007.json",
+      "rows": 499,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep581",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep581/trajectories/output_1007.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 586,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep586",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 61,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep61",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 613,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep613/measurements/1069.json",
+      "rows": 2002,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep613",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep613/trajectories/output_1069.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 615,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep615",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 622,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep622",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 645,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep645/measurements/1116.json",
+      "rows": 302,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep645",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep645/trajectories/output_1116.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 646,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep646/measurements/1117.json",
+      "rows": 942,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep646",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep646/trajectories/output_1117.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 654,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep654/measurements/1134.json",
+      "rows": 206,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep654",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep654/trajectories/output_1134.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 657,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep657",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 658,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep658/measurements/1138.json",
+      "rows": 492,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep658",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep658/trajectories/output_1138.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 668,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep668",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 671,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep671/measurements/1154.json",
+      "rows": 562,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep671",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep671/trajectories/output_1154.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 672,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep672/measurements/1155.json",
+      "rows": 1242,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep672",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep672/trajectories/output_1155.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 681,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep681/measurements/1167.json",
+      "rows": 175,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep681",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep681/trajectories/output_1167.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 682,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep682/measurements/1168.json",
+      "rows": 82,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep682",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep682/trajectories/output_1168.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 683,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep683",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 687,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep687/measurements/1176.json",
+      "rows": 160,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep687",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep687/trajectories/output_1176.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 688,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep688/measurements/1177.json",
+      "rows": 1046,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep688",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep688/trajectories/output_1177.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 689,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep689/measurements/1178.json",
+      "rows": 262,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep689",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep689/trajectories/output_1178.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 691,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep691/measurements/1180.json",
+      "rows": 726,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep691",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep691/trajectories/output_1180.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 698,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep698/measurements/1190.json",
+      "rows": 834,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep698",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep698/trajectories/output_1190.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 715,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep715/measurements/1207.json",
+      "rows": 896,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep715",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep715/trajectories/output_1207.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 716,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep716",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 748,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep748",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 762,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep762",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 763,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep763",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 764,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep764/measurements/1304.json",
+      "rows": 792,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep764",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep764/trajectories/output_1304.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 784,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep784/measurements/1336.json",
+      "rows": 152,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep784",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep784/trajectories/output_1336.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 785,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep785/measurements/1337.json",
+      "rows": 2002,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep785",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep785/trajectories/output_1337.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 808,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep808",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 814,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep814/measurements/1378.json",
+      "rows": 326,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep814",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep814/trajectories/output_1378.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 815,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep815/measurements/1379.json",
+      "rows": 282,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep815",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep815/trajectories/output_1379.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 844,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep844/measurements/1438.json",
+      "rows": 2002,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep844",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep844/trajectories/output_1438.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 865,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep865",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 87,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep87/measurements/126.json",
+      "rows": 2002,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep87",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep87/trajectories/output_126.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 888,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep888/measurements/1515.json",
+      "rows": 508,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep888",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep888/trajectories/output_1515.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 890,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep890",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 929,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep929/measurements/1574.json",
+      "rows": 39,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep929",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep929/trajectories/output_1574.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 93,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep93/measurements/138.json",
+      "rows": 318,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep93",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep93/trajectories/output_138.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 931,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep931",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 95,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep95/measurements/140.json",
+      "rows": 414,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep95",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep95/trajectories/output_140.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 951,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep951",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 952,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep952",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 961,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep961/measurements/1642.json",
+      "rows": 552,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep961",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep961/trajectories/output_1642.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 962,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep962/measurements/1643.json",
+      "rows": 249,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep962",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep962/trajectories/output_1643.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 972,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep972",
+      "status": "missing_records_or_trajectory"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 979,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep979/measurements/1660.json",
+      "rows": 722,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep979",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep979/trajectories/output_1660.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 987,
+      "interval": 5,
+      "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep987/measurements/1683.json",
+      "rows": 388,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep987",
+      "status": "ok",
+      "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep987/trajectories/output_1683.jsonl"
+    },
+    {
+      "batch": "reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated",
+      "episode_id": 999,
+      "run_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_prospective_capture_shadow_100ep_20260722_accumulated_ep999",
+      "status": "missing_records_or_trajectory"
+    }
+  ],
+  "runs_discovered": 99,
+  "schema_version": "reliability-v1.0",
+  "sha256": "1e974bfcb9432ad0ea6f8f64b1b5f42b90c541eaafe4f0c27e89233014242d57"
+}

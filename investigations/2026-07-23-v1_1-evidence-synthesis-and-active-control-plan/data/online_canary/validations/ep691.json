@@ -1,0 +1,33 @@
+{
+  "contract_passed": true,
+  "control_contract_failures": 0,
+  "controller_snapshots": 0,
+  "decision_contract_failures": 0,
+  "decision_exceptions": 0,
+  "decision_shadow_enabled": false,
+  "decisions": 0,
+  "duplicate_keys": 0,
+  "evaluable": false,
+  "events": 2,
+  "exceptions": 0,
+  "extra_logged_keys": 0,
+  "feature_mismatch_rows": 0,
+  "feature_width_failures": 0,
+  "measurement_rows": 0,
+  "missing_logged_keys": 0,
+  "nonfinite_probabilities": 0,
+  "passed": null,
+  "rescore_maximum_probability_difference": {
+    "p_bearing_bad_30": 0.0,
+    "p_distance_bad_0p5": 0.0,
+    "p_pose_bad": 0.0
+  },
+  "rescore_trusted_mismatches": {
+    "bearing_trusted": 0,
+    "distance_trusted": 0,
+    "pose_trusted": 0
+  },
+  "rows": 0,
+  "score_calls": 0,
+  "status": "not_evaluable_no_score_rows"
+}

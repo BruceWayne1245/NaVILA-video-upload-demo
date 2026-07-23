@@ -1,0 +1,40 @@
+{
+  "batch": "reliability_v11_online_shadow_canary_5ep_20260723_retry2",
+  "scheduled_processes": 5,
+  "exit_zero_processes": 5,
+  "evaluable_episodes": 3,
+  "not_evaluable_no_score_rows": 2,
+  "score_calls": 698,
+  "candidate_rows": 1244,
+  "feature_mismatch_rows": 0,
+  "trusted_flag_mismatches": 0,
+  "maximum_probability_difference": 0.0,
+  "runtime_exceptions": 0,
+  "nonfinite_probabilities": 0,
+  "control_contract_failures": 0,
+  "latency_ms": {
+    "mean_approx": 3.26,
+    "per_episode_p99_range": [
+      3.85,
+      3.87
+    ],
+    "maximum": 3.91
+  },
+  "navigation_descriptive_only": {
+    "round_trip_successes": 3,
+    "scheduled_processes": 5,
+    "model_enforcement_enabled": false
+  },
+  "counterfactual_role_safe_policy": {
+    "policy": "role-safe-precontroller-joint-trust-v1",
+    "full_defer": 331,
+    "forward_current_only": 213,
+    "forward_current_and_next": 154,
+    "current_forwarded": 367,
+    "current_forwarded_fraction": 0.5257879656160458,
+    "next_forwarded": 154,
+    "next_forwarded_fraction": 0.22063037249283668,
+    "truth_available_in_old_logs": false,
+    "interpretation": "interface_and_availability_smoke_only"
+  }
+}
