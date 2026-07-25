@@ -1,6 +1,37 @@
 # Representative Stage-1 evaluation + 10 close-range (&lt;1m) wrong picks
 
-Snapshot: `2026-07-25T19:20+01:00`. Follows `investigations/2026-07-25-loftr-rear-view-visual-diagnosis/` (which first flagged the Stage1/Stage2 metric conflation and the unrepresentative-sample problem).
+Snapshot: `2026-07-25T19:20+01:00`, corrected `2026-07-25T20:10+01:00`. Follows `investigations/2026-07-25-loftr-rear-view-visual-diagnosis/` (which first flagged the Stage1/Stage2 metric conflation and the unrepresentative-sample problem).
+
+## CORRECTION (same day, ~50min later): the "4-way ground truth" is mathematically degenerate — real accuracy is 73.2%, not 36.3%
+
+Found via user visual inspection of the 10 images below: they judged 8/10 cases as visually unambiguous, and in those 8, match-count was right in 7 (all but case 1) — the opposite of what this doc originally claimed.
+
+**Root cause, confirmed both algebraically and empirically (max deviation 1.1e-13 deg over all 9244 samples, pure float noise):** the ground-truth formula computes 4 alignment angles —
+```
+FF = angdiff(ayaw,       cyaw)
+FR = angdiff(ayaw,       cyaw+180)
+RF = angdiff(ayaw+180,   cyaw)
+RR = angdiff(ayaw+180,   cyaw+180)
+```
+— but `angdiff` is 180-shift-invariant in both arguments together (`sin`/`cos` of `x+180` and `x-180` are identical), so **`FF ≡ RR` and `FR ≡ RF` always, exactly, for any ayaw/cyaw.** The "4-way" ground truth is really only ever a 2-way choice between the *aligned* class `{FF, RR}` and the *opposite* class `{FR, RF}` — picking a single winner out of an exactly-tied pair via `min()` is decided by floating-point noise, not geometry. This is not just a numerical quirk: physically, when heading is aligned (or opposite), *both* members of the winning pair are genuinely valid correspondences (they show different real rooms — whatever's in front vs. behind the robot — but each pairing is internally consistent), confirmed visually in cases 4, 5, 6, 9 below where both the labeled "ground truth" and the "algorithm picked" combo each show real, self-consistent overlap on their own two images.
+
+**Corrected metric (class-level: correct if picked combo is in the same {FF,RR}-or-{FR,RF} class as the true best):**
+
+| Subset | n | class-level accuracy | chance |
+|---|---:|---:|---:|
+| full representative sample | 9244 | **73.2%** | 50% |
+| confidently-wrong subset | 259 | **76.8%** | 50% |
+
+By distance (full sample) — now a clean, sensible degradation instead of the earlier noisy-looking one:
+
+| distance bin | n | class-level accuracy |
+|---|---:|---:|
+| 0-1.0m | 1726 | **97.4%** |
+| 1.0-2.0m | 1750 | 90.5% |
+| 2.0-3.0m | 1488 | 76.1% |
+| 3.0m+ | 4280 | 55.4% |
+
+**This means the original "36.3% / 39.8%" numbers below (and, by the same bug in `stage1_ground_truth_eval.py`, likely also affect the earlier same-day "AnyLoc-VLAD 71%, match-count 69%, SALAD 63%" correction numbers from `2026-07-25-loftr-rear-view-visual-diagnosis/SESSION_SUMMARY_PART2_CORRECTIONS.md`) should be treated as unreliable.** The class-level number (73.2%/76.8%, close-range 97.4%) is the methodologically sound one going forward. Everything below this point is the original (now superseded) write-up, kept for the record — read the case-by-case table with this correction in mind: most "wrong" picks below are not selector errors, they are the arbitrary member of a tied pair.
 
 ## Representative dataset
 
