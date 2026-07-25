@@ -1,0 +1,114 @@
+{
+  "selector_A_argmax_single": {
+    "0-1.0m": {
+      "n": 1726,
+      "correct": 1681,
+      "accuracy_pct": 97.3928157589803
+    },
+    "1.0-2.0m": {
+      "n": 1750,
+      "correct": 1583,
+      "accuracy_pct": 90.45714285714286
+    },
+    "2.0-3.0m": {
+      "n": 1488,
+      "correct": 1132,
+      "accuracy_pct": 76.0752688172043
+    },
+    "3.0-infm": {
+      "n": 4280,
+      "correct": 2372,
+      "accuracy_pct": 55.42056074766355
+    },
+    "full": {
+      "n": 9244,
+      "correct": 6768,
+      "accuracy_pct": 73.21505841627001
+    }
+  },
+  "selector_B_class_sum": {
+    "0-1.0m": {
+      "n": 1726,
+      "correct": 1684,
+      "accuracy_pct": 97.56662804171495
+    },
+    "1.0-2.0m": {
+      "n": 1750,
+      "correct": 1617,
+      "accuracy_pct": 92.4
+    },
+    "2.0-3.0m": {
+      "n": 1488,
+      "correct": 1160,
+      "accuracy_pct": 77.95698924731182
+    },
+    "3.0-infm": {
+      "n": 4280,
+      "correct": 2509,
+      "accuracy_pct": 58.6214953271028
+    },
+    "full": {
+      "n": 9244,
+      "correct": 6970,
+      "accuracy_pct": 75.40025962786673
+    }
+  },
+  "selector_B_gated_pooled_sweep": {
+    "0.0": {
+      "coverage_pct": 100.0,
+      "n": 9244,
+      "accuracy_pct": 75.40025962786673
+    },
+    "0.2": {
+      "coverage_pct": 50.02163565556036,
+      "n": 4624,
+      "accuracy_pct": 93.77162629757785
+    },
+    "0.3": {
+      "coverage_pct": 40.67503245348334,
+      "n": 3760,
+      "accuracy_pct": 96.88829787234042
+    },
+    "0.4": {
+      "coverage_pct": 33.77325832972739,
+      "n": 3122,
+      "accuracy_pct": 98.1742472773863
+    },
+    "0.5": {
+      "coverage_pct": 27.93163132842925,
+      "n": 2582,
+      "accuracy_pct": 98.56700232378002
+    },
+    "0.6": {
+      "coverage_pct": 22.10082215491129,
+      "n": 2043,
+      "accuracy_pct": 98.77630934899658
+    }
+  },
+  "selector_B_gated_margin0.4_by_distance": {
+    "0-1.0m": {
+      "coverage_pct": 93.6268829663963,
+      "n": 1616,
+      "n_total": 1726,
+      "accuracy_pct": 98.57673267326733
+    },
+    "1.0-2.0m": {
+      "coverage_pct": 65.37142857142857,
+      "n": 1144,
+      "n_total": 1750,
+      "accuracy_pct": 99.03846153846155
+    },
+    "2.0-3.0m": {
+      "coverage_pct": 20.228494623655912,
+      "n": 301,
+      "n_total": 1488,
+      "accuracy_pct": 97.00996677740864
+    },
+    "3.0-infm": {
+      "coverage_pct": 1.425233644859813,
+      "n": 61,
+      "n_total": 4280,
+      "accuracy_pct": 77.04918032786885
+    }
+  }
+}
