@@ -33,6 +33,42 @@ By distance (full sample) — now a clean, sensible degradation instead of the e
 
 **This means the original "36.3% / 39.8%" numbers below (and, by the same bug in `stage1_ground_truth_eval.py`, likely also affect the earlier same-day "AnyLoc-VLAD 71%, match-count 69%, SALAD 63%" correction numbers from `2026-07-25-loftr-rear-view-visual-diagnosis/SESSION_SUMMARY_PART2_CORRECTIONS.md`) should be treated as unreliable.** The class-level number (73.2%/76.8%, close-range 97.4%) is the methodologically sound one going forward. Everything below this point is the original (now superseded) write-up, kept for the record — read the case-by-case table with this correction in mind: most "wrong" picks below are not selector errors, they are the arbitrary member of a tied pair.
 
+## Refinement (same session, ~30min later): class-sum aggregation + confidence-margin gating
+
+Script: `representative_stage1_class_level_eval.py` / results: `representative_stage1_class_level_results.json`. Two cheap improvements on top of the class-level correction above, both computed from data already in `representative_dataset.json` (no new model inference needed).
+
+**Selector B (class-sum): instead of taking the class of the single highest-match combo, sum LoFTR match counts within each class first** (`aligned = FF_matches + RR_matches`, `opposite = FR_matches + RF_matches`), then pick the higher-sum class. Uses more of the available per-sample signal than committing to one (possibly noisy) individual combo:
+
+| distance bin | selector A (argmax-single) | selector B (class-sum) |
+|---|---:|---:|
+| 0-1.0m | 97.4% | 97.6% |
+| 1.0-2.0m | 90.5% | 92.4% |
+| 2.0-3.0m | 76.1% | 78.0% |
+| 3.0m+ | 55.4% | 58.6% |
+| **full** | **73.2%** | **75.4%** |
+
+**Selector B + confidence gating: the relative margin `|aligned-opposite|/(aligned+opposite)` is itself a usable confidence signal — abstain below a threshold instead of forcing an answer.** Pooled threshold sweep:
+
+| margin threshold | coverage | accuracy |
+|---:|---:|---:|
+| ≥0.0 (no gating) | 100.0% | 75.4% |
+| ≥0.2 | 50.0% | 93.8% |
+| ≥0.3 | 40.7% | 96.9% |
+| ≥0.4 | 33.8% | 98.2% |
+| ≥0.5 | 27.9% | 98.6% |
+| ≥0.6 | 22.1% | 98.8% |
+
+A single fixed threshold (margin≥0.4) applied uniformly, broken back down by distance — this is the answer to "can 1-2m/2-3m accuracy be raised": **yes, but by trading recall for precision, not by making the selector itself more accurate.**
+
+| distance bin | coverage at margin≥0.4 | accuracy at margin≥0.4 (unfiltered accuracy) |
+|---|---:|---:|
+| 0-1.0m | 93.6% (n=1616/1726) | **98.6%** (97.6%) |
+| 1.0-2.0m | 65.4% (n=1144/1750) | **99.0%** (92.4%) |
+| 2.0-3.0m | 20.2% (n=301/1488) | **97.0%** (78.0%) |
+| 3.0m+ | 1.4% (n=61/4280) | 77.0%, n too small to trust (58.6%) |
+
+**Interpretation:** at ≤2m, most of the accuracy gap versus a "perfect" selector is concentrated in a low-confidence subset that can be identified and abstained on — the samples the selector does commit to (margin≥0.4) are right 98-99% of the time even out to 2m. At 2-3m, gating still helps (78%→97%) but coverage collapses to 20%, so it can only rescue a fifth of that range's samples. **Beyond 3m the raw match-count signal is exhausted** — gating throws away 98.6% of the data and what's left is still unreliable (77%, n=61) — a genuinely different signal (not LoFTR match count) would be needed for that range, if a signal is needed there at all. This margin gate is a strong, cheap building block for a "trust this visual reading or not" gate feeding the project's confidently-wrong-ICP filtering effort, at least inside 2m.
+
 ## Representative dataset
 
 Built by `representative_dataset_build.py` (`systemd-run --user` service `navila-representative-dataset-build.service`, ran 15:51-18:39 same day), covering **all 676 anchors across all 58 usable episodes** of the `reliability_v11_decision_shadow_rgbd_100ep_20260724` run — not the earlier 21 pre-selected "known-bad" anchors (which had 76/100 samples from a single anchor, 785/8). Per (anchor, sampled return-phase step) pair it computes:
