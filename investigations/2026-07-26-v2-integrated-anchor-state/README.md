@@ -344,6 +344,18 @@ if promote and next_est is not None:
 
 历史 Active50 日志能提供每次 current/next 的 V2 assessment，也记录了最终发生的 promotion guard，但没有记录每次 `_record_promotion_vote` 前的 `pre_closure_vote` 与 `baseline_vote`。因此它不足以完整重建“current 不可信时释放 closure veto”的 counterfactual vote history。Stage 1 新日志正是为补齐这个观测缺口；在获得带新事件的 shadow 数据前，不宣称已经完成 episode-level replay。
 
+对当前存在的 38 个已完成 Active50 结果目录做只读统计（排除 `.incomplete`，按 attempt 加权，不是 episode 成功率分母），共 13,378 次 V2 score：
+
+| current / next | 次数 | 比例 |
+|---|---:|---:|
+| trusted / trusted | 2,564 | 19.17% |
+| trusted / untrusted | 2,419 | 18.08% |
+| untrusted / trusted | 1,057 | 7.90% |
+| untrusted / untrusted | 6,697 | 50.06% |
+| 缺少 current 或 next | 641 | 4.79% |
+
+这个分布给 Stage 2 增加了一个硬约束：不能只实现“next 不可信就不记正票”后直接 active。两个 anchor 同时不可信占一半 attempt；如果没有临时 quarantine、next+1、候选扩展和有界恢复，单纯的 evidence rejection 很可能继续放大 hint starvation。Stage 1 先记录完整 counterfactual；Stage 2/3 的状态迁移与恢复必须合并验证后，才讨论 active。
+
 ## 与同日 camera-yaw 调查的关系
 
 同日新增的 `2026-07-26-camera-yaw-fix-and-residual-confidence-gate` 已验证 `camera_rotation_to_body_yaw()` 存在轴选择错误，并找到视觉 RANSAC residual gate；但该调查明确记录修复尚未进入 `relocalization.py`。
