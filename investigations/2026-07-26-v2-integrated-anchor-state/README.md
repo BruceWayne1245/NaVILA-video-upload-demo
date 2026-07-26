@@ -356,6 +356,28 @@ if promote and next_est is not None:
 
 这个分布给 Stage 2 增加了一个硬约束：不能只实现“next 不可信就不记正票”后直接 active。两个 anchor 同时不可信占一半 attempt；如果没有临时 quarantine、next+1、候选扩展和有界恢复，单纯的 evidence rejection 很可能继续放大 hint starvation。Stage 1 先记录完整 counterfactual；Stage 2/3 的状态迁移与恢复必须合并验证后，才讨论 active。
 
+## Stage 2 状态（2026-07-26）
+
+已实现只读的 per-anchor state-transition shadow：
+
+- 8-sample rolling trust window；
+- trusted/untrusted 75% 确认阈值；
+- temporary quarantine + TTL + trusted re-entry；
+- quarantine cycle history；
+- repeated-quarantine / both-untrusted active-scan recommendation；
+- 每个 current-anchor 生命周期一次的 scan request latch；
+- 全部事件 `controller_effect=false`。
+
+离线重放：
+
+- ep5：每个 current 生命周期仅产生一次 both-untrusted scan request，共 3 次；其余 751 个持续状态记为 hold，不再逐帧刷请求；
+- ep491：第一版的 11 次 quarantine / 10 次 re-entry 抖动降为 2/2；第三次确认 anchor12 失信时产生一次 repeated-quarantine scan request；
+- 两个 episode 都没有 controller effect。
+
+完整设计、逐事件转移、hash、测试和批准边界见：
+
+[`STAGE2_STATE_SHADOW_2026-07-26.md`](./STAGE2_STATE_SHADOW_2026-07-26.md)
+
 ## 与同日 camera-yaw 调查的关系
 
 同日 Route1 调查 `2026-07-26-camera-yaw-fix-and-residual-confidence-gate` 已完成 camera-yaw 修复、四组合视觉检查和 minimum-translation gate，并记录到 production snapshot。
