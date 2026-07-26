@@ -447,6 +447,35 @@ ep5 在线 shadow 最终获得 119 组三联事件：
 
 [`STAGE3_ACTIVE_V0_DEFAULT_CLOSED_2026-07-26.md`](./STAGE3_ACTIVE_V0_DEFAULT_CLOSED_2026-07-26.md)
 
+## Stage 3 Active v0 ep5 canary（2026-07-26）
+
+经用户明确批准，已运行唯一一个 ep5 Active v0 canary。没有扩展到其他 episode。
+
+安全性 gate 通过：
+
+- 四次 V2 temporary quarantine 均与同一步 promotion suppression 原子执行；
+- 达到4-anchor chain budget 后自动 rollback；
+- Active v0 随后在该 episode 永久 disabled；
+- rollback 后 Route1 继续推进；
+- motor/stop/hint effect 为0；
+- 无单调性或 budget 违规；
+- approved artifact 只允许 ep5，运行后 kill switch 已置位，无法静默复用。
+
+但有效性 gate 未通过：
+
+- anchor11/10/9 的隔离有 world-pose truth 支持；
+- 第一个 anchor12 是 false quarantine；
+- anchor12 窗口中 truth 只有2/7次 pose bad，V2 却有6/7次 `jointly_trusted=false`；
+- rollback 后 anchor12 恢复正确并被 Route1 晋升。
+
+结论是：`jointly_trusted=false` 适合表示 abstention，不足以直接作为改变 candidate identity 的强负证据。暂不批准 ep491/ep658 Active v0。
+
+下一步先实现/回放 `trusted / uncertain / strongly_untrusted` 三值状态，并让 active quarantine 只响应连续的高 `p_pose_bad` 强负证据。
+
+完整运行 hash、52组四层事件、rollback 审计与 truth 表见：
+
+[`STAGE3_ACTIVE_V0_EP5_CANARY_2026-07-26.md`](./STAGE3_ACTIVE_V0_EP5_CANARY_2026-07-26.md)
+
 ## 与同日 camera-yaw 调查的关系
 
 同日 Route1 调查 `2026-07-26-camera-yaw-fix-and-residual-confidence-gate` 已完成 camera-yaw 修复、四组合视觉检查和 minimum-translation gate，并记录到 production snapshot。
