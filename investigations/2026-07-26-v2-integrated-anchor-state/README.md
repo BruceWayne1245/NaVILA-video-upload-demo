@@ -343,3 +343,9 @@ if promote and next_est is not None:
 - 两边相同的 3 个失败均来自该环境缺少 `scikit-learn`，不是本次改动造成。
 
 历史 Active50 日志能提供每次 current/next 的 V2 assessment，也记录了最终发生的 promotion guard，但没有记录每次 `_record_promotion_vote` 前的 `pre_closure_vote` 与 `baseline_vote`。因此它不足以完整重建“current 不可信时释放 closure veto”的 counterfactual vote history。Stage 1 新日志正是为补齐这个观测缺口；在获得带新事件的 shadow 数据前，不宣称已经完成 episode-level replay。
+
+## 与同日 camera-yaw 调查的关系
+
+同日新增的 `2026-07-26-camera-yaw-fix-and-residual-confidence-gate` 已验证 `camera_rotation_to_body_yaw()` 存在轴选择错误，并找到视觉 RANSAC residual gate；但该调查明确记录修复尚未进入 `relocalization.py`。
+
+这不推翻本文件的架构结论：camera-yaw 修复改善的是一个视觉交叉检查信号，方案 1 Stage 1 修正的是 V2 与 Route1 promotion state machine 的接入层，两者是不同问题。当前隔离候选不擅自合并 camera-yaw 改动，避免在同一 canary 中同时改变信号生成和状态消费。后续可把修正后的视觉 yaw/residual 作为独立证据源评估，但必须单独验证分布变化和 near-zero-parallax 失败模式。
