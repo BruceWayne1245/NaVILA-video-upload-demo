@@ -989,6 +989,7 @@ def _loftr_rear_yaw_check(
     icp_theta_rad: float,
     stage1_margin_threshold: float = 0.4,
     stage2_residual_threshold_m: float = 0.06,
+    stage2_min_translation_m: float = 0.05,
 ) -> dict:
     """2026-07-13, per user's proposal (independently arrived at the same idea
     this project's retired `feature_depth_loftr_3d3d_rear` full-search backend
@@ -1019,9 +1020,20 @@ def _loftr_rear_yaw_check(
         3-D fit residual -- `stage2_residual_threshold_m=0.06` kept 89% of
         samples with 96.8% of those under 5 deg error, and stays informative
         at every distance rather than crudely correlating with distance
-        alone (see the investigation folder for the full validation,
-        including the residual gate's own known ~1.8% confidently-wrong
-        residual: a near-zero-baseline/parallax degeneracy, not eliminated).
+        alone (see the investigation folder for the full validation).
+      - Stage 2 (minimum baseline, added same day after validating against
+        real `confidently_wrong` ICP cases): near-zero raw (camera-local,
+        pre-body-conversion) RANSAC translation lets the rotation solve
+        collapse to a spuriously confident but wrong answer, via the same
+        room-symmetry aliasing already known to affect LiDAR ICP -- of 259
+        real `confidently_wrong` samples, the 45 with true distance <0.01m
+        ALL had raw translation norm <=0.04m and ALL collapsed to
+        computed_dtheta ~= 0 deg regardless of the true rotation (up to
+        176 deg off), despite passing the residual gate with near-perfect
+        fits (median residual 0.002m, 3000+ inliers). `stage2_min_
+        translation_m=0.05` rejects these almost perfectly (44-45/45) at
+        the cost of a small false-reject rate (~2-8 out of ~89) on
+        genuinely well-solved non-degenerate cases.
     Still diagnostic-only: never gates or rejects the caller's ICP estimate
     by itself, only reports whether ITS OWN answer should be trusted via
     `vision_gate_passed`.
@@ -1126,7 +1138,21 @@ def _loftr_rear_yaw_check(
         (rotation @ anchor_points[inliers].T).T + translation - current_points[inliers], axis=1
     )
     median_residual_m = float(np.median(residual))
-    stage2_gate_passed = median_residual_m <= stage2_residual_threshold_m
+    raw_translation_norm_m = float(np.linalg.norm(translation))
+    # 2026-07-26: near-zero raw (camera-local, pre-body-conversion) translation
+    # makes the Kabsch rotation solve unobservable from a locally self-similar
+    # scene (the same room-symmetry aliasing already known to affect LiDAR
+    # ICP), independent of how good the residual/inlier count look -- found by
+    # checking all 259 real confidently_wrong ICP cases: 45 had true distance
+    # <0.01m, ALL 45 collapsed to computed_dtheta ~= 0 deg regardless of the
+    # true rotation (up to 176 deg off), yet passed the residual gate with
+    # near-perfect fit (median residual 0.002m, 3000+ inliers). Their raw
+    # translation norm was <=0.04m in every case (median 0.0023m) vs. a
+    # median of 1.05m for correctly-solved non-degenerate cases -- a nearly
+    # clean separator. See investigations/2026-07-26-camera-yaw-fix-and-
+    # residual-confidence-gate/ for the full validation.
+    min_translation_gate_passed = raw_translation_norm_m >= stage2_min_translation_m
+    stage2_gate_passed = median_residual_m <= stage2_residual_threshold_m and min_translation_gate_passed
     vision_gate_passed = stage2_gate_passed  # stage1 gate already enforced above (early return otherwise)
 
     anchor_dtheta = camera_rotation_to_body_yaw(rotation, chosen_current_view, chosen_anchor_view)
@@ -1152,6 +1178,8 @@ def _loftr_rear_yaw_check(
         "depth_valid_matches": int(len(valid)),
         "inlier_count": inlier_count,
         "median_3d_residual_m": median_residual_m,
+        "raw_translation_norm_m": raw_translation_norm_m,
+        "min_translation_gate_passed": min_translation_gate_passed,
         "vision_gate_passed": vision_gate_passed,
         "loftr_rear_dtheta_deg": math.degrees(anchor_dtheta),
         "icp_loftr_rear_yaw_agreement_deg": agreement_deg,

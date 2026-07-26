@@ -100,10 +100,26 @@ The gap (63.4% vs. 97.2%) looked at first like vision genuinely struggling on th
 
 **Bottom line for the confidently-wrong-ICP suppression effort:** outside the near-zero-distance band, this vision cross-check is genuinely strong evidence (97%+ agreement-when-available on exactly the hardest ICP cases, the target this whole effort cares about). Inside the band (roughly 1 in 6 confidently-wrong cases), neither modality's rotation estimate should be trusted — this needs a different mitigation (e.g. an independent "is translation near-zero" signal, or accepting it as a known hard floor) rather than expecting vision to rescue it.
 
+## Root cause of the near-zero-distance band found, and fixed (same day)
+
+Deep-dived all 45 near-zero-distance (`code/near_zero_diagnose.py`) samples. **Every single one (44/45) had `computed_dtheta` collapse to ~0 deg exactly, regardless of the true rotation** (which ranged up to 176 deg off) — not noisy error, a hard collapse, same signature as this morning's axis bug but a different mechanism. Root cause: **the RAW (camera-local, pre-body-conversion) RANSAC translation was collapsing to near-zero** (median 0.0023m, max 0.039m across all 45) even though Kabsch reported excellent fits (median residual 0.002m, 3000+ inliers) — a locally self-similar/near-symmetric scene lets a near-zero-baseline camera pair find a spuriously self-consistent "no rotation needed" fit, the same room-symmetry aliasing mechanism already known to fool LiDAR ICP, now shown to fool vision too specifically when there's no real parallax to break the symmetry. (This also explains an earlier-noticed oddity: vision's reported "distance to anchor" clustered suspiciously at exactly ~0.0999m for all 45 cases — that's just the front/rear camera's own fixed body-mounting offset leaking through `camera_point_to_body` once the real solved translation is ~(0,0,0).)
+
+`code/raw_translation_check.py` confirmed `||translation||` (raw, pre-conversion) is a near-perfect separator: median 0.0023m for the 45 bad cases vs. 1.05m for correctly-solved non-degenerate cases (minimum among good cases: 0.0084m). **Added a third gate, `stage2_min_translation_m=0.05`, to `_loftr_rear_yaw_check`** (now live in `relocalization.py`, see `code/production_snapshot/`).
+
+**Re-validated the full 259-vs-259 confidently_wrong/control comparison with the new gate:**
+
+| | confidently_wrong (n=259) | control (n=259) |
+|---|---:|---:|
+| vision_gate_passed | 27.8% (down from 47.5%) | 27.0% (down from 27.4%) |
+| accuracy among gate-passed | **97.2% < 5°** (up from 63.4%) | 97.1% (unchanged) |
+
+**The gap is gone.** With all three gates (Stage-1 margin, Stage-2 residual, Stage-2 minimum translation), vision's gate-passed accuracy is now statistically identical whether or not ICP is independently known to be confidently wrong — 97%+ either way. The near-zero-baseline band is now correctly excluded (reported as `stage2_gate_failed`) rather than silently producing a confident wrong answer. Cost: the control group lost 1 additional gate-pass (71->70) to the stricter gate — negligible false-reject rate.
+
+**Precise accounting across all 259 confidently_wrong samples** (superseding the "3/4 caught" approximation from an earlier read of these results): 27.8% (72) get a vision answer, essentially all correct; the other 72.2% (187) get no vision opinion at all (129 low Stage-1 margin — genuine visual ambiguity, vision honestly abstains; 58 fail the new minimum-translation gate, mostly the near-zero-baseline band). **There is no longer a meaningful "confidently wrong" case within vision's own gate for this population** — every previously-dangerous case (passes gate, wrong answer) was in the near-zero-baseline band, now excluded.
+
 ## Pending / next steps
 
-1. Decide on a practical near-zero-baseline guard (threshold tradeoff above still unresolved) before proposing vision as a cross-check signal to any consumer.
+1. Root-cause *why* `confidently_wrong` ICP concentrates so heavily at true distance < 0.01m (17.4% of the whole confidently-wrong population) — is this a specific recurring behavior, e.g. the robot re-approaching/hovering at an anchor during return, or an artifact of how attempts are sampled? Not yet investigated.
 2. The 4m+ distance bucket has only 1 sample in the original 249-sample validation — too thin to confirm the residual-gate's behavior holds at longer range; worth a targeted larger sample there.
-3. Root-cause *why* `confidently_wrong` ICP concentrates so heavily at true distance < 0.01m (17.4% of the whole confidently-wrong population) — is this a specific recurring behavior, e.g. the robot re-approaching/hovering at an anchor during return, or an artifact of how attempts are sampled?
-4. How to combine the Stage-1 margin gate + Stage-2 residual gate + a resolved near-zero-baseline guard into the project's broader confidently-wrong-ICP suppression effort (independent cross-check vs. replacement signal vs. fused score) — still open, now better-scoped than this morning.
-5. Per the user's clarification 2026-07-26: this project runs two parallel tracks. This session (Route 1) is the non-model geometry/vision-matching pipeline; a separate Codex-run track (Route 2) trains/uses a model to directly judge ICP-reading trustworthiness (`investigations/2026-07-26-v2-integrated-anchor-state/` and related). The two tracks are independent; this investigation folder is Route 1 only.
+3. How to combine the now-3-gate vision signal into the project's broader confidently-wrong-ICP suppression effort (independent cross-check vs. replacement signal vs. fused score) — the signal itself is now validated clean; the integration-architecture question is still open.
+4. Per the user's clarification 2026-07-26: this project runs two parallel tracks. This session (Route 1) is the non-model geometry/vision-matching pipeline; a separate Codex-run track (Route 2) trains/uses a model to directly judge ICP-reading trustworthiness (`investigations/2026-07-26-v2-integrated-anchor-state/` and related). The two tracks are independent; this investigation folder is Route 1 only.
