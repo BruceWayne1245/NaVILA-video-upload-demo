@@ -117,6 +117,18 @@ Deep-dived all 45 near-zero-distance (`code/near_zero_diagnose.py`) samples. **E
 
 **Precise accounting across all 259 confidently_wrong samples** (superseding the "3/4 caught" approximation from an earlier read of these results): 27.8% (72) get a vision answer, essentially all correct; the other 72.2% (187) get no vision opinion at all (129 low Stage-1 margin — genuine visual ambiguity, vision honestly abstains; 58 fail the new minimum-translation gate, mostly the near-zero-baseline band). **There is no longer a meaningful "confidently wrong" case within vision's own gate for this population** — every previously-dangerous case (passes gate, wrong answer) was in the near-zero-baseline band, now excluded.
 
+## Full-population check: does the 3-gate vision signal ever mislead an otherwise-fine reading?
+
+Every validation above used adversarially- or class-selected samples. `code/full_population_check.py` runs the same production `_loftr_rear_yaw_check` (all 3 gates) against a true random sample of 1500 from the full `representative_dataset.json` (no pre-filtering by `confidently_wrong` — real distribution, so mostly non-confidently-wrong and skewed toward longer range).
+
+- `vision_gate_passed`: 30.6% (459/1500) on the true distribution.
+- Among gate-passed: median error 0.27 deg, 95.9% < 5 deg.
+- **Misleading cases (gate passed but wrong, >=5 deg): 19/1500 = 1.27% of the full population.** All 19 are `confidently_wrong=False` (i.e. would-be corruption of an otherwise-fine or already-uncertain situation, not another instance of the now-fixed near-zero-baseline collapse) — margins are broadly lower (0.43-0.82, mostly 0.5-0.7) than the near-zero-baseline cases (which were 0.9+), consistent with these being ordinary borderline misjudgments (real local visual ambiguity neither gate catches), not the same mechanism.
+
+By distance (true population): 0-1m 85% gate-pass/97.4% accurate, 1-2m 63%/94.8%, 2-3m 18%/91.3%, 3-4m 3%(n=7, too small)/100%, 4m+ 0% gate-pass (matches the already-known "signal exhausted beyond ~3-4m").
+
+**Honest bottom line: the 1.27% misleading rate on the full population is real, not zero, and should be priced into any integration design** — e.g. as the false-correction risk if vision's answer were ever used to directly override an ICP reading outright, versus a much smaller effective risk if only acted on when it disagrees with an ICP reading that ICP itself already flagged as suspect (see next steps).
+
 ## Pending / next steps
 
 1. Root-cause *why* `confidently_wrong` ICP concentrates so heavily at true distance < 0.01m (17.4% of the whole confidently-wrong population) — is this a specific recurring behavior, e.g. the robot re-approaching/hovering at an anchor during return, or an artifact of how attempts are sampled? Not yet investigated.
