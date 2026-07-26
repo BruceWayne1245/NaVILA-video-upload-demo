@@ -15,10 +15,10 @@ Stage 3.2 已按这个决定启动，但 Active 权限被严格限制为：
 - 遇到 scan request 时必须回滚本次候选状态并关闭 controller；
 - 每个 episode 使用独立 kill switch。
 
-截至 2026-07-26 18:16 BST：
+截至 2026-07-26 18:17 BST：
 
 - ep5 已完成，严格 round trip 成功；
-- ep205 正在运行；
+- ep205 第一次运行缺少 completion artifact，未计入任务结果，runner 正在执行唯一一次有界 infrastructure retry；
 - ep491、500、658 待运行；
 - 后台运行已有独立 `PPID=1` watchdog 接管，不依赖本次 Codex 对话继续存在。
 
@@ -225,12 +225,16 @@ episode 随后仍完成严格 round trip。这个单 episode 只能证明：
 2026-07-26 18:16 BST 从主机 namespace 验证：
 
 - 原 cohort supervisor：PID `1785548`，仍在运行；
-- ep205 Isaac evaluation：PID `1788926`，仍在运行；
 - detached watchdog：PID `1790022`；
 - watchdog `PPID=1`；
 - watchdog `PGID=1790022`；
 - watchdog `SID=1790022`；
 - watchdog 状态为 `Ss`。
+
+ep205 第一次 evaluation 曾使用 PID `1788926`。它在 18:14:51 以 exit code 0 退出，但没有写出
+`capture_completion.json`。严格 completion validator 因此判定为 infrastructure
+completion failure，而不是 episode 任务成功或失败；runner 随即进入配置中唯一允许的一次
+120 秒有界重试。该空结果不会被 watchdog 或明日统计误认为完成。
 
 watchdog 日志：
 
@@ -252,13 +256,16 @@ watchdog 日志：
 
 ## 当前数据冻结点
 
-`summary.tsv` 当前只有一条完整记录：
+`summary.tsv` 当前只有一条完整任务记录：
 
 | episode | outbound | return | round trip | distance-to-start |
 |---:|---|---|---|---:|
 | 5 | True | True | True | 2.6850 m |
 
-ep205 于 18:03:52 BST 启动，冻结本文时仍运行中，因此不能提前写入成功/失败结论。ep491、500、658 尚未启动。
+ep205 第一次 attempt 于 18:03:52 BST 启动、18:14:51 BST 退出。其 summary
+行没有 measurement、outbound、return 或 round-trip 字段，且 completion validator
+明确失败，因此这不是有效任务结果。runner 已按既定规则安排一次 infrastructure retry。
+ep491、500、658 尚未启动。
 
 ## 明日计划
 
@@ -279,4 +286,3 @@ ep205 于 18:03:52 BST 启动，冻结本文时仍运行中，因此不能提前
 - 不开放 motor 或 stop action；
 - 不实现或启用 scan；
 - 不边跑边修改 runtime。
-

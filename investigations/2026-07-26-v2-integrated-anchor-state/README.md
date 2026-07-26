@@ -8,7 +8,7 @@
 - motor、stop authority 仍关闭；
 - scan 尚未实现，遇到 scan request 会 rollback 并关闭 controller；
 - ep5 已严格 round-trip 成功，四次实际 quarantine 经 world-pose truth 验证为4/4正确；
-- ep205 正在运行，其余3个待运行；
+- ep205 首次 attempt 缺少 completion artifact，未计入任务结果，runner 正在执行唯一一次有界 infrastructure retry；其余3个待运行；
 - 独立 watchdog 已验证为 `PPID=1` 和独立 SID，关闭当前对话后会在必要时按 completion state 恢复队列；
 - 今晚冻结代码和参数，等待5个 episode 完成后统一分析。
 
