@@ -1,6 +1,22 @@
 # 2026-07-26：50ep Active V2 失败分析与下一步架构计划
 
-## 最新进展（Stage 3.1）
+## 最新进展（Stage 3.2）
+
+用户已明确批准进入有界 Active，5ep cohort `[5,205,491,500,658]` 已启动：
+
+- Active 仅执行 temporary quarantine 与配对的 promotion suppression；
+- motor、stop authority 仍关闭；
+- scan 尚未实现，遇到 scan request 会 rollback 并关闭 controller；
+- ep5 已严格 round-trip 成功，四次实际 quarantine 经 world-pose truth 验证为4/4正确；
+- ep205 正在运行，其余3个待运行；
+- 独立 watchdog 已验证为 `PPID=1` 和独立 SID，关闭当前对话后会在必要时按 completion state 恢复队列；
+- 今晚冻结代码和参数，等待5个 episode 完成后统一分析。
+
+完整批准边界、代码 hash、测试、ep5 Active 数据、后台独立性证据和明日计划见：
+
+[STAGE32_ACTIVE_5EP_LAUNCH_AND_HANDOFF_2026-07-26.md](STAGE32_ACTIVE_5EP_LAUNCH_AND_HANDOFF_2026-07-26.md)
+
+## Stage 3.1
 
 Stage 3 ep5 Active v0 暴露的 false quarantine 已完成三值概率修正与 shadow 验证：
 
