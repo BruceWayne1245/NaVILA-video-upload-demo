@@ -2066,6 +2066,32 @@ def sequential_pair_anchor_relocalization(
             "estimated_anchor_dy_m": float(result["translation"][1]),
             "estimated_anchor_dtheta_deg": float(math.degrees(result["theta"])),
         })
+        # 2026-07-26 Stage 1 (shadow, read-only -- per the same phased
+        # rollout discipline this project already uses for Policy V2):
+        # per-attempt diagnostic only, computed here and NEVER consulted by
+        # the accept/promote/confidence logic in this function. Flags the
+        # exact precondition this whole investigation targets -- ICP self-
+        # reporting high confidence (>=0.9, the same threshold used to
+        # define "confidently_wrong" throughout investigations/2026-07-26-
+        # camera-yaw-fix-and-residual-confidence-gate/) while the
+        # independently-gated vision check (Stage-1 margin + Stage-2
+        # residual + Stage-2 min-translation, same investigation) disagrees
+        # by a wide margin. The 45deg disagreement threshold is a
+        # provisional placeholder, not yet calibrated against a live replay
+        # -- recalibrate once offline replay data exists rather than
+        # trusting this number.
+        _vision_check = record.get("loftr_rear_yaw_check")
+        if _vision_check is not None:
+            _icp_confidently_wrong_precondition = confidence >= 0.9
+            _vision_disagrees = bool(
+                _icp_confidently_wrong_precondition
+                and _vision_check.get("vision_gate_passed")
+                and _vision_check.get("icp_loftr_rear_yaw_agreement_deg", 0.0) >= 45.0
+            )
+            _vision_check["icp_confidently_wrong_precondition"] = _icp_confidently_wrong_precondition
+            _vision_check["vision_disagrees_with_confident_icp"] = _vision_disagrees
+            if _vision_disagrees:
+                _diagnostic_inc(diagnostics, "vision_disagrees_with_confident_icp")
         if inlier_count < 12 or overlap < 0.12 or confidence < 0.15:
             _diagnostic_inc(diagnostics, "low_confidence_sequential_pair_pose")
             record["outcome"] = "low_confidence_sequential_pair_pose"

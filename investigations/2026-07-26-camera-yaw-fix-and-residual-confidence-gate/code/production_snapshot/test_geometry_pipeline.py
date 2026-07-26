@@ -1514,6 +1514,56 @@ class TestSequentialPairAnchorRelocalization(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertIn(result.anchor_index, (4, 5))
 
+    def test_vision_disagreement_flag_is_shadow_only_2026_07_26(self):
+        """The new icp_confidently_wrong_precondition / vision_disagrees_with_
+        confident_icp diagnostic (Stage 1, read-only) must fire exactly when
+        ICP self-reports high confidence (>=0.9) AND the vision gate passed
+        AND the two disagree by >=45deg -- and must NEVER change which
+        candidate is returned or its confidence/pose (shadow-only)."""
+        current_anchor = self._make_anchor(5, _rectangle_outline_points())
+        next_anchor = self._make_anchor(4, _rectangle_outline_points())
+        current_descriptor = {"local_map_points_body": _rectangle_outline_points()}
+
+        disagreeing_vision = {
+            "available": True,
+            "vision_gate_passed": True,
+            "icp_loftr_rear_yaw_agreement_deg": 90.0,
+        }
+        diagnostics: dict = {}
+        with mock.patch("relocalization._loftr_rear_yaw_check", return_value=dict(disagreeing_vision)):
+            candidates = sequential_pair_anchor_relocalization(
+                current_descriptor, current_anchor, next_anchor,
+                return_candidates=True, loftr_rear_yaw_check=True, diagnostics=diagnostics,
+            )
+        self.assertIsNotNone(candidates)
+        self.assertEqual(sorted(c.anchor_index for c in candidates), [4, 5])
+        for c in candidates:
+            self.assertGreaterEqual(c.confidence, 0.9)  # identical-cloud match, high confidence as intended
+        self.assertGreaterEqual(diagnostics.get("vision_disagrees_with_confident_icp", 0), 1)
+
+        # Same scenario but vision agrees (small disagreement) -- flag must NOT fire.
+        agreeing_vision = {
+            "available": True,
+            "vision_gate_passed": True,
+            "icp_loftr_rear_yaw_agreement_deg": 2.0,
+        }
+        diagnostics2: dict = {}
+        with mock.patch("relocalization._loftr_rear_yaw_check", return_value=dict(agreeing_vision)):
+            candidates2 = sequential_pair_anchor_relocalization(
+                current_descriptor, current_anchor, next_anchor,
+                return_candidates=True, loftr_rear_yaw_check=True, diagnostics=diagnostics2,
+            )
+        self.assertNotIn("vision_disagrees_with_confident_icp", diagnostics2)
+        # Both scenarios must return byte-identical candidate poses/confidence
+        # -- the diagnostic must never influence the actual estimate.
+        for c1, c2 in zip(
+            sorted(candidates, key=lambda c: c.anchor_index),
+            sorted(candidates2, key=lambda c: c.anchor_index),
+        ):
+            self.assertEqual(c1.anchor_dx_m, c2.anchor_dx_m)
+            self.assertEqual(c1.anchor_dy_m, c2.anchor_dy_m)
+            self.assertEqual(c1.confidence, c2.confidence)
+
 
 def _cross_shape_points() -> np.ndarray:
     """4-fold rotationally symmetric plus/cross -- every 90 deg looks

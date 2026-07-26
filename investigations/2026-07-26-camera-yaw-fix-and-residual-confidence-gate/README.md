@@ -129,6 +129,18 @@ By distance (true population): 0-1m 85% gate-pass/97.4% accurate, 1-2m 63%/94.8%
 
 **Honest bottom line: the 1.27% misleading rate on the full population is real, not zero, and should be priced into any integration design** — e.g. as the false-correction risk if vision's answer were ever used to directly override an ICP reading outright, versus a much smaller effective risk if only acted on when it disagrees with an ICP reading that ICP itself already flagged as suspect (see next steps).
 
+## Integration decision + Stage-1 shadow instrumentation (same day)
+
+Per the user's explicit direction after reviewing all validation above: don't blindly substitute vision whenever its gate passes (the 1.27% full-population misleading rate would then corrupt otherwise-fine readings for no benefit). Instead, **only act when ICP itself self-reports high confidence AND vision disagrees** -- the exact precondition this whole "confidently wrong" problem is defined by, mirroring the project's existing 2026-07-07 `sequential_pair_closure_belief_trust_aware_guard` precedent (an independent evidence source resolving a disagreement, not a blanket override).
+
+**Stage 1 (shadow, read-only, no behavior change) implemented in `sequential_pair_anchor_relocalization`** (`relocalization.py`, right after `confidence` is computed): when `loftr_rear_yaw_check=True`, each anchor's per-attempt record now also carries:
+- `icp_confidently_wrong_precondition`: `confidence >= 0.9` (same threshold this investigation used throughout to define `confidently_wrong`).
+- `vision_disagrees_with_confident_icp`: true iff the precondition holds AND `vision_gate_passed` AND `icp_loftr_rear_yaw_agreement_deg >= 45` (provisional threshold, not yet calibrated against live replay).
+
+Purely additive: never consulted by the accept/promote/confidence logic in this function. New regression test `test_vision_disagreement_flag_is_shadow_only_2026_07_26` (`tests/test_geometry_pipeline.py`) confirms the flag fires/doesn't fire correctly under mocked agreement/disagreement and that candidate poses/confidence are byte-identical either way. Full suite: 230 tests, 14 pre-existing skips, zero regressions.
+
+**Offline shadow replay** (`code/sequential_pair_shadow_replay.py`) calls the real production entry point (not a scratch reimplementation) against real captured (anchor, current) pairs, oversampling `confidently_wrong` cases alongside a random sample (same methodology as the rest of the day), checking the flag's precision (of flagged cases, was ICP actually wrong?) and recall (of ICP-confident-but-actually-wrong cases, did the flag catch it?) against ground truth. Results pending at time of writing -- see the next commit or `data/sequential_pair_shadow_replay_results.json` if present.
+
 ## Pending / next steps
 
 1. Root-cause *why* `confidently_wrong` ICP concentrates so heavily at true distance < 0.01m (17.4% of the whole confidently-wrong population) — is this a specific recurring behavior, e.g. the robot re-approaching/hovering at an anchor during return, or an artifact of how attempts are sampled? Not yet investigated.
