@@ -139,7 +139,13 @@ Per the user's explicit direction after reviewing all validation above: don't bl
 
 Purely additive: never consulted by the accept/promote/confidence logic in this function. New regression test `test_vision_disagreement_flag_is_shadow_only_2026_07_26` (`tests/test_geometry_pipeline.py`) confirms the flag fires/doesn't fire correctly under mocked agreement/disagreement and that candidate poses/confidence are byte-identical either way. Full suite: 230 tests, 14 pre-existing skips, zero regressions.
 
-**Offline shadow replay** (`code/sequential_pair_shadow_replay.py`) calls the real production entry point (not a scratch reimplementation) against real captured (anchor, current) pairs, oversampling `confidently_wrong` cases alongside a random sample (same methodology as the rest of the day), checking the flag's precision (of flagged cases, was ICP actually wrong?) and recall (of ICP-confident-but-actually-wrong cases, did the flag catch it?) against ground truth. Results pending at time of writing -- see the next commit or `data/sequential_pair_shadow_replay_results.json` if present.
+**Offline shadow replay results** (`code/sequential_pair_shadow_replay.py`, 400 real samples via the actual production entry point, 200 oversampled `confidently_wrong` + 200 random):
+
+- `vision_disagrees_with_confident_icp` fired on 18/400 (4.5%) of attempts.
+- **Precision: 17/18 = 94.4%** -- when the flag fires, ICP was actually wrong (>=30 deg) 94.4% of the time. Vision's own answer was also right (<15 deg) in 17/18 = 94.4% of fired cases (essentially the same cases).
+- **Recall: 17/83 = 20.5%** of ICP-confident-but-actually-wrong cases were caught by the flag.
+
+**Interpretation:** a rare, high-precision, low-false-alarm trigger, with recall capped by vision's own ~30% overall coverage (range-limited to roughly 0-3m). This is the intended shape for a supplementary safety signal, not a primary defense: safe to act on (very few false alarms to worry about) even though it won't catch most confidently-wrong cases on its own. Consistent with every gate-passed-accuracy number validated earlier in this investigation.
 
 ## Pending / next steps
 
