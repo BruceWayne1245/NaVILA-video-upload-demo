@@ -987,6 +987,8 @@ def _loftr_rear_yaw_check(
     anchor_descriptor: object,
     current_descriptor: object,
     icp_theta_rad: float,
+    stage1_margin_threshold: float = 0.4,
+    stage2_residual_threshold_m: float = 0.06,
 ) -> dict:
     """2026-07-13, per user's proposal (independently arrived at the same idea
     this project's retired `feature_depth_loftr_3d3d_rear` full-search backend
@@ -1006,39 +1008,94 @@ def _loftr_rear_yaw_check(
     shape alone cannot see at all, so a disagreement here is evidence a
     same-modality check structurally cannot produce.
 
-    Reuses this project's existing rear-view LoFTR + 3-D RANSAC pipeline
-    unmodified (`build_rear_view_descriptor`, `loftr_match_points`,
-    `backproject_points`, `ransac_rigid_transform`, `camera_rotation_to_body_yaw`
-    -- the exact same functions `feature_depth_anchor_relocalization`'s rear-view
-    branch already used, just never as a cross-check here). Diagnostic-only:
-    never gates or rejects anything by itself.
+    2026-07-26: generalized from a single hardcoded anchor-rear/current-front
+    combo to all 4 front/rear combos, gated by two signals validated in
+    `investigations/2026-07-26-camera-yaw-fix-and-residual-confidence-gate/`
+    against 249 real samples:
+      - Stage 1 (combo selection): LoFTR match-count "class-sum" margin
+        (aligned={FF,RR} vs. opposite={FR,RF} match-count totals) --
+        `stage1_margin_threshold=0.4` gave 98-99% class accuracy inside 2m.
+      - Stage 2 (rotation precision, given the chosen combo): the post-RANSAC
+        3-D fit residual -- `stage2_residual_threshold_m=0.06` kept 89% of
+        samples with 96.8% of those under 5 deg error, and stays informative
+        at every distance rather than crudely correlating with distance
+        alone (see the investigation folder for the full validation,
+        including the residual gate's own known ~1.8% confidently-wrong
+        residual: a near-zero-baseline/parallax degeneracy, not eliminated).
+    Still diagnostic-only: never gates or rejects the caller's ICP estimate
+    by itself, only reports whether ITS OWN answer should be trusted via
+    `vision_gate_passed`.
     """
-    rear_view = build_rear_view_descriptor(anchor_descriptor)
-    if rear_view is None:
+    anchor_front = anchor_descriptor
+    anchor_rear = build_rear_view_descriptor(anchor_descriptor)
+    current_front = current_descriptor
+    current_rear = build_rear_view_descriptor(current_descriptor)
+    if anchor_rear is None or current_rear is None:
         return {"available": False, "reason": "missing_rear_view"}
-    anchor_gray = descriptor_rgb_gray(rear_view)
-    anchor_depth = descriptor_depth(rear_view)
-    current_gray = descriptor_rgb_gray(current_descriptor)
-    current_depth = descriptor_depth(current_descriptor)
-    if anchor_gray is None or anchor_depth is None or current_gray is None or current_depth is None:
-        return {"available": False, "reason": "missing_rgb_or_depth"}
 
-    anchor_uv, current_uv, match_metadata = loftr_match_points(anchor_gray, current_gray)
-    if anchor_uv is None or current_uv is None or len(anchor_uv) < 8:
-        reason = match_metadata.get("failure_reason") or (
-            "no_loftr_matches" if match_metadata.get("loftr_available", True) else "loftr_unavailable"
-        )
-        return {"available": False, "reason": reason, **match_metadata}
+    combos = {
+        "anchorFront_currentFront": (anchor_front, current_front),
+        "anchorFront_currentRear": (anchor_front, current_rear),
+        "anchorRear_currentFront": (anchor_rear, current_front),
+        "anchorRear_currentRear": (anchor_rear, current_rear),
+    }
+    match_points: dict[str, tuple] = {}
+    match_counts: dict[str, int] = {}
+    for name, (a_view, c_view) in combos.items():
+        a_gray = descriptor_rgb_gray(a_view)
+        c_gray = descriptor_rgb_gray(c_view)
+        if a_gray is None or c_gray is None:
+            continue
+        a_uv, c_uv, _meta = loftr_match_points(a_gray, c_gray)
+        if a_uv is None:
+            continue
+        match_points[name] = (a_uv, c_uv, a_view, c_view)
+        match_counts[name] = int(len(a_uv))
 
-    anchor_k = descriptor_intrinsics(rear_view, anchor_gray.shape[1], anchor_gray.shape[0])
-    current_k = descriptor_intrinsics(current_descriptor, current_gray.shape[1], current_gray.shape[0])
+    if not match_counts:
+        return {"available": False, "reason": "missing_rgb_or_no_loftr_matches"}
+
+    aligned = match_counts.get("anchorFront_currentFront", 0) + match_counts.get("anchorRear_currentRear", 0)
+    opposite = match_counts.get("anchorFront_currentRear", 0) + match_counts.get("anchorRear_currentFront", 0)
+    total = aligned + opposite
+    stage1_margin = (abs(aligned - opposite) / total) if total > 0 else 0.0
+    winning_class = ("anchorFront_currentFront", "anchorRear_currentRear") if aligned >= opposite \
+        else ("anchorFront_currentRear", "anchorRear_currentFront")
+    if stage1_margin < stage1_margin_threshold:
+        return {
+            "available": False, "reason": "low_stage1_margin",
+            "stage1_margin": stage1_margin, "combo_matches": dict(match_counts),
+        }
+
+    # within the winning class, use whichever specific combo got more matches
+    # (both members are geometrically valid per the class-degeneracy found
+    # 2026-07-25 -- see investigations/2026-07-25-representative-stage1-wrong-
+    # picks-under-1m/ -- so this is a tie-break, not a correctness gate).
+    candidates = [c for c in winning_class if c in match_points]
+    if not candidates:
+        return {"available": False, "reason": "winning_class_missing_matches", "stage1_margin": stage1_margin}
+    chosen_combo = max(candidates, key=lambda c: match_counts.get(c, 0))
+    anchor_uv, current_uv, chosen_anchor_view, chosen_current_view = match_points[chosen_combo]
+    if len(anchor_uv) < 8:
+        return {
+            "available": False, "reason": "too_few_loftr_matches", "stage1_margin": stage1_margin,
+            "chosen_combo": chosen_combo, "loftr_matches": int(len(anchor_uv)),
+        }
+
+    anchor_depth = descriptor_depth(chosen_anchor_view)
+    current_depth = descriptor_depth(chosen_current_view)
+    if anchor_depth is None or current_depth is None:
+        return {"available": False, "reason": "missing_depth", "stage1_margin": stage1_margin, "chosen_combo": chosen_combo}
+
+    anchor_k = descriptor_intrinsics(chosen_anchor_view, anchor_depth.shape[1], anchor_depth.shape[0])
+    current_k = descriptor_intrinsics(chosen_current_view, current_depth.shape[1], current_depth.shape[0])
     anchor_points_all, anchor_valid = backproject_points(anchor_uv, anchor_depth, anchor_k)
     current_points_all, current_valid = backproject_points(current_uv, current_depth, current_k)
     valid = sorted(set(anchor_valid).intersection(current_valid))
     if len(valid) < 8:
         return {
-            "available": False, "reason": "too_few_depth_valid_matches",
-            "loftr_matches": int(len(anchor_uv)),
+            "available": False, "reason": "too_few_depth_valid_matches", "stage1_margin": stage1_margin,
+            "chosen_combo": chosen_combo, "loftr_matches": int(len(anchor_uv)),
         }
 
     anchor_index_by_match = {m: i for i, m in enumerate(anchor_valid)}
@@ -1053,39 +1110,49 @@ def _loftr_rear_yaw_check(
     rotation, translation, inliers = ransac_rigid_transform(anchor_points, current_points, threshold_m=0.35)
     if rotation is None:
         return {
-            "available": False, "reason": "ransac_failed",
+            "available": False, "reason": "ransac_failed", "stage1_margin": stage1_margin,
+            "chosen_combo": chosen_combo,
             "loftr_matches": int(len(anchor_uv)), "depth_valid_matches": int(len(valid)),
         }
     inlier_count = int(inliers.sum())
     if inlier_count < 6:
         return {
-            "available": False, "reason": "too_few_3d_inliers",
+            "available": False, "reason": "too_few_3d_inliers", "stage1_margin": stage1_margin,
+            "chosen_combo": chosen_combo,
             "loftr_matches": int(len(anchor_uv)), "inlier_count": inlier_count,
         }
 
-    anchor_dtheta = camera_rotation_to_body_yaw(rotation, current_descriptor, rear_view)
-    agreement_deg = abs(math.degrees(
-        math.atan2(math.sin(anchor_dtheta - icp_theta_rad), math.cos(anchor_dtheta - icp_theta_rad))
-    ))
     residual = np.linalg.norm(
         (rotation @ anchor_points[inliers].T).T + translation - current_points[inliers], axis=1
     )
+    median_residual_m = float(np.median(residual))
+    stage2_gate_passed = median_residual_m <= stage2_residual_threshold_m
+    vision_gate_passed = stage2_gate_passed  # stage1 gate already enforced above (early return otherwise)
+
+    anchor_dtheta = camera_rotation_to_body_yaw(rotation, chosen_current_view, chosen_anchor_view)
+    agreement_deg = abs(math.degrees(
+        math.atan2(math.sin(anchor_dtheta - icp_theta_rad), math.cos(anchor_dtheta - icp_theta_rad))
+    ))
     # 2026-07-13 (continued): also expose LoFTR-rear's own translation, in the
     # same body-frame (dx, dy) convention ICP's anchor_dx_m/anchor_dy_m use --
     # lets an offline check compare LoFTR-rear's own BEARING accuracy against
     # ICP's, not just its rotation accuracy (the only thing this function
     # reported before). Reuses camera_point_to_body unmodified, same as
     # feature_depth_anchor_relocalization's own rear-view branch.
-    anchor_origin_in_current_body = camera_point_to_body(translation, current_descriptor)
+    anchor_origin_in_current_body = camera_point_to_body(translation, chosen_current_view)
     loftr_bearing_deg = math.degrees(math.atan2(
         float(anchor_origin_in_current_body[1]), float(anchor_origin_in_current_body[0])
     ))
     return {
         "available": True,
+        "stage1_margin": stage1_margin,
+        "chosen_combo": chosen_combo,
+        "combo_matches": dict(match_counts),
         "loftr_matches": int(len(anchor_uv)),
         "depth_valid_matches": int(len(valid)),
         "inlier_count": inlier_count,
-        "median_3d_residual_m": float(np.median(residual)),
+        "median_3d_residual_m": median_residual_m,
+        "vision_gate_passed": vision_gate_passed,
         "loftr_rear_dtheta_deg": math.degrees(anchor_dtheta),
         "icp_loftr_rear_yaw_agreement_deg": agreement_deg,
         "loftr_rear_dx_m": float(anchor_origin_in_current_body[0]),

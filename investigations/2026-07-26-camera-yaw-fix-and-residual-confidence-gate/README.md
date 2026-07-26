@@ -78,10 +78,32 @@ The `camera_rotation_to_body_yaw` fix described above is now live in `NaVILA-Ben
 
 `_loftr_rear_yaw_check` itself is still hardcoded to one combo (anchor-rear vs. current-front) and still diagnostic-only (`--sequential_pair_loftr_rear_yaw_check`, off by default) — generalizing it to try all 4 combos and attach the Stage-1 margin gate + Stage-2 residual gate is the next planned step (see below), not done yet.
 
+## `_loftr_rear_yaw_check` generalized (same day) + validated directly against ICP's `confidently_wrong` flag
+
+`_loftr_rear_yaw_check` now tries all 4 combos, applies the Stage-1 class-sum margin gate to pick the winning class (tie-broken by match count within the class), runs Stage-2 on the chosen combo via the fixed `camera_rotation_to_body_yaw`, and applies the residual gate — returning `vision_gate_passed` plus `stage1_margin`, `chosen_combo`, `median_3d_residual_m`. Still diagnostic-only (off by default), but now actually produces meaningful output for the first time.
+
+**Validation (`code/vision_vs_confidently_wrong.py`): all 259 genuine `confidently_wrong` ICP samples in `representative_dataset.json`, vs. a same-size random control sample of `confidently_wrong=False` cases.**
+
+| | confidently_wrong (n=259) | control (n=259) |
+|---|---:|---:|
+| median true distance | 1.44m | 3.03m |
+| vision_gate_passed | 47.5% | 27.4% |
+| accuracy among gate-passed | **63.4% < 5°** | 97.2% < 5° |
+
+The gap (63.4% vs. 97.2%) looked at first like vision genuinely struggling on the hard cases. Breaking it down by distance fully explains it, and reveals something more specific and more important:
+
+**The entire gap is one sharp, narrow failure band: true distance < 0.01m (robot essentially exactly at the anchor).** Among gate-passed confidently-wrong samples: at distance < 0.01m, accuracy is **4.4%** (median error 54°, n=45) — the vision gate is not just unhelpful here, it's confidently wrong itself. At distance >= 0.01m, accuracy is **97.4%** (n=78) — matching the general-population rate from the 249-sample validation almost exactly.
+
+**Critically, `confidently_wrong` ICP cases are disproportionately concentrated in exactly this same near-zero-distance band: 17.4% of all 259 confidently-wrong samples have true distance < 0.01m, vs. 0/259 (0%) of the control sample.** This means the near-zero-baseline/parallax degeneracy found earlier (`ep844 anchor7`) is not a rare 1.8% edge case — it is a real, physically-grounded, **shared blind spot between LiDAR ICP and vision**: near-zero translation makes rotation recovery ill-conditioned for both modalities' math (ICP's point-cloud alignment and vision's Kabsch SVD), for related but not identical reasons. This is a materially different conclusion from this morning's framing ("confidently-wrong reduced but not eliminated, ~1.8%, isolated case") — at the intersection with ICP's own confidently-wrong failures specifically, the shared blind spot accounts for over a third of the accuracy gap, not a rare fluke.
+
+**Attempted a self-contained (no ground-truth) guard using vision's own estimated distance** (`hypot(loftr_rear_dx_m, loftr_rear_dy_m)`, already free from the existing RANSAC translation output) as an extra gate. It does NOT cleanly separate the bad cases at the true ~1cm boundary — vision's own distance estimate is itself unreliable in exactly this regime (median |estimate - true| = 0.10m, p90 = 0.75m, among confidently-wrong gate-passed samples). A threshold conservative enough to reliably exclude the bad band (>=0.15-0.20m) recovers 95-96% accuracy but rejects ~60% of the confidently-wrong gate-passed samples to do it, vs. the ~37% an oracle (ground-truth) threshold would need to reject. Not yet resolved which threshold (if any) is the right practical tradeoff.
+
+**Bottom line for the confidently-wrong-ICP suppression effort:** outside the near-zero-distance band, this vision cross-check is genuinely strong evidence (97%+ agreement-when-available on exactly the hardest ICP cases, the target this whole effort cares about). Inside the band (roughly 1 in 6 confidently-wrong cases), neither modality's rotation estimate should be trusted — this needs a different mitigation (e.g. an independent "is translation near-zero" signal, or accepting it as a known hard floor) rather than expecting vision to rescue it.
+
 ## Pending / next steps
 
-1. Generalize `_loftr_rear_yaw_check` to pick the best combo via the Stage-1 class-sum margin gate (not hardcoded rear/front) and attach `median_residual_m` + a pass/fail gate flag to its diagnostic output, so turning the flag on for the first time actually produces meaningful data.
-2. Run the existing offline replay harness with the flag on across a batch of episodes; check how often "vision gate passes but disagrees with ICP" correlates with ICP's own independently-known `confidently_wrong` flag — the validation step before ever considering a guard/gate that touches live behavior.
-3. The 4m+ distance bucket has only 1 sample in this validation — too thin to confirm the residual-gate's behavior holds at longer range; worth a targeted larger sample there.
-4. The near-zero-distance/parallax-degeneracy confidently-wrong case (`ep844 anchor7`) is not yet root-caused beyond the parallax hypothesis above — no dedicated minimum-baseline guard exists yet.
-5. How to combine the Stage-1 class-sum margin gate and this Stage-2 residual gate into the project's broader confidently-wrong-ICP suppression effort — whether as an independent cross-check (favored direction, see discussion above — vision's failure mode looks largely uncorrelated with ICP's), a replacement signal, or a fused confidence score — still an open design decision, not started.
+1. Decide on a practical near-zero-baseline guard (threshold tradeoff above still unresolved) before proposing vision as a cross-check signal to any consumer.
+2. The 4m+ distance bucket has only 1 sample in the original 249-sample validation — too thin to confirm the residual-gate's behavior holds at longer range; worth a targeted larger sample there.
+3. Root-cause *why* `confidently_wrong` ICP concentrates so heavily at true distance < 0.01m (17.4% of the whole confidently-wrong population) — is this a specific recurring behavior, e.g. the robot re-approaching/hovering at an anchor during return, or an artifact of how attempts are sampled?
+4. How to combine the Stage-1 margin gate + Stage-2 residual gate + a resolved near-zero-baseline guard into the project's broader confidently-wrong-ICP suppression effort (independent cross-check vs. replacement signal vs. fused score) — still open, now better-scoped than this morning.
+5. Per the user's clarification 2026-07-26: this project runs two parallel tracks. This session (Route 1) is the non-model geometry/vision-matching pipeline; a separate Codex-run track (Route 2) trains/uses a model to directly judge ICP-reading trustworthiness (`investigations/2026-07-26-v2-integrated-anchor-state/` and related). The two tracks are independent; this investigation folder is Route 1 only.
