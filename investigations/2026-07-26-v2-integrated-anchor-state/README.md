@@ -306,3 +306,40 @@ if promote and next_est is not None:
 第一步只在新的隔离候选目录中完成 **Stage 1：per-anchor assessment 接口、promotion vote 前的 integrated shadow decision 和完整日志**。不修改正在运行的 Active50 目录，不修改 Route1 主代码，不改变当前 stop 行为。
 
 完成单元测试和目标 episode replay 后，再依据证据决定是否进入 Stage 2。
+
+## Stage 1 实施状态（2026-07-26）
+
+已在新的隔离候选目录中开始实施：
+
+`/home/teambruce/navila-reliability-v1_1-v2-integrated-20260726`
+
+基线来自本次 Active50 的实际候选代码；没有修改仍在运行的 Active50 目录，也没有修改 Route1 主代码。
+
+当前完成内容：
+
+- V2 增加只读的 per-anchor assessment 接口；
+- 增加 `IntegratedPromotionDecision`，分别记录 current/next 的 assessment availability 与 `jointly_trusted`；
+- 在 closure veto 之后、`_record_promotion_vote` 之前增加 integrated evidence hook；
+- 同时记录 `pre_closure_vote`、Route1 `baseline_vote` 和 V2 `counterfactual_vote`；
+- next 不可信时，counterfactual 不让正票进入 history；
+- current 不可信、next 可信时，counterfactual 可忽略 current 引发的 closure veto，但仍保留 next 自身的 gate；
+- 增加明确的 CLI 模式 `--reliability_v11_integrated_promotion_mode=shadow`；
+- Stage 1 只允许 `off`/`shadow`，没有 active 选项；
+- 即使旧 consumer guard 使用 active artifact，integrated Stage 1 的 `executed_vote` 也始终等于 Route1 baseline；
+- 事件写入已有的 `reliability_v11_consumer_v2.jsonl`，类型为 `v11_integrated_promotion_shadow_decision`。
+
+新候选关键 hash：
+
+- `reliability/v11_consumer_policy_v2.py`：`f0f28207c1e68d470147ed20460b48a0e8c70bbd60aa5792f8eaaeb2b7d6ed3d`
+- `policy_v2_live_candidate/scripts/route_memory_agent.py`：`c54ff7875caaad41a9d130ec1221278ee710ab3ffe775fff7a50c669d0769ee5`
+- `policy_v2_live_candidate/scripts/round_trip_eval.py`：`fc2ae47fe692801fe4953a4ee4038788c211567daa8bea0a0934957a106c76de`
+
+验证结果：
+
+- 三个修改后的 runtime 文件均通过 `py_compile`；
+- 新增/相关测试：16/16 通过；
+- 全候选测试：40 passed，3 failed；
+- 未修改 Active50 基线在同一 Python 3.10 环境：36 passed，3 failed；
+- 两边相同的 3 个失败均来自该环境缺少 `scikit-learn`，不是本次改动造成。
+
+历史 Active50 日志能提供每次 current/next 的 V2 assessment，也记录了最终发生的 promotion guard，但没有记录每次 `_record_promotion_vote` 前的 `pre_closure_vote` 与 `baseline_vote`。因此它不足以完整重建“current 不可信时释放 closure veto”的 counterfactual vote history。Stage 1 新日志正是为补齐这个观测缺口；在获得带新事件的 shadow 数据前，不宣称已经完成 episode-level replay。
