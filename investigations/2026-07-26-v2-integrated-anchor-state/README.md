@@ -1,5 +1,21 @@
 # 2026-07-26：50ep Active V2 失败分析与下一步架构计划
 
+## 最新进展（Stage 3.1）
+
+Stage 3 ep5 Active v0 暴露的 false quarantine 已完成三值概率修正与 shadow 验证：
+
+- `jointly_trusted=false` 现在只表示 uncertain/abstain，不再直接累积拉黑票；
+- temporary quarantine 要求最近4次至少3次 `p_pose_bad>=0.90`，并且 current 必须已确认 trusted；
+- current anchor 改变时清空旧 probability window，防止跨 route phase 复用 stale evidence；
+- ep5 Active 日志 replay 中 anchor12 误杀消失，11/10/9/8 仍为4/4正确触发；
+- 38个既有 outbound-success 日志的历史触发点 precision 为96/97；
+- 新 ep5/ep491 在线 shadow 分别通过 abstention negative gate 与 both-strong positive gate；
+- integrated Active 仍关闭，没有新的批准 artifact。
+
+完整代码、replay、在线日志和剩余风险见：
+
+[STAGE31_TRI_STATE_PROBABILITY_SHADOW_2026-07-26.md](STAGE31_TRI_STATE_PROBABILITY_SHADOW_2026-07-26.md)
+
 ## 结论摘要
 
 这次分析只统计 **outbound 已成功** 的 episode；outbound 失败不进入 round-trip 成功率分母。
