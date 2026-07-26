@@ -1,5 +1,23 @@
 # Stage-2 camera-yaw axis bug found+fixed, and a distance-agnostic confidence gate for it
 
+## TL;DR status (updated end of day 2026-07-26)
+
+**Done, all live in production (`relocalization.py`, `round_trip_eval.py`), all validated offline before shipping:**
+1. Found + fixed the `camera_rotation_to_body_yaw` axis bug (Stage-2 rotation was silently collapsing to ~0/180 deg) -- 249-sample validation: median error 17.4 deg -> 0.33 deg.
+2. Generalized `_loftr_rear_yaw_check` to a real 3-gate vision check (Stage-1 match-count margin, Stage-2 residual, Stage-2 min-translation) -- validated at 97%+ accuracy whenever it commits, including on the hardest known-`confidently_wrong` ICP cases, after root-causing and fixing a near-zero-baseline collapse mode along the way.
+3. Added `vision_disagreement_mode` (`diagnostic` shadow-only default / `downgrade`): when ICP claims high confidence but the vision check disagrees, downgrades that attempt's confidence through the *existing* quarantine/ranking machinery rather than a new override path. Offline shadow replay via the real production entry point: 4.5% fire rate, 94.4% precision.
+4. All of the above is off by default -- zero live behavior change unless a caller explicitly opts in.
+
+**Running right now:** a real 50-episode round-trip A/B on the live Route1 code path, `diagnostic` (baseline) vs `downgrade`, on the same "outbound most likely to succeed" cohort Route 2 (Codex) selected 2026-07-25 (so results are comparable across routes). Detached via `systemd-run --user`, survives disconnect. Waits for Route 2's concurrently-running 5ep canary to clear first (shared GPU). Run order is downgrade-first per request. See "Live round-trip A/B launched" below for scripts/details and log locations.
+
+**Next steps once the A/B finishes (not started yet):**
+- Compare round-trip / return success rate between the two arms on this cohort; check specifically whether the downgrade mechanism helps on episodes where the baseline arm fails via a confidently-wrong-ICP-shaped mechanism (route-hint suppressed near a high-ICP-confidence anchor, then a bad bearing), not just the aggregate rate.
+- Confirm zero regressions on episodes the baseline arm already succeeds at (the downgrade mechanism should only ever look different when its trigger condition fires at all).
+- If results are positive and clean, decide on the CLI default (still `diagnostic`) and whether a larger episode set or a second penalty value is worth testing before that.
+- Separately, still open and un-started: root-causing *why* `confidently_wrong` ICP concentrates so heavily at true distance <0.01m (17.4% of that population); recalibrating the provisional 45 deg disagreement threshold once real attempt-level data exists (this A/B will produce some).
+
+---
+
 Snapshot: `2026-07-26`. Follows `investigations/2026-07-25-representative-stage1-wrong-picks-under-1m/` (Stage-1 camera-pairing combo selection, now validated at 98-99% accuracy inside 2m via class-sum + margin gating). This session picks up the Stage-2 open thread flagged there and in `investigations/2026-07-25-loftr-rear-view-visual-diagnosis/SESSION_SUMMARY_PART2_CORRECTIONS.md`: "given a correctly-identified combo, does the LoFTR-match -> RANSAC/Kabsch rigid-transform solve compute an accurate rotation?"
 
 ## Bug found: `relocalization.py:246-250`, `camera_rotation_to_body_yaw()`
