@@ -388,6 +388,30 @@ if promote and next_est is not None:
 
 [`STAGE2_STATE_SHADOW_2026-07-26.md`](./STAGE2_STATE_SHADOW_2026-07-26.md)
 
+## Stage 2.5 状态（2026-07-26）
+
+已在隔离候选中加入只读 candidate-selector shadow，把 Stage 2 的状态建议转换为可审计的：
+
+- preserve Route1 next；
+- propose next candidate；
+- request/hold active scan；
+- 合并 Route1 与 V2 shadow quarantine set 后的单调候选选择；
+- quarantine budget 与 counterfactual-assessment 标记。
+
+ep491 在线 canary 证明 selector 能在 shadow quarantine anchor10 后提出 anchor9，并保持零 controller effect、零 Route1 mutation、零单调性/预算违规。
+
+ep658 第一版在线 canary 进一步证明，早期 anchor8 quarantine 有 world-pose truth 支持，真正的问题是 Stage 2 scan latch 在信任恢复后不会撤销。加入 3 次连续可信确认的 cancellation hysteresis 后，更新版 ep658 在线观察到：
+
+`request_active_scan_both_untrusted → hold → cancel_active_scan_on_trust_recovery → preserve Route1`
+
+更新版最终落盘 146 组三联事件严格配对；promotion/state/selector 三层均为零 controller effect，selector 为零 Route1 mutation、零不变量违规。运行后段又触发了真实的 quarantine-chain budget exhausted，说明 active scan 的 motor/candidate-expansion 语义仍需先定义，不能把 shadow proposal 直接接成线上动作。
+
+因此当前只批准继续实现 **默认关闭、带 approval/kill-switch/budget 的 active mode**；尚未批准 active controller canary，更未批准 50ep。
+
+完整设计、离线/在线证据、stale-latch 修正、最终 hash 与 active 门槛见：
+
+[`STAGE25_CANDIDATE_SELECTOR_SHADOW_2026-07-26.md`](./STAGE25_CANDIDATE_SELECTOR_SHADOW_2026-07-26.md)
+
 ## 与同日 camera-yaw 调查的关系
 
 同日 Route1 调查 `2026-07-26-camera-yaw-fix-and-residual-confidence-gate` 已完成 camera-yaw 修复、四组合视觉检查和 minimum-translation gate，并记录到 production snapshot。
