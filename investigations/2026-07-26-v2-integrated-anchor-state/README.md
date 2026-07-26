@@ -412,6 +412,41 @@ ep658 第一版在线 canary 进一步证明，早期 anchor8 quarantine 有 wor
 
 [`STAGE25_CANDIDATE_SELECTOR_SHADOW_2026-07-26.md`](./STAGE25_CANDIDATE_SELECTOR_SHADOW_2026-07-26.md)
 
+## Stage 3 / Active v0 准备状态（2026-07-26）
+
+已在隔离候选中实现默认关闭的 Active v0 controller，但没有运行 active enforcement。
+
+Active v0 scope 只有：
+
+- 可逆的 V2 temporary candidate quarantine；
+- 对刚被隔离 next 的同一步 promotion suppression。
+
+motor、active scan、stop、hint 均被结构性禁止。kill switch、quarantine/mutation 硬预算或未实现的 scan request 会撤销全部 V2 临时状态，并将该 episode 永久降级回 Route1。
+
+当前 checked-in policy 只是未批准模板：
+
+- `enforcement_approved=false`
+- `identity_override_authorized=false`
+
+因此代码路径无法被误启动。
+
+ep5 在线 shadow 最终获得 119 组三联事件：
+
+- 两次 temporary quarantine；
+- 一次 trusted re-entry；
+- 一次 both-untrusted scan request；
+- request 后 28 次 hold，无重复 request；
+- selector 提出 22 次候选变化；
+- promotion/state/selector 仍为 0 controller effect、0 Route1 mutation、0 不变量违规。
+
+未执行的 Active v0 回放会进行 3 次可逆 quarantine 同步、在 22 个原 shadow attempt 上 suppress 被隔离 next 的 promotion，并在 scan request 时 rollback/disable；不会请求 motor、stop 或 hint action。
+
+工程上已经达到请求 3–5 episode Active v0 canary 批准的门槛；目前尚无 approved policy，也没有启动 Active。
+
+完整代码边界、hash、ep5 在线证据、回放与批准要求见：
+
+[`STAGE3_ACTIVE_V0_DEFAULT_CLOSED_2026-07-26.md`](./STAGE3_ACTIVE_V0_DEFAULT_CLOSED_2026-07-26.md)
+
 ## 与同日 camera-yaw 调查的关系
 
 同日 Route1 调查 `2026-07-26-camera-yaw-fix-and-residual-confidence-gate` 已完成 camera-yaw 修复、四组合视觉检查和 minimum-translation gate，并记录到 production snapshot。
