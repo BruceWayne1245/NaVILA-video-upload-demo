@@ -330,19 +330,19 @@ if promote and next_est is not None:
 
 新候选关键 hash：
 
-- `reliability/v11_consumer_policy_v2.py`：`f0f28207c1e68d470147ed20460b48a0e8c70bbd60aa5792f8eaaeb2b7d6ed3d`
+- `reliability/v11_consumer_policy_v2.py`：`dde30af6fa5381b0e56b6ba2c50fdd97ce011f6fb4b9e0e0071c046d6678fc72`
 - `policy_v2_live_candidate/scripts/route_memory_agent.py`：`c54ff7875caaad41a9d130ec1221278ee710ab3ffe775fff7a50c669d0769ee5`
 - `policy_v2_live_candidate/scripts/round_trip_eval.py`：`fc2ae47fe692801fe4953a4ee4038788c211567daa8bea0a0934957a106c76de`
 
 验证结果：
 
 - 三个修改后的 runtime 文件均通过 `py_compile`；
-- 新增/相关测试：16/16 通过；
-- 全候选测试：40 passed，3 failed；
+- 新增/相关测试：18/18 通过；
+- 全候选测试：42 passed，3 failed；
 - 未修改 Active50 基线在同一 Python 3.10 环境：36 passed，3 failed；
 - 两边相同的 3 个失败均来自该环境缺少 `scikit-learn`，不是本次改动造成。
 
-历史 Active50 日志能提供每次 current/next 的 V2 assessment，也记录了最终发生的 promotion guard，但没有记录每次 `_record_promotion_vote` 前的 `pre_closure_vote` 与 `baseline_vote`。因此它不足以完整重建“current 不可信时释放 closure veto”的 counterfactual vote history。Stage 1 新日志正是为补齐这个观测缺口；在获得带新事件的 shadow 数据前，不宣称已经完成 episode-level replay。
+历史 Active50 日志能提供每次 current/next 的 V2 assessment，也记录了最终发生的 promotion guard，但没有记录每次 `_record_promotion_vote` 前的 `pre_closure_vote` 与 `baseline_vote`。因此它不足以完整重建“current 不可信时释放 closure veto”的 counterfactual vote history。Stage 1 已通过 ep5/ep491 targeted canary 补齐该观测缺口，结果见 [STAGE1_CANARY_2026-07-26.md](STAGE1_CANARY_2026-07-26.md)。
 
 对当前存在的 38 个已完成 Active50 结果目录做只读统计（排除 `.incomplete`，按 attempt 加权，不是 episode 成功率分母），共 13,378 次 V2 score：
 
@@ -358,6 +358,6 @@ if promote and next_est is not None:
 
 ## 与同日 camera-yaw 调查的关系
 
-同日新增的 `2026-07-26-camera-yaw-fix-and-residual-confidence-gate` 已验证 `camera_rotation_to_body_yaw()` 存在轴选择错误，并找到视觉 RANSAC residual gate；但该调查明确记录修复尚未进入 `relocalization.py`。
+同日 Route1 调查 `2026-07-26-camera-yaw-fix-and-residual-confidence-gate` 已完成 camera-yaw 修复、四组合视觉检查和 minimum-translation gate，并记录到 production snapshot。
 
-这不推翻本文件的架构结论：camera-yaw 修复改善的是一个视觉交叉检查信号，方案 1 Stage 1 修正的是 V2 与 Route1 promotion state machine 的接入层，两者是不同问题。当前隔离候选不擅自合并 camera-yaw 改动，避免在同一 canary 中同时改变信号生成和状态消费。后续可把修正后的视觉 yaw/residual 作为独立证据源评估，但必须单独验证分布变化和 near-zero-parallax 失败模式。
+根据 GitHub 最新说明，这是两个独立工作流：该视觉调查属于 Route1 非模型路线，本文件属于 Route2/V2 trust-model 路线。本次 canary 为了与 Active50 做因果对照，冻结 Active50 候选且没有启用 LoFTR diagnostic flag；不把 Route1 的视觉改动混入 V2 canary，也不把本文件的结果解释成对 Route1 视觉方案的评价。
