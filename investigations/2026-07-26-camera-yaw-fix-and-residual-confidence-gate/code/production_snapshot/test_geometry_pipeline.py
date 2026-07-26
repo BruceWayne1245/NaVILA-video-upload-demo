@@ -1564,6 +1564,75 @@ class TestSequentialPairAnchorRelocalization(unittest.TestCase):
             self.assertEqual(c1.anchor_dy_m, c2.anchor_dy_m)
             self.assertEqual(c1.confidence, c2.confidence)
 
+    def test_vision_disagreement_downgrade_mode_2026_07_26(self):
+        """vision_disagreement_mode="downgrade" (still off by default) must
+        multiply confidence by vision_disagreement_confidence_penalty ONLY
+        when the flag actually fires, and must leave everything unchanged
+        when it doesn't (agreement, or mode left at the default "diagnostic")."""
+        current_anchor = self._make_anchor(5, _rectangle_outline_points())
+        next_anchor = self._make_anchor(4, _rectangle_outline_points())
+        current_descriptor = {"local_map_points_body": _rectangle_outline_points()}
+        disagreeing_vision = {
+            "available": True,
+            "vision_gate_passed": True,
+            "icp_loftr_rear_yaw_agreement_deg": 90.0,
+        }
+
+        # default mode ("diagnostic") -- confidence must be unaffected even
+        # though the flag fires.
+        diag_default: dict = {}
+        with mock.patch("relocalization._loftr_rear_yaw_check", return_value=dict(disagreeing_vision)):
+            baseline = sequential_pair_anchor_relocalization(
+                current_descriptor, current_anchor, next_anchor,
+                return_candidates=True, loftr_rear_yaw_check=True, diagnostics=diag_default,
+            )
+        self.assertGreaterEqual(diag_default.get("vision_disagrees_with_confident_icp", 0), 1)
+        self.assertNotIn("vision_disagreement_confidence_downgraded", diag_default)
+
+        # explicit "downgrade" mode -- confidence must drop by exactly the
+        # configured penalty factor.
+        diag_downgrade: dict = {}
+        penalty = 0.3
+        with mock.patch("relocalization._loftr_rear_yaw_check", return_value=dict(disagreeing_vision)):
+            downgraded = sequential_pair_anchor_relocalization(
+                current_descriptor, current_anchor, next_anchor,
+                return_candidates=True, loftr_rear_yaw_check=True, diagnostics=diag_downgrade,
+                vision_disagreement_mode="downgrade",
+                vision_disagreement_confidence_penalty=penalty,
+            )
+        self.assertEqual(
+            diag_downgrade.get("vision_disagreement_confidence_downgraded"),
+            diag_downgrade.get("vision_disagrees_with_confident_icp"),
+        )
+        for base_c, down_c in zip(
+            sorted(baseline, key=lambda c: c.anchor_index),
+            sorted(downgraded, key=lambda c: c.anchor_index),
+        ):
+            self.assertAlmostEqual(down_c.confidence, base_c.confidence * penalty, places=5)
+            # pose itself (dx/dy) must be untouched -- only confidence changes.
+            self.assertEqual(down_c.anchor_dx_m, base_c.anchor_dx_m)
+            self.assertEqual(down_c.anchor_dy_m, base_c.anchor_dy_m)
+
+        # agreement (flag doesn't fire) -- downgrade mode must be a no-op.
+        agreeing_vision = {
+            "available": True,
+            "vision_gate_passed": True,
+            "icp_loftr_rear_yaw_agreement_deg": 2.0,
+        }
+        diag_agree: dict = {}
+        with mock.patch("relocalization._loftr_rear_yaw_check", return_value=dict(agreeing_vision)):
+            agreeing = sequential_pair_anchor_relocalization(
+                current_descriptor, current_anchor, next_anchor,
+                return_candidates=True, loftr_rear_yaw_check=True, diagnostics=diag_agree,
+                vision_disagreement_mode="downgrade",
+            )
+        self.assertNotIn("vision_disagreement_confidence_downgraded", diag_agree)
+        for base_c, agree_c in zip(
+            sorted(baseline, key=lambda c: c.anchor_index),
+            sorted(agreeing, key=lambda c: c.anchor_index),
+        ):
+            self.assertEqual(agree_c.confidence, base_c.confidence)
+
 
 def _cross_shape_points() -> np.ndarray:
     """4-fold rotationally symmetric plus/cross -- every 90 deg looks

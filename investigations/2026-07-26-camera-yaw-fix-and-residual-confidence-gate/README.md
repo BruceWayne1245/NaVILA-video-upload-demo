@@ -147,6 +147,16 @@ Purely additive: never consulted by the accept/promote/confidence logic in this 
 
 **Interpretation:** a rare, high-precision, low-false-alarm trigger, with recall capped by vision's own ~30% overall coverage (range-limited to roughly 0-3m). This is the intended shape for a supplementary safety signal, not a primary defense: safe to act on (very few false alarms to worry about) even though it won't catch most confidently-wrong cases on its own. Consistent with every gate-passed-accuracy number validated earlier in this investigation.
 
+## Stage 2 implemented: vision_disagreement_mode="downgrade" (still off by default)
+
+Per the user's explicit direction to move past shadow-only logging into actually participating in decisions. Added `vision_disagreement_mode` (`"diagnostic"` default / `"downgrade"`) and `vision_disagreement_confidence_penalty` (default 0.3) to `sequential_pair_anchor_relocalization`. When the Stage-1 flag fires (ICP confidence>=0.9, vision gate passed, >=45deg disagreement) and mode is `"downgrade"`, that attempt's `confidence` is multiplied by the penalty *before* the existing low-confidence-rejection and candidate-ranking logic -- reusing already-validated machinery rather than a new independent override, per the integration decision earlier in this file. Default remains `"diagnostic"` (a pure no-op) -- not yet enabled by default, pending a live round-trip A/B.
+
+Wired through to CLI: `--sequential_pair_vision_disagreement_mode` and `--sequential_pair_vision_disagreement_confidence_penalty` in `round_trip_eval.py` (requires `--sequential_pair_loftr_rear_yaw_check` to have any effect), so a future batch can opt in without further code changes.
+
+New test `test_vision_disagreement_downgrade_mode_2026_07_26` confirms: default mode leaves confidence untouched even when the flag fires; `"downgrade"` mode multiplies confidence by exactly the configured penalty only when the flag fires (pose itself, dx/dy, is never touched, only confidence); agreement (flag doesn't fire) is a no-op in either mode. Full suite: 231 tests, 14 pre-existing skips, zero regressions. `round_trip_eval.py` itself only `py_compile`-checked (needs Isaac Sim's `gymnasium`, unavailable in this shell) -- the new argparse entries follow the exact same pattern as the existing `--sequential_pair_loftr_rear_yaw_check`, low risk.
+
+**Not yet done: a live round-trip A/B with `vision_disagreement_mode=downgrade` enabled.** Everything above is validated offline/via replay through the real production code path, but no actual Isaac Sim episode has been run with this Stage 2 behavior active yet -- that is the natural next step, deliberately left for a future session (needs an Isaac Sim batch, not just offline replay).
+
 ## Pending / next steps
 
 1. Root-cause *why* `confidently_wrong` ICP concentrates so heavily at true distance < 0.01m (17.4% of the whole confidently-wrong population) — is this a specific recurring behavior, e.g. the robot re-approaching/hovering at an anchor during return, or an artifact of how attempts are sampled? Not yet investigated.

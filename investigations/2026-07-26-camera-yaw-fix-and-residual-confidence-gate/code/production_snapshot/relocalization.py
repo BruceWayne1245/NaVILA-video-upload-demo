@@ -1882,6 +1882,8 @@ def sequential_pair_anchor_relocalization(
     max_points: int = 512,
     quality_policy: str = "diagnostic",
     loftr_rear_yaw_check: bool = False,
+    vision_disagreement_mode: str = "diagnostic",
+    vision_disagreement_confidence_penalty: float = 0.3,
 ) -> Optional[object]:
     """Relocalize against exactly two known anchors -- the one the caller is
     currently standing near and the one it's walking toward next -- instead
@@ -1903,6 +1905,26 @@ def sequential_pair_anchor_relocalization(
 
     Same ICP thresholds as ``local_map_anchor_relocalization`` applied to just
     these two anchors instead of a searched candidate list.
+
+    2026-07-26 Stage 2 (``vision_disagreement_mode``, off by default): when
+    ``loftr_rear_yaw_check`` finds ICP self-reporting high confidence
+    (>=0.9) while the independently-gated vision cross-check (Stage-1
+    margin + Stage-2 residual + Stage-2 min-translation, all validated in
+    investigations/2026-07-26-camera-yaw-fix-and-residual-confidence-gate/)
+    disagrees by >=45 deg -- a 400-real-sample offline shadow replay of this
+    exact precondition (Stage 1, diagnostic-only) found it fires rarely
+    (4.5% of attempts) but with 94.4% precision (of fired cases, ICP really
+    was wrong) -- ``vision_disagreement_mode="downgrade"`` multiplies this
+    attempt's own ``confidence`` by ``vision_disagreement_confidence_penalty``
+    (default 0.3) *before* the existing low-confidence rejection and
+    candidate-ranking logic below, so the same already-validated machinery
+    (not a new independent override) decides the consequence -- it may drop
+    the candidate entirely (``low_confidence_sequential_pair_pose``) or just
+    lose priority to the other (current vs. next) anchor if both are being
+    evaluated. Default ``"diagnostic"`` leaves confidence completely
+    unchanged (this parameter is a pure no-op unless explicitly set to
+    ``"downgrade"``) -- deliberately not yet enabled by default pending a
+    live round-trip A/B, per this project's established rollout discipline.
     """
     from route_memory_agent import AnchorRelocalization
 
@@ -2066,20 +2088,18 @@ def sequential_pair_anchor_relocalization(
             "estimated_anchor_dy_m": float(result["translation"][1]),
             "estimated_anchor_dtheta_deg": float(math.degrees(result["theta"])),
         })
-        # 2026-07-26 Stage 1 (shadow, read-only -- per the same phased
-        # rollout discipline this project already uses for Policy V2):
-        # per-attempt diagnostic only, computed here and NEVER consulted by
-        # the accept/promote/confidence logic in this function. Flags the
-        # exact precondition this whole investigation targets -- ICP self-
-        # reporting high confidence (>=0.9, the same threshold used to
-        # define "confidently_wrong" throughout investigations/2026-07-26-
-        # camera-yaw-fix-and-residual-confidence-gate/) while the
-        # independently-gated vision check (Stage-1 margin + Stage-2
-        # residual + Stage-2 min-translation, same investigation) disagrees
-        # by a wide margin. The 45deg disagreement threshold is a
-        # provisional placeholder, not yet calibrated against a live replay
-        # -- recalibrate once offline replay data exists rather than
-        # trusting this number.
+        # 2026-07-26 Stage 1 diagnostic (shadow, read-only -- per the same
+        # phased rollout discipline this project already uses for Policy
+        # V2), extended same day to Stage 2 (``vision_disagreement_mode``,
+        # see this function's docstring): flags the exact precondition this
+        # whole investigation targets -- ICP self-reporting high confidence
+        # (>=0.9, the same threshold used to define "confidently_wrong"
+        # throughout investigations/2026-07-26-camera-yaw-fix-and-residual-
+        # confidence-gate/) while the independently-gated vision check
+        # (Stage-1 margin + Stage-2 residual + Stage-2 min-translation, same
+        # investigation) disagrees by a wide margin. The 45deg disagreement
+        # threshold is a provisional placeholder, not yet calibrated
+        # against a live round-trip A/B.
         _vision_check = record.get("loftr_rear_yaw_check")
         if _vision_check is not None:
             _icp_confidently_wrong_precondition = confidence >= 0.9
@@ -2092,6 +2112,14 @@ def sequential_pair_anchor_relocalization(
             _vision_check["vision_disagrees_with_confident_icp"] = _vision_disagrees
             if _vision_disagrees:
                 _diagnostic_inc(diagnostics, "vision_disagrees_with_confident_icp")
+                if vision_disagreement_mode == "downgrade":
+                    # Reuse the existing low-confidence rejection and
+                    # candidate-ranking logic below to decide the
+                    # consequence -- no new independent override path.
+                    confidence = float(confidence * vision_disagreement_confidence_penalty)
+                    record["confidence"] = confidence
+                    _vision_check["confidence_downgraded"] = True
+                    _diagnostic_inc(diagnostics, "vision_disagreement_confidence_downgraded")
         if inlier_count < 12 or overlap < 0.12 or confidence < 0.15:
             _diagnostic_inc(diagnostics, "low_confidence_sequential_pair_pose")
             record["outcome"] = "low_confidence_sequential_pair_pose"
