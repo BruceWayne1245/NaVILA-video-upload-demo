@@ -1,0 +1,222 @@
+[
+  {
+    "episode": 929,
+    "anchor": 3,
+    "step": 1465,
+    "gt_distance": 0.31909861351373975,
+    "gt_dtheta_deg": 116.51560402654853,
+    "gt_best_combo": "anchorRear_currentFront",
+    "alignment_angles": {
+      "anchorFront_currentFront": 116.51560402654853,
+      "anchorFront_currentRear": 63.48439597345151,
+      "anchorRear_currentFront": 63.48439597345148,
+      "anchorRear_currentRear": 116.5156040265485
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorFront_currentRear",
+    "combo_matches": {
+      "anchorFront_currentFront": 146,
+      "anchorFront_currentRear": 890,
+      "anchorRear_currentFront": 518,
+      "anchorRear_currentRear": 89
+    }
+  },
+  {
+    "episode": 288,
+    "anchor": 4,
+    "step": 1275,
+    "gt_distance": 0.831818127470237,
+    "gt_dtheta_deg": 160.9623164866042,
+    "gt_best_combo": "anchorFront_currentRear",
+    "alignment_angles": {
+      "anchorFront_currentFront": 160.96231648660424,
+      "anchorFront_currentRear": 19.03768351339577,
+      "anchorRear_currentFront": 19.037683513395805,
+      "anchorRear_currentRear": 160.96231648660424
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorRear_currentFront",
+    "combo_matches": {
+      "anchorFront_currentFront": 117,
+      "anchorFront_currentRear": 560,
+      "anchorRear_currentFront": 1225,
+      "anchorRear_currentRear": 107
+    }
+  },
+  {
+    "episode": 1069,
+    "anchor": 9,
+    "step": 1525,
+    "gt_distance": 0.3216765839386266,
+    "gt_dtheta_deg": -160.4507081116603,
+    "gt_best_combo": "anchorRear_currentFront",
+    "alignment_angles": {
+      "anchorFront_currentFront": 160.45070811166028,
+      "anchorFront_currentRear": 19.549291888339752,
+      "anchorRear_currentFront": 19.54929188833971,
+      "anchorRear_currentRear": 160.45070811166028
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorFront_currentRear",
+    "combo_matches": {
+      "anchorFront_currentFront": 85,
+      "anchorFront_currentRear": 677,
+      "anchorRear_currentFront": 395,
+      "anchorRear_currentRear": 115
+    }
+  },
+  {
+    "episode": 93,
+    "anchor": 13,
+    "step": 3390,
+    "gt_distance": 1.2347256223818597,
+    "gt_dtheta_deg": -161.2158940248586,
+    "gt_best_combo": "anchorRear_currentFront",
+    "alignment_angles": {
+      "anchorFront_currentFront": 161.21589402485858,
+      "anchorFront_currentRear": 18.784105975141415,
+      "anchorRear_currentFront": 18.784105975141387,
+      "anchorRear_currentRear": 161.21589402485858
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorRear_currentFront",
+    "combo_matches": {
+      "anchorFront_currentFront": 286,
+      "anchorFront_currentRear": 616,
+      "anchorRear_currentFront": 699,
+      "anchorRear_currentRear": 258
+    }
+  },
+  {
+    "episode": 355,
+    "anchor": 13,
+    "step": 2645,
+    "gt_distance": 1.3460226889372224,
+    "gt_dtheta_deg": -145.07038750287862,
+    "gt_best_combo": "anchorRear_currentFront",
+    "alignment_angles": {
+      "anchorFront_currentFront": 145.07038750287862,
+      "anchorFront_currentRear": 34.92961249712143,
+      "anchorRear_currentFront": 34.929612497121376,
+      "anchorRear_currentRear": 145.07038750287862
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorRear_currentFront",
+    "combo_matches": {
+      "anchorFront_currentFront": 114,
+      "anchorFront_currentRear": 482,
+      "anchorRear_currentFront": 664,
+      "anchorRear_currentRear": 129
+    }
+  },
+  {
+    "episode": 762,
+    "anchor": 5,
+    "step": 1525,
+    "gt_distance": 1.6435228800643666,
+    "gt_dtheta_deg": -165.06586780012577,
+    "gt_best_combo": "anchorRear_currentFront",
+    "alignment_angles": {
+      "anchorFront_currentFront": 165.06586780012577,
+      "anchorFront_currentRear": 14.934132199874252,
+      "anchorRear_currentFront": 14.934132199874227,
+      "anchorRear_currentRear": 165.06586780012577
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorRear_currentFront",
+    "combo_matches": {
+      "anchorFront_currentFront": 81,
+      "anchorFront_currentRear": 627,
+      "anchorRear_currentFront": 769,
+      "anchorRear_currentRear": 142
+    }
+  },
+  {
+    "episode": 384,
+    "anchor": 5,
+    "step": 2225,
+    "gt_distance": 2.076880096047234,
+    "gt_dtheta_deg": 157.76372330248196,
+    "gt_best_combo": "anchorFront_currentRear",
+    "alignment_angles": {
+      "anchorFront_currentFront": 157.76372330248196,
+      "anchorFront_currentRear": 22.236276697518036,
+      "anchorRear_currentFront": 22.236276697518072,
+      "anchorRear_currentRear": 157.76372330248194
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorRear_currentFront",
+    "combo_matches": {
+      "anchorFront_currentFront": 72,
+      "anchorFront_currentRear": 254,
+      "anchorRear_currentFront": 422,
+      "anchorRear_currentRear": 82
+    }
+  },
+  {
+    "episode": 278,
+    "anchor": 10,
+    "step": 3105,
+    "gt_distance": 2.0990687665899572,
+    "gt_dtheta_deg": 164.53077808797417,
+    "gt_best_combo": "anchorFront_currentRear",
+    "alignment_angles": {
+      "anchorFront_currentFront": 164.5307780879742,
+      "anchorFront_currentRear": 15.469221912025834,
+      "anchorRear_currentFront": 15.469221912025851,
+      "anchorRear_currentRear": 164.5307780879742
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorFront_currentRear",
+    "combo_matches": {
+      "anchorFront_currentFront": 192,
+      "anchorFront_currentRear": 660,
+      "anchorRear_currentFront": 612,
+      "anchorRear_currentRear": 208
+    }
+  },
+  {
+    "episode": 1069,
+    "anchor": 3,
+    "step": 1670,
+    "gt_distance": 3.2899218697903674,
+    "gt_dtheta_deg": 55.39243569639238,
+    "gt_best_combo": "anchorFront_currentFront",
+    "alignment_angles": {
+      "anchorFront_currentFront": 55.39243569639238,
+      "anchorFront_currentRear": 124.60756430360757,
+      "anchorRear_currentFront": 124.60756430360763,
+      "anchorRear_currentRear": 55.39243569639238
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorFront_currentFront",
+    "combo_matches": {
+      "anchorFront_currentFront": 267,
+      "anchorFront_currentRear": 38,
+      "anchorRear_currentFront": 69,
+      "anchorRear_currentRear": 99
+    }
+  },
+  {
+    "episode": 278,
+    "anchor": 4,
+    "step": 3225,
+    "gt_distance": 3.247055429241618,
+    "gt_dtheta_deg": 162.0160755553586,
+    "gt_best_combo": "anchorFront_currentRear",
+    "alignment_angles": {
+      "anchorFront_currentFront": 162.0160755553586,
+      "anchorFront_currentRear": 17.983924444641403,
+      "anchorRear_currentFront": 17.983924444641403,
+      "anchorRear_currentRear": 162.0160755553586
+    },
+    "confidently_wrong": false,
+    "match_count_pick": "anchorRear_currentFront",
+    "combo_matches": {
+      "anchorFront_currentFront": 126,
+      "anchorFront_currentRear": 320,
+      "anchorRear_currentFront": 463,
+      "anchorRear_currentRear": 114
+    }
+  }
+]
