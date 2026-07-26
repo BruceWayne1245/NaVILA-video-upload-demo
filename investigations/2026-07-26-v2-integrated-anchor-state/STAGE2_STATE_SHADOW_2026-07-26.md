@@ -17,7 +17,8 @@ Stage 1 已证明 V2 必须从“末端否决器”前移到 promotion evidence/
 - ep5 的持久双不可信被稳定识别；scan request 从逐帧重复变成每个 current-anchor 生命周期仅一次；
 - ep491 的 anchor12 不再发生 11 次 quarantine / 10 次 re-entry 抖动，而是在两次完整隔离周期后，于第三次确认失信时发出一次 active-scan request；
 - ep5、ep491 的全部 Stage 2 decision 都是 `controller_effect=false`；
-- 结果足以进入小规模 **在线 shadow**，不足以批准 active quarantine、active scan 或 hint suppression。
+- 定向 **在线 shadow** 已完成并通过接线/安全性验收；
+- 结果仍不足以批准 active quarantine、active scan 或 hint suppression。
 
 ## 代码边界
 
@@ -221,16 +222,89 @@ ep491：
   - Active V2 artifact 仍是显式批准的原 policy；
   - Stage 2 runtime/config 与固定 SHA 完全一致。
 
+## 定向在线 shadow canary
+
+run tag：
+
+`reliability_v11_v2_integrated_anchor_state_stage2_shadow_canary_20260726`
+
+定向 episode：ep491。
+
+第一次 VLM bootstrap 在导入 `torch._dynamo` 时出现一次性 Python `re` 编译异常，没有启动 Isaac，也没有创建 result directory。随后在同一个 VLM env 中执行原位 import 自检通过，再进行唯一一次干净重试。该基础设施失败不计为 episode/model failure。
+
+干净重试在获得关键状态转移后由用户授权手动停止，结果目录已明确标记为：
+
+`..._ep491.partial.user_stopped.20260726T120759`
+
+它不进入 round-trip 成功率分母，也没有 `session_end`/completion artifact。
+
+实时 JSONL：
+
+- SHA256：`7e108e98b808f95a14218e22030ea4c4400b59af477ee6b4c3cd37dda9d93a41`
+- JSON events：330；
+- integrated promotion events：155；
+- integrated anchor-state events：155；
+- promotion/state attempt、step、current、next 逐条配对一致；
+- state sequence：1–155 连续；
+- `executed_vote != baseline_vote`：0；
+- promotion controller effect：0；
+- state controller effect：0；
+- session-start 中 policy SHA 与冻结 policy 完全一致。
+
+### 在线 action
+
+| Action | Count |
+|---|---:|
+| `accumulate_evidence` | 20 |
+| `admit_next_evidence_without_current_veto` | 2 |
+| `preserve_route1_vote` | 48 |
+| `temporarily_quarantine_next` | 4 |
+| `hold_temporary_quarantine` | 63 |
+| `request_active_scan_repeated_quarantine` | 1 |
+| `hold_active_scan_request` | 17 |
+
+关键状态转移：
+
+| sequence | step | current / next | transition |
+|---:|---:|---|---|
+| 3 | 2409 | 12 / 11 | admit next evidence without current veto |
+| 4 | 2414 | 12 / 11 | admit next evidence without current veto |
+| 17 | 2479 | 11 / 10 | current 生命周期变化并重置状态 |
+| 64 | 2714 | 10 / 9 | current 生命周期变化并重置状态 |
+| 67 | 2729 | 10 / 9 | temporary quarantine，cycle 1 |
+| 72 | 2759 | 10 / 8 | temporary quarantine，cycle 1 |
+| 78 | 2794 | 10 / 7 | temporary quarantine，cycle 1 |
+| 108 | 2944 | 10 / 7 | TTL 后第二次 temporary quarantine |
+| 138 | 3094 | 10 / 7 | repeated-quarantine active-scan request |
+
+sequence138 之后直到手动停止共 17 个 state event，全部为 `hold_active_scan_request`，没有第二次 request。最终 state 为：
+
+- current10：trusted；
+- next7：untrusted；
+- quarantine cycle：2；
+- scan trigger：`request_active_scan_repeated_quarantine`；
+- shadow quarantine chain：7、8、9；
+- controller effect：false。
+
+因此在线数据验证了三个离线回放无法单独证明的接线事实：
+
+1. Stage 2 observer 在真实 runtime 中与 integrated promotion event 一一对应；
+2. current 改变时生命周期状态按设计重置；
+3. repeated-quarantine request 在真实 event stream 中只触发一次，之后稳定锁存。
+
+拿到这些证据后继续运行不会增加本阶段架构结论，因此按“数据充分即停止”的原则终止 ep491。停止后单独核对并清理该 run 的 VLM/Isaac process group，最终 GPU compute process 列表为空，没有遗留显存；未终止任何其他实验。
+
 ## 下一步与批准边界
 
-下一步是仅运行小规模在线 shadow canary，优先 ep5/ep491，验证：
+定向在线 shadow 已验证：
 
-1. 实时事件数与 integrated promotion event 一一对应；
+1. 实时 state event 与 integrated promotion event 一一对应；
 2. `controller_effect` 始终为 0；
-3. scan request 在每个 current 生命周期只发一次；
-4. rolling window 和 quarantine cycle 不因实时缺失 assessment 产生异常重置；
-5. 日志末尾 summary 与逐事件 action count 一致；
-6. Route1 executed vote 与 Stage 1 baseline 保持一致。
+3. repeated-quarantine scan request 只发一次；
+4. rolling window、TTL、cycle history 和 current reset 在实时序列中工作；
+5. Route1 executed vote 与 Stage 1 baseline 始终一致。
+
+由于本次是获得证据后手动停止的 partial，没有正常 session-end summary；逐事件数据已经完整 flush，但“正常 episode 结束时 summary 与 action count 一致”仍应在未来一个自然完成的 shadow episode 中确认。这个剩余观测项不影响本次零控制权结论。
 
 当前明确 **不批准**：
 

@@ -374,6 +374,16 @@ if promote and next_est is not None:
 - ep491：第一版的 11 次 quarantine / 10 次 re-entry 抖动降为 2/2；第三次确认 anchor12 失信时产生一次 repeated-quarantine scan request；
 - 两个 episode 都没有 controller effect。
 
+定向在线 shadow（ep491）：
+
+- 155 组 promotion/state event 严格一一对应，sequence 连续；
+- `executed_vote != baseline_vote` 为 0，controller effect 为 0；
+- 实时观察到 4 次 temporary quarantine；
+- 同一 anchor 第二个 quarantine cycle 后只触发 1 次 repeated-quarantine scan request；
+- request 后 17 次事件全部为 hold，没有重复请求；
+- 数据充分后手动停止并标记为 `partial.user_stopped`，不进入成功率分母；
+- 对应 VLM/Isaac 进程组已清理，GPU 无残留 compute process。
+
 完整设计、逐事件转移、hash、测试和批准边界见：
 
 [`STAGE2_STATE_SHADOW_2026-07-26.md`](./STAGE2_STATE_SHADOW_2026-07-26.md)
