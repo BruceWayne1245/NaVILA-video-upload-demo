@@ -1,0 +1,39 @@
+{
+  "schema": "navila-route2-active50-queue-snapshot-v1",
+  "captured_at": "2026-07-27T10:48:09+01:00",
+  "service": {
+    "unit": "navila-route2-recovery-active50-20260727.service",
+    "description": "Route2_terminal_recovery_Active50_waits_for_Route1_AB",
+    "active_state": "active",
+    "sub_state": "running",
+    "main_pid": 1836069,
+    "started_at": "2026-07-27T10:39:12+01:00",
+    "control_group": "/user.slice/user-1006.slice/user@1006.service/app.slice/navila-route2-recovery-active50-20260727.service",
+    "user_systemd_linger": true,
+    "conversation_or_terminal_dependency": false
+  },
+  "route1_handoff": {
+    "master_pid": 1824426,
+    "master_active": true,
+    "downgrade_terminal_unique": 5,
+    "downgrade_expected": 50,
+    "diagnostic_terminal_unique": 0,
+    "diagnostic_expected": 50,
+    "route2_started": false
+  },
+  "route2": {
+    "run_tag": "reliability_v11_route2_terminal_recovery_active50_20260727",
+    "episode_manifest_sha256": "5c31cf60c05e64f97e1842a5d9d36cf95484ac775f0b9a50bd3afc9b93dac957",
+    "episode_count": 50,
+    "port_base": 64000,
+    "gpu_processes_started": false,
+    "active_scan_motor_authority": false
+  },
+  "frozen_artifact_sha256": {
+    "runner": "3bca3e9a1c99ce508d6f834f888136c0411c79dc765f3391b25d07912c4953ea",
+    "queue": "0095681d7bf0e8e7eb8ea9abb5c28bcebcf783ca95309b895ac8f8b7e407ac09",
+    "handoff_validator": "ed52bcdc28cfeceb29c5b9a250daef0e2524d40cb4c8500966c739843ad49811",
+    "consumer_policy": "eeb94179a5ca7a00df63e9ad9e0aa53bb366d762817ac51e87625500a044fd1e",
+    "controller_policy": "37ce8e234bc9f665b7bbdd278978c06c7129013a77506cb5f19c13ea546f8930"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "schema": "navila-v11-consumer-policy-v2",
+  "name": "irreversible-consumer-guard-v2-recovery-active50-20260727",
+  "mode": "active",
+  "enforcement_approved": true,
+  "identity_override_authorized": false,
+  "candidate_flow": "preserve_baseline_candidates",
+  "trust_field": "jointly_trusted",
+  "guarded_operations": [
+    "anchor_promotion",
+    "route_hint",
+    "hint_action_override",
+    "forced_stop",
+    "vlm_stop_veto"
+  ],
+  "untrusted_action": "veto_guarded_operation",
+  "bootstrap_action": "preserve_baseline_until_first_score",
+  "missing_assessment_action": "veto_guarded_operation",
+  "model_exception_action": "fail_open_disable_episode",
+  "promotion_veto_warning_streak": 10,
+  "promotion_veto_fallback_streak": 30,
+  "approval_scope": {
+    "episode_manifest_sha256": "5c31cf60c05e64f97e1842a5d9d36cf95484ac775f0b9a50bd3afc9b93dac957",
+    "max_completed_episodes": 50,
+    "approved_date": "2026-07-27",
+    "approved_by": "user_in_conversation_schedule_50ep"
+  },
+  "notes": "Explicitly approved for the fixed 50-episode Route2 cohort. Fresh one-hop geometry-reconstructed evidence may authorize route_hint and hint_action_override from the trusted source anchor's bearing assessment. Derived distance never authorizes forced_stop. A Route-1 VLM stop veto is preserved. Raw candidates, reversible relocalization updates, model thresholds, and anchor identity remain unchanged."
+}

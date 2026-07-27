@@ -1,0 +1,28 @@
+{
+  "schema": "navila-route2-terminal-recovery-verification-v1",
+  "date": "2026-07-27",
+  "github_base_head": "6a603b421572675df5e249c14cd57d495ce64afa",
+  "tests": {
+    "focused_integration": {
+      "passed": 71,
+      "failed": 0
+    },
+    "full_candidate": {
+      "passed": 97,
+      "failed": 1,
+      "known_failure": "missing experiments/2026-07-23-prospective-results/prospective_v1_1.npz fixture",
+      "regression_from_this_change": false
+    },
+    "py_compile": "pass",
+    "runner_bash_syntax": "pass",
+    "active50_preflight": "pass",
+    "out_of_scope_episode_999": "rejected_before_launch"
+  },
+  "core_sha256": {
+    "round_trip_eval.py": "baa24b746bdbaa6cee3d5434fe2adc7004f94ff90e349f7b4c8af0d309cdd51b",
+    "route_memory_agent.py": "d1f1c5f924fd05e346ef9c027977046290f42539c124c0e37c1d407888184cb1",
+    "v11_consumer_policy_v2.py": "b821ac1717abe94c0ccf22645d562a6fcc3967d2406798d762361b137bf3fde8",
+    "v11_integrated_anchor_state.py": "23cea0bedaf69434a4aa0d7b6abe00d1a361b49a9eaa82764c2f623cf3462065",
+    "v11_active_scan_plan.py": "1b98061049ed9b19271f572c1f1819204cba1046a94e603dbd88c43d46159d6f"
+  }
+}

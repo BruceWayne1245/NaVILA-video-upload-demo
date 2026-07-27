@@ -1,0 +1,22 @@
+{
+  "schema": "navila-v11-integrated-anchor-state-shadow-v1",
+  "name": "v11_integrated_anchor_state_recovery_shadow_v1",
+  "mode": "shadow",
+  "enforcement_approved": false,
+  "identity_override_authorized": false,
+  "candidate_direction": "descending_anchor_index",
+  "trusted_confirm_attempts": 2,
+  "trust_window_attempts": 8,
+  "trusted_fraction_threshold": 0.75,
+  "strong_untrusted_pose_probability_threshold": 0.9,
+  "strong_untrusted_window_attempts": 4,
+  "strong_untrusted_min_observations": 3,
+  "strong_untrusted_min_count": 3,
+  "both_untrusted_scan_attempts": 8,
+  "active_scan_cancel_trusted_attempts": 3,
+  "quarantine_ttl_attempts": 30,
+  "max_quarantine_chain": 4,
+  "max_quarantine_cycles_per_anchor": 2,
+  "trusted_current_geometry_fallback_enabled": true,
+  "trusted_current_geometry_fallback_attempts": 12
+}

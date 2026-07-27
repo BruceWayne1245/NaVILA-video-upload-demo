@@ -1,0 +1,14 @@
+{
+  "schema": "navila-v11-active-scan-plan-v1",
+  "name": "v11_active_scan_plan_shadow_v1",
+  "mode": "shadow",
+  "enforcement_approved": false,
+  "motor_rotation_authorized": false,
+  "motor_translation_authorized": false,
+  "stop_authorized": false,
+  "target_yaw_offsets_deg": [-90.0, -60.0, -30.0, 30.0, 60.0, 90.0, 0.0],
+  "angular_velocity_deg_s": 30.0,
+  "recovery_confirm_assessments": 2,
+  "max_scan_cycles": 1,
+  "failure_action": "safe_hold_or_separately_approved_micro_translation"
+}

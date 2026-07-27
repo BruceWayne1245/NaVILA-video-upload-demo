@@ -1,0 +1,40 @@
+{
+  "schema": "navila-route2-stage32-result-freeze-v1",
+  "frozen_at": "2026-07-27T10:48:09+01:00",
+  "run_tag": "reliability_v11_v2_integrated_candidate_controller_stage32_active_5ep_20260726",
+  "approved_episode_ids": [5, 205, 491, 500, 658],
+  "valid_completions": [
+    {
+      "episode_idx": 5,
+      "outbound_success": true,
+      "return_success": true,
+      "round_trip_success": true,
+      "distance_to_start_m": 2.6850292682647705,
+      "trajectory_records": 6177
+    },
+    {
+      "episode_idx": 205,
+      "outbound_success": true,
+      "return_success": false,
+      "round_trip_success": false,
+      "distance_to_start_m": 4.476162910461426,
+      "minimum_distance_to_start_m": 2.6558609008789062,
+      "trajectory_records": 3652,
+      "capture_completion_sha256": {
+        "trajectory": "b565329f4b830320bd407508fc976d42f0297df73cb0ee76be6a835f3774aba1",
+        "measurement": "aed3f3fa991ccb1cfd44100ce744c3523035ee1364f8ed17dcf9717494ad6a60",
+        "v11_shadow": "5b3312999cb02753d9854738cb44261a5c5f1396c49fe811af744de26d182e3b",
+        "v11_consumer_v2": "30b11a29cd69ae6cf06918184edfef6513d0654ce58e4f53c05d5d34ef9a71b1"
+      }
+    }
+  ],
+  "infrastructure_failures": [
+    {
+      "episode_idx": 491,
+      "exit_code": 98,
+      "failure": "vlm_bootstrap_failed_no_result_directory"
+    }
+  ],
+  "not_started_due_to_runner_abort": [500, 658],
+  "statistics_warning": "Only two valid task completions exist. Do not interpret 1/2 as a cohort success-rate estimate."
+}

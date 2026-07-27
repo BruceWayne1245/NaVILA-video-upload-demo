@@ -1,0 +1,67 @@
+{
+  "schema": "navila-route2-ep205-terminal-recovery-evidence-v1",
+  "source_run_tag": "reliability_v11_v2_integrated_candidate_controller_stage32_active_5ep_20260726",
+  "episode_idx": 205,
+  "physical_result": {
+    "outbound_success": true,
+    "return_success": false,
+    "round_trip_success": false,
+    "first_under_3m": {
+      "step": 2973,
+      "distance_to_start_m": 2.9963936805725098,
+      "nearest_return_path_index": 3,
+      "nearest_return_path_lateral_distance_m": 0.03224613144993782
+    },
+    "minimum_distance": {
+      "step": 3236,
+      "distance_to_start_m": 2.6558609008789062,
+      "nearest_return_path_index": 3
+    },
+    "final_stop": {
+      "step": 3651,
+      "distance_to_start_m": 4.476162910461426,
+      "nearest_return_path_index": 4,
+      "nearest_return_path_lateral_distance_m": 3.710336446762085
+    }
+  },
+  "recovery_state_replay": {
+    "current_anchor_index": 2,
+    "next_anchor_index": 1,
+    "attempt_range_inclusive": [247, 258],
+    "step_range_inclusive": [3179, 3234],
+    "geometry_fallback_budget_assessments": 12,
+    "next_anchor_quarantined_during_window": false
+  },
+  "representative_assessment": {
+    "attempt": 251,
+    "step": 3199,
+    "source_anchor": {
+      "index": 2,
+      "jointly_trusted": true,
+      "bearing_trusted": true,
+      "p_pose_bad": 0.002042273015202374
+    },
+    "target_anchor": {
+      "index": 1,
+      "jointly_trusted": false,
+      "bearing_trusted": false,
+      "p_pose_bad": 0.9843259336935185
+    },
+    "legacy_hint_action_allowed": false,
+    "recovery_hint_action_allowed": true,
+    "recovery_authority_anchor_index": 2,
+    "recovery_trust_field": "bearing_trusted",
+    "derived_forced_stop_allowed": false,
+    "vlm_stop_veto_preserved": true
+  },
+  "real_reconstructed_vector": {
+    "step": 3201,
+    "predicted_distance_m": 2.2016,
+    "truth_distance_m": 1.9259,
+    "absolute_distance_error_m": 0.2757,
+    "predicted_bearing_deg": -75.256,
+    "truth_bearing_deg": -76.298,
+    "absolute_bearing_error_deg": 1.042
+  },
+  "interpretation": "The first 3m entry was not sufficient evidence to stop on the return-path semantics. A subsequent bad next anchor removed legacy assistance despite a trustworthy current anchor. Fresh one-hop geometry recovers useful bearing authority without granting derived stop authority."
+}
