@@ -1,0 +1,17 @@
+{
+  "schema": "navila-v11-anchor-support-recovery-active-v1",
+  "mode": "active",
+  "enforcement_approved": false,
+  "identity_semantics": "guidance_support_not_localization",
+  "trust_window_attempts": 3,
+  "trusted_min_observations": 2,
+  "trusted_min_count": 2,
+  "strong_untrusted_window_attempts": 3,
+  "strong_untrusted_min_observations": 2,
+  "strong_untrusted_min_count": 2,
+  "strong_untrusted_pose_probability_threshold": 0.8,
+  "pair_recovery_offsets": [[1, 0], [1, -1], [2, -1], [2, -2], [2, -3]],
+  "probe_direction": "failed_next_minus_one_to_anchor_zero",
+  "scan_role": "shadow_observer_only",
+  "notes": "TEMPLATE ONLY. Requires an independently reviewed copy with enforcement_approved=true plus the runtime active-arm flag."
+}
