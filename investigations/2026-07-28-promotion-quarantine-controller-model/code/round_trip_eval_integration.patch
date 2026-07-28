@@ -1,0 +1,185 @@
+Hand-assembled patch of this session's additions to scripts/round_trip_eval.py
+(NaVILA-Bench). NOT a `git diff` output: that working copy has other,
+unrelated uncommitted changes already in progress from other work, so a raw
+diff would mix them in. These are exactly the three edits made for the
+promotion-controller shadow integration (Phase 0-2 of INTEGRATION_PLAN.md),
+each shown as a unified-diff-style hunk against its surrounding context, in
+file order. Apply by hand / use as a precise change-log, not `patch -p1`.
+
+=== Hunk 1: two new CLI flags, inserted right after
+=== --sequential_pair_promotion_use_pre_closure_estimates ===
+
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@
+ parser.add_argument(
++    "--sequential_pair_promotion_model_shadow",
++    type=str,
++    default="",
++    help="(2026-07-28) Off by default (empty path). Path to a PromotionModelBundle artifact "
++         "(scripts/promotion_controller_runtime.py) -- a dwell-history-aware promote/quarantine/wait "
++         "classifier trained offline on covisibility_records + ground-truth anchor poses (see "
++         "investigations/2026-07-28-promotion-quarantine-controller-model/). When set, every "
++         "sequential_pair relocalization attempt is ALSO scored by this model and logged to "
++         "<result_dir>/promotion_controller_shadow.jsonl alongside what the real heuristic "
++         "(candidate_promote/_record_next_anchor_trend/bounded_evidence) actually decided. This is "
++         "pure observation: enforcement_enabled/controller_effect are always False in the log, nothing "
++         "here can change anchor identity, promotion, quarantine, hints, or motors -- mirrors "
++         "--reliability_v11_decision_shadow's shadow-only contract exactly. See "
++         "investigations/2026-07-28-promotion-quarantine-controller-model/INTEGRATION_PLAN.md for the "
++         "planned Phase 3 (opt-in live enforcement) that would eventually consume this bundle for real; "
++         "not implemented yet -- PromotionModelBundle.load() only accepts mode='shadow' today.",
++)
++parser.add_argument(
++    "--sequential_pair_promotion_model_quarantine_threshold",
++    type=float,
++    default=0.65,
++    help="Only used with --sequential_pair_promotion_model_shadow. proba_quarantine threshold for the "
++         "shadow PromotionDecisionPolicy (F1-optimal region found offline was 0.6-0.7; see FINDINGS.md "
++         "section 4.1). Purely logged in shadow mode -- does not affect any real decision.",
++)
++parser.add_argument(
+     "--sequential_pair_short_baseline_disambiguation",
+     action="store_true",
+     default=False,
+
+=== Hunk 2: shadow session construction, inserted right after the existing
+=== v11_shadow_last_attempt = None initialization ===
+
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@
+     v11_shadow_session = None
+     v11_shadow_last_attempt = None
++    promotion_shadow_session = None
++    if args_cli.sequential_pair_promotion_model_shadow:
++        from promotion_controller_runtime import (
++            PromotionDecisionPolicy,
++            PromotionModelBundle,
++            PromotionShadowJsonlSession,
++        )
++        promotion_bundle = PromotionModelBundle.load(
++            args_cli.sequential_pair_promotion_model_shadow, mode="shadow"
++        )
++        promotion_shadow_session = PromotionShadowJsonlSession(
++            promotion_bundle,
++            episode_key=(
++                f"{args_cli.result_suffix or 'round_trip'}::"
++                f"ep{int(args_cli.episode_idx)}"
++            ),
++            log_path=os.path.join(result_dir, "promotion_controller_shadow.jsonl"),
++            decision_policy=PromotionDecisionPolicy(
++                quarantine_threshold=args_cli.sequential_pair_promotion_model_quarantine_threshold
++            ),
++            physical_episode_id=int(args_cli.episode_idx),
++            scene_id=os.path.splitext(
++                os.path.basename(str(episode.get("scene_id") or "unknown"))
++            )[0],
++        )
++        print(
++            "[promotion-shadow] initialized "
++            f"bundle_sha256={getattr(promotion_bundle, 'source_artifact_sha256', None)} "
++            f"quarantine_threshold={args_cli.sequential_pair_promotion_model_quarantine_threshold} "
++            "enforcement=False controller_effect=False",
++            flush=True,
++        )
+     if (
+         args_cli.reliability_v11_decision_shadow
+         and not args_cli.reliability_v11_online_shadow
+
+=== Hunk 3: scoring call inside _sequential_pair_relocalizer_with_v11_shadow,
+=== right after the existing v11_shadow_session.score_records(...) block ===
+
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@
+         def _sequential_pair_relocalizer_with_v11_shadow(descriptor, anchors):
+             nonlocal v11_shadow_last_attempt
+             records = route_relocalization_diagnostics.setdefault(
+                 "covisibility_records", []
+             )
+             record_start = len(records)
++            current_idx_before = route_agent._target_anchor_index
++            quarantined_before = set(route_agent._quarantined_anchor_indices)
+             result = sequential_pair_anchor_relocalization(
+                 descriptor,
+                 *route_agent.sequential_target_anchor_pair(),
+                 diagnostics=route_relocalization_diagnostics,
+                 return_candidates=True,
+                 capture_match_snapshots=args_cli.capture_anchor_match_snapshots,
+                 icp_objective=args_cli.route_local_map_icp_objective,
+                 voxel_size_m=local_map_voxel_size_m,
+                 max_points=local_map_max_points,
+                 quality_policy=args_cli.route_local_map_quality_policy,
+                 loftr_rear_yaw_check=args_cli.sequential_pair_loftr_rear_yaw_check,
+                 vision_disagreement_mode=args_cli.sequential_pair_vision_disagreement_mode,
+                 vision_disagreement_confidence_penalty=args_cli.sequential_pair_vision_disagreement_confidence_penalty,
+             )
+             if v11_shadow_session is not None:
+                 new_records = records[record_start:]
+                 v11_shadow_session.score_records(
+                     new_records,
+                     step=int(num_steps),
+                 )
+                 if new_records:
+                     v11_shadow_last_attempt = int(new_records[-1]["attempt"])
++            if promotion_shadow_session is not None:
++                # NOTE: called AFTER sequential_pair_anchor_relocalization / route_agent's own
++                # update_relocalization has already run this attempt (route_agent.
++                # update_return_motion, which calls update_relocalization, executes before this
++                # relocalizer closure inside the interval-gated block) -- so current_idx_before/
++                # quarantined_before were snapshotted before THIS call but route_agent's own
++                # decision for this exact attempt has already landed by the time we compare. This
++                # is fine for shadow logging (we're comparing outcomes, not gating anything on
++                # them) but means "before" here is "before this closure ran", not "before this
++                # attempt's heuristic decision" -- do not repurpose this comparison for anything
++                # that needs strict pre/post-decision ordering without re-checking that assumption.
++                new_records = records[record_start:]
++                existing_decision = None
++                if new_records:
++                    current_idx_after = route_agent._target_anchor_index
++                    if current_idx_after != current_idx_before:
++                        existing_decision = {"action": "promote", "from": current_idx_before, "to": current_idx_after}
++                    else:
++                        newly_quarantined = set(route_agent._quarantined_anchor_indices) - quarantined_before
++                        existing_decision = (
++                            {"action": "quarantine", "indices": sorted(newly_quarantined)}
++                            if newly_quarantined else {"action": "wait"}
++                        )
++                    promotion_shadow_session.score_attempt(
++                        step=int(num_steps),
++                        attempt=int(new_records[-1]["attempt"]),
++                        records=new_records,
++                        existing_heuristic_decision=existing_decision,
++                    )
+             return result
+
+=== Hunk 4: close the shadow session and capture its summary, right before
+=== the existing v11_shadow_session.close() ===
+
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@
+     route_memory_summary = route_agent.summary()
++    promotion_shadow_summary = (
++        promotion_shadow_session.close() if promotion_shadow_session is not None else None
++    )
+     if v11_shadow_session is not None:
+         v11_shadow_session.close()
+
+=== Hunk 5: echo the shadow config + summary into the measurement JSON,
+=== next to the existing reliability_v11_decision_shadow_requested key ===
+
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@
+         "reliability_v11_decision_shadow_requested": bool(
+             args_cli.reliability_v11_decision_shadow
+         ),
++        "sequential_pair_promotion_model_shadow": (
++            args_cli.sequential_pair_promotion_model_shadow or None
++        ),
++        "sequential_pair_promotion_model_quarantine_threshold": float(
++            args_cli.sequential_pair_promotion_model_quarantine_threshold
++        ),
++        "sequential_pair_promotion_model_shadow_summary": promotion_shadow_summary,
