@@ -1,4 +1,4 @@
-7ff435eef47914794ad61e9d27bb727ceeeb43f2015e15164262d531bbd01e95  investigations/2026-07-28-terminal-stop-evidence-state-machine/README.md
+5b87eaa4f5eac75b5f2fc21868b6e78853d9c310367a853259ade38546c33e6f  investigations/2026-07-28-terminal-stop-evidence-state-machine/README.md
 c87f878218e5f56704ae05884afc89b284681b8ce5aeaae8b25945da63388bf1  investigations/2026-07-28-terminal-stop-evidence-state-machine/code/policy_v2_live_candidate/scripts/stop_gate.py
 217abb508892462445351066baa36f01fe3f18b93a31d04961c5e7eda199fa52  investigations/2026-07-28-terminal-stop-evidence-state-machine/code/policy_v2_live_candidate/scripts/round_trip_eval.py
 7f858fe734e6d3fc5196d6c0af56a360246a299317341918eb996a4d628162ce  investigations/2026-07-28-terminal-stop-evidence-state-machine/code/policy_v2_live_candidate/scripts/route_memory_agent.py

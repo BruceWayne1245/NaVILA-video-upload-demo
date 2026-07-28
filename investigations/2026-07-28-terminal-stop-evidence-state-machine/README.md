@@ -10,7 +10,8 @@ candidate:
 `/home/teambruce/navila-reliability-v1_1-anchor-support-recovery-20260728`
 
 The implementation covers the failure mechanism found in episodes 19, 89, 95,
-196, 205, 264, 276, 310 and 490.  It has not been launched in Isaac Sim yet.
+196, 205, 264, 276, 310 and 490.  It was launched in a two-episode Isaac Sim
+smoke test on 2026-07-28; the results are recorded below.
 
 The central invariant is:
 
@@ -249,3 +250,36 @@ Before a larger batch:
    or trusted-next path completes quickly;
 5. verify `safe_fail` is reported as failure by all downstream aggregators;
 6. only then run the nine-episode stop cohort and a broader canary.
+
+## 2026-07-28 smoke result
+
+The exact active candidate, two-episode approval, locked-hash runner and full
+smoke report are in:
+
+`/home/teambruce/navila-reliability-v1_1-anchor-support-recovery-20260728/experiments/2026-07-28-anchor-stop-smoke/README.md`
+
+### ep205: complete pass
+
+- evaluator exit code 0;
+- completion validator passed;
+- outbound, return and round trip all succeeded;
+- final true distance to start: 0.8420 m;
+- 46 stop-gate decisions: 45 `pass`, one final `forced`;
+- the gate remained `navigating/pass` through the historical premature-stop
+  region and forced arrival only after a fresh trusted raw-next near streak;
+- live recovery exercised `next_only`, `reconstruct_next` and
+  `pair_recovery`, confirming that the four changes are in the active call
+  chain.
+
+### ep490: invalid/incomplete
+
+ep490 entered return and logged normal gate/recovery decisions through step
+2451, then Isaac/Kit closed the application before measurement and completion
+were written.  There was no Python traceback and the child reported exit code
+0, but `capture_completion.json` is absent.  The validator therefore failed,
+as required.
+
+This attempt is not evidence for or against terminal correctness because it
+did not reach the historical stale-stop region.  No larger batch should be
+started until ep490 or ep89 completes and demonstrates either positive
+trusted-next/A0 arrival or bounded terminal `safe_fail`.
