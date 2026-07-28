@@ -90,14 +90,18 @@ At each pair:
 
 The system enters `vlm_only_probing`.
 
-All route-derived active consumers are paused:
+All route-derived navigation consumers are paused:
 
 - route hint injection;
 - hint-action override;
 - stuck/wedge scripted recovery;
-- the complete stop gate, including veto, forced stop and defer.
 
-The VLM command, including a VLM-issued STOP, passes through unchanged.
+The VLM navigation command passes through unchanged.  A VLM-issued STOP does
+not bypass terminal safety: the follow-up investigation
+`investigations/2026-07-28-terminal-stop-evidence-state-machine/` supersedes
+the earlier stop-gate behavior described here.  Terminal verification remains
+active in VLM-only mode and requires independent positive evidence before it
+can report success.
 
 At the same time, ICP and Route-2 scoring run on every forward anchor from the
 original failed `next - 1` down to anchor 0.  These candidates are probes only:
@@ -147,7 +151,8 @@ Therefore scan shadow enabled/disabled changes logs only.
   - active-mode validation and explicit arming;
   - scores expanded probes;
   - atomically applies support directives;
-  - pauses all route consumers in VLM-only mode;
+- pauses route-derived navigation consumers in VLM-only mode while keeping the
+  terminal evidence state machine active;
   - logs every support transition and VLM-only pass-through.
 
 The checked-in policy is deliberately an unapproved template.  A reviewed copy

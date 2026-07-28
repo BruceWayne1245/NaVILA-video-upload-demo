@@ -1,0 +1,453 @@
+{
+  "authorized_inside_resumes": [],
+  "dynamics_replay": false,
+  "episodes": [
+    {
+      "decisions": [
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "verifying",
+          "new_state": "terminal_verify",
+          "query_step": 1901,
+          "reason": "terminal_evidence_unknown_resampling",
+          "route2_trusted": false,
+          "true_distance_m": 5.395129680633545
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "deferred",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 1911,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 5.401698112487793
+        }
+      ],
+      "episode": 19,
+      "final_new_state": "terminal_blind",
+      "historical_counts": {
+        "deferred": 1,
+        "vetoed": 1
+      },
+      "new_counts": {
+        "resume": 1,
+        "verifying": 1
+      },
+      "recorded_stop_queries": 2
+    },
+    {
+      "decisions": [
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "verifying",
+          "new_state": "terminal_verify",
+          "query_step": 1376,
+          "reason": "terminal_evidence_unknown_resampling",
+          "route2_trusted": false,
+          "true_distance_m": 2.24349308013916
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 1386,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 2.2376303672790527
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 1396,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 2.2354257106781006
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 1406,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 2.235032081604004
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 1416,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 2.235360860824585
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 1501,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 2.183849334716797
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 1511,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 2.181035280227661
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 1521,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 2.188570499420166
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "safe_fail",
+          "new_state": "safe_fail",
+          "query_step": 1531,
+          "reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+          "route2_trusted": false,
+          "true_distance_m": 2.1934850215911865
+        }
+      ],
+      "episode": 89,
+      "final_new_state": "safe_fail",
+      "historical_counts": {
+        "vetoed": 9
+      },
+      "new_counts": {
+        "resume": 7,
+        "safe_fail": 1,
+        "verifying": 1
+      },
+      "recorded_stop_queries": 9
+    },
+    {
+      "decisions": [
+        {
+          "evidence_authority": "reconstruction_out_of_bounds",
+          "historical_decision": "deferred",
+          "new_decision": "verifying",
+          "new_state": "terminal_verify",
+          "query_step": 3501,
+          "reason": "terminal_evidence_unknown_resampling",
+          "route2_trusted": true,
+          "true_distance_m": 4.195143699645996
+        }
+      ],
+      "episode": 95,
+      "final_new_state": "terminal_verify",
+      "historical_counts": {
+        "deferred": 1
+      },
+      "new_counts": {
+        "verifying": 1
+      },
+      "recorded_stop_queries": 1
+    },
+    {
+      "decisions": [
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "verifying",
+          "new_state": "terminal_verify",
+          "query_step": 3276,
+          "reason": "terminal_evidence_unknown_resampling",
+          "route2_trusted": false,
+          "true_distance_m": 4.519408226013184
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "deferred",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 3286,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 4.522509574890137
+        }
+      ],
+      "episode": 196,
+      "final_new_state": "terminal_blind",
+      "historical_counts": {
+        "deferred": 1,
+        "vetoed": 1
+      },
+      "new_counts": {
+        "resume": 1,
+        "verifying": 1
+      },
+      "recorded_stop_queries": 2
+    },
+    {
+      "decisions": [
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "accepted",
+          "new_decision": "verifying",
+          "new_state": "terminal_verify",
+          "query_step": 3226,
+          "reason": "terminal_evidence_unknown_resampling",
+          "route2_trusted": false,
+          "true_distance_m": 3.9032673835754395
+        }
+      ],
+      "episode": 205,
+      "final_new_state": "terminal_verify",
+      "historical_counts": {
+        "accepted": 1
+      },
+      "new_counts": {
+        "verifying": 1
+      },
+      "recorded_stop_queries": 1
+    },
+    {
+      "decisions": [
+        {
+          "evidence_authority": "trusted_next_raw",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "navigating",
+          "query_step": 3151,
+          "reason": "fresh_authorized_interval_definitely_outside",
+          "route2_trusted": true,
+          "true_distance_m": 4.782472610473633
+        },
+        {
+          "evidence_authority": "last_trusted_motion_envelope",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_verify",
+          "query_step": 3311,
+          "reason": "last_trusted_envelope_still_definitely_outside",
+          "route2_trusted": true,
+          "true_distance_m": 3.5468053817749023
+        },
+        {
+          "evidence_authority": "last_trusted_motion_envelope",
+          "historical_decision": "deferred",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 3321,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": true,
+          "true_distance_m": 3.54179310798645
+        }
+      ],
+      "episode": 264,
+      "final_new_state": "terminal_blind",
+      "historical_counts": {
+        "deferred": 1,
+        "vetoed": 2
+      },
+      "new_counts": {
+        "resume": 3
+      },
+      "recorded_stop_queries": 3
+    },
+    {
+      "decisions": [
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "deferred",
+          "new_decision": "verifying",
+          "new_state": "terminal_verify",
+          "query_step": 5226,
+          "reason": "terminal_evidence_unknown_resampling",
+          "route2_trusted": false,
+          "true_distance_m": 9.419047355651855
+        }
+      ],
+      "episode": 276,
+      "final_new_state": "terminal_verify",
+      "historical_counts": {
+        "deferred": 1
+      },
+      "new_counts": {
+        "verifying": 1
+      },
+      "recorded_stop_queries": 1
+    },
+    {
+      "decisions": [
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "vetoed",
+          "new_decision": "verifying",
+          "new_state": "terminal_verify",
+          "query_step": 3551,
+          "reason": "terminal_evidence_unknown_resampling",
+          "route2_trusted": false,
+          "true_distance_m": 3.044613838195801
+        },
+        {
+          "evidence_authority": "untrusted",
+          "historical_decision": "deferred",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 3561,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": false,
+          "true_distance_m": 3.049933910369873
+        }
+      ],
+      "episode": 310,
+      "final_new_state": "terminal_blind",
+      "historical_counts": {
+        "deferred": 1,
+        "vetoed": 1
+      },
+      "new_counts": {
+        "resume": 1,
+        "verifying": 1
+      },
+      "recorded_stop_queries": 2
+    },
+    {
+      "decisions": [
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "verifying",
+          "new_state": "terminal_verify",
+          "query_step": 5251,
+          "reason": "terminal_evidence_unknown_resampling",
+          "route2_trusted": true,
+          "true_distance_m": 1.4950392246246338
+        },
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 5261,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": true,
+          "true_distance_m": 1.4520924091339111
+        },
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 5271,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": true,
+          "true_distance_m": 1.3983200788497925
+        },
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 5281,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": true,
+          "true_distance_m": 1.344506025314331
+        },
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 5291,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": true,
+          "true_distance_m": 1.2959402799606323
+        },
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 5301,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": true,
+          "true_distance_m": 1.2467173337936401
+        },
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 5311,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": true,
+          "true_distance_m": 1.187501311302185
+        },
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "resume",
+          "new_state": "terminal_blind",
+          "query_step": 5321,
+          "reason": "bounded_vlm_only_navigation_and_a0_route_probing",
+          "route2_trusted": true,
+          "true_distance_m": 1.1446127891540527
+        },
+        {
+          "evidence_authority": "stale",
+          "historical_decision": "vetoed",
+          "new_decision": "safe_fail",
+          "new_state": "safe_fail",
+          "query_step": 5331,
+          "reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+          "route2_trusted": true,
+          "true_distance_m": 1.0977534055709839
+        }
+      ],
+      "episode": 490,
+      "final_new_state": "safe_fail",
+      "historical_counts": {
+        "vetoed": 9
+      },
+      "new_counts": {
+        "resume": 7,
+        "safe_fail": 1,
+        "verifying": 1
+      },
+      "recorded_stop_queries": 9
+    }
+  ],
+  "home_visual_signal_replayed": false,
+  "new_decision_counts": {
+    "resume": 20,
+    "safe_fail": 2,
+    "verifying": 8
+  },
+  "schema": "navila-terminal-stop-gate-counterfactual-v1",
+  "scope": [
+    19,
+    89,
+    95,
+    196,
+    205,
+    264,
+    276,
+    310,
+    490
+  ],
+  "unsafe_outside_accepts": []
+}
