@@ -76,6 +76,8 @@ Checked against the full 96,206-row dataset:
 ## 5. Artifacts
 
 - `code/extract_dwell_dataset.py`, `code/train_model.py`, `code/oof_check.py`, `code/calibrate_and_investigate_oscillation.py` — full pipeline, reproducible from already-saved `eval_results/` (no Isaac/VLM).
-- The 96 MB labeled dataset CSV and the prototype `.pkl` are **not** checked into this repo (too large, and a bare pickle is not a durable/versioned artifact — see `INTEGRATION_PLAN.md` §1 for why a production version needs a proper bundle format, not this prototype file).
+- `artifacts/dwell_dataset_with_oof.csv.gz` (21 MB, gzip -9 of the 75 MB labeled dataset including out-of-fold predictions) — the full 96,206-row dataset used for every table in this document, so the numbers above are checkable without re-running the 35s extraction pass.
+- `artifacts/promotion_controller_v1_2026-07-28.pkl` — the trained model, now wrapped as a real `PromotionModelBundle` (hash-verified, self-describing `feature_names`; sha256 `a2b8e6e8c36454cd7b886c1dea06a4c9378058f858acb79066acc4a19d2abdf5`), not the bare prototype pickle this section originally said was being withheld. See `INTEGRATION_PLAN.md`'s "Implementation status" section — this is now the real Phase-0 artifact, produced by `code/promotion_controller_runtime.py`.
+- `code/promotion_controller_runtime.py`, `code/test_promotion_controller_runtime.py`, `code/round_trip_eval_integration.patch` — the Phase 0-2 integration code (bundle format, causal online feature builder, decision policy, fail-open shadow session, and the exact `round_trip_eval.py` diff that wires a `--sequential_pair_promotion_model_shadow` flag to it). 18/18 new unit tests pass; full pre-existing 350-test suite reruns clean.
 
-See `INTEGRATION_PLAN.md` for how this plugs into `route_memory_agent.py`/`round_trip_eval.py`.
+See `INTEGRATION_PLAN.md` for how this plugs into `route_memory_agent.py`/`round_trip_eval.py`, and its "Implementation status" section for what's built vs. still pending (a live shadow-mode run — not done yet, GPU was occupied).
