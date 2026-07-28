@@ -24,6 +24,7 @@ import time
 import base64
 import io
 import socket
+import traceback
 import json
 
 from omni.isaac.lab.app import AppLauncher
@@ -1223,6 +1224,7 @@ parser.add_argument("--stop_gate_min_confidence", type=float, default=0.5, help=
 parser.add_argument("--stop_gate_accept_confirm_steps", type=int, default=2, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_verify_queries", type=int, default=2, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_blind_max_queries", type=int, default=8, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_pre_stop_blind_trigger_queries", type=int, default=4, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_max_evidence_age_updates", type=int, default=25, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_visual_confirm_steps", type=int, default=2, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_home_visual_max_distance_m", type=float, default=1.5, help=argparse.SUPPRESS)
@@ -3837,6 +3839,10 @@ def main():
                                 requested_next_index=requested_pair[1],
                                 attempt=v11_shadow_last_attempt,
                                 step=int(num_steps),
+                                available_anchor_indices=tuple(
+                                    int(anchor.index)
+                                    for anchor in route_agent.anchors
+                                ),
                             )
                         )
                         route_agent.apply_v11_anchor_support_directive(
@@ -3979,6 +3985,13 @@ def main():
             accept_confirm_steps=int(getattr(args_cli, "stop_gate_accept_confirm_steps", 2)),
             verify_queries=int(getattr(args_cli, "stop_gate_verify_queries", 2)),
             blind_max_queries=int(getattr(args_cli, "stop_gate_blind_max_queries", 8)),
+            pre_stop_blind_trigger_queries=int(
+                getattr(
+                    args_cli,
+                    "stop_gate_pre_stop_blind_trigger_queries",
+                    4,
+                )
+            ),
             max_evidence_age_updates=int(
                 getattr(args_cli, "stop_gate_max_evidence_age_updates", 25)
             ),
@@ -3991,6 +4004,8 @@ def main():
             f"accept_confirm_steps={stop_gate.accept_confirm_steps} "
             f"verify_queries={stop_gate.verify_queries} "
             f"blind_max_queries={stop_gate.blind_max_queries} "
+            f"pre_stop_blind_trigger_queries="
+            f"{stop_gate.pre_stop_blind_trigger_queries} "
             f"max_evidence_age_updates={stop_gate.max_evidence_age_updates}",
             flush=True,
         )
@@ -4480,7 +4495,10 @@ def main():
                             ),
                             home_visual_probe=(
                                 _probe_a0_visual_home
-                                if _vlm_stop_requested
+                                if (
+                                    _vlm_stop_requested
+                                    or stop_gate.home_visual_probe_requested
+                                )
                                 else None
                             ),
                         )
@@ -5177,6 +5195,10 @@ def main():
             "accept_confirm_steps": stop_gate.accept_confirm_steps if stop_gate is not None else None,
             "verify_queries": stop_gate.verify_queries if stop_gate is not None else None,
             "blind_max_queries": stop_gate.blind_max_queries if stop_gate is not None else None,
+            "pre_stop_blind_trigger_queries": (
+                stop_gate.pre_stop_blind_trigger_queries
+                if stop_gate is not None else None
+            ),
             "max_evidence_age_updates": (
                 stop_gate.max_evidence_age_updates
                 if stop_gate is not None else None
@@ -5288,9 +5310,22 @@ def main():
 
 
 if __name__ == "__main__":
+    evaluator_failure = None
     try:
         # run the main function
         main()
+    except BaseException as exc:
+        # Do not let SystemExit/KeyboardInterrupt-style application shutdowns
+        # masquerade as clean evaluator completion.  Ordinary Exceptions still
+        # keep their normal traceback; this line also exposes BaseExceptions
+        # that previously jumped straight to the cleanup-only finally block.
+        print(
+            "[fatal_evaluator_exit] "
+            f"type={type(exc).__name__} repr={exc!r}",
+            flush=True,
+        )
+        traceback.print_exc()
+        evaluator_failure = exc
     finally:
         # 2026-07-19: main() previously had no exception handling at all, so
         # any uncaught exception (even a transient one unrelated to this
@@ -5306,4 +5341,23 @@ if __name__ == "__main__":
         # instead of a fast, clean failure, and the eventual forced kill
         # sometimes still leaving GPU-memory-holding orphans behind. `finally`
         # guarantees this always runs, on a clean return or any exception.
-        simulation_app.close()
+        pending_exception = evaluator_failure
+        try:
+            simulation_app.close()
+        except BaseException as close_exc:
+            if pending_exception is None:
+                raise
+            # Some Kit shutdown paths raise SystemExit(0).  Suppress that
+            # cleanup-only exit while an evaluator failure is already active,
+            # otherwise it masks the real traceback and makes the batch
+            # driver record a false exit_code=0.
+            print(
+                "[cleanup_exit_suppressed] "
+                f"type={type(close_exc).__name__} repr={close_exc!r}",
+                flush=True,
+            )
+    if evaluator_failure is not None:
+        # Kit shutdown has historically converted pending Python exceptions
+        # into process exit 0.  The traceback is already printed above; make
+        # the batch contract unambiguous after cleanup.
+        raise SystemExit(1)

@@ -280,6 +280,28 @@ were written.  There was no Python traceback and the child reported exit code
 as required.
 
 This attempt is not evidence for or against terminal correctness because it
-did not reach the historical stale-stop region.  No larger batch should be
-started until ep490 or ep89 completes and demonstrates either positive
-trusted-next/A0 arrival or bounded terminal `safe_fail`.
+did not reach the historical stale-stop region.
+
+## 2026-07-28 blind-spot follow-up
+
+ep89 showed that a blind budget which starts only after VLM proposes STOP is
+insufficient. The robot reached true distances 2.629 m and 2.821 m without
+proposing STOP, then moved back out to 4.203 m. The state machine now arms a
+terminal corridor only from fresh trusted raw-next evidence, enters pre-STOP
+blind mode after four consecutive unknown queries, and shares one total
+eight-query budget with the post-STOP blind path. Fresh authority resets it.
+
+The exact live ep89 evidence sequence is a regression: the first loss enters
+blind mode, a fresh 3.966 m authority recovers navigation, and the second
+eight-query loss ends in explicit `safe_fail`.
+
+The follow-up also made evaluator failures observable: tracebacks are printed
+before Isaac cleanup and fatal paths request a nonzero process exit. The
+runner cleans evaluator and VLM process groups on SIGINT/SIGTERM.
+
+Focused regression result: 49 passed.
+
+The exact frozen Active-50 runner is prepared in
+`../2026-07-28-anchor-stop-active50-readiness/`. Integrated promotion,
+anchor-state mutation, candidate selector, candidate controller and active
+scan plan remain off.

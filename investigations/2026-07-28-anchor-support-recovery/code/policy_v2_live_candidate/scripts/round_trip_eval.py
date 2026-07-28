@@ -24,6 +24,7 @@ import time
 import base64
 import io
 import socket
+import traceback
 import json
 
 from omni.isaac.lab.app import AppLauncher
@@ -1210,29 +1211,33 @@ parser.add_argument(
     action="store_true",
     default=False,
     help=(
-        "Enable the return-phase stop-gate arbiter.  Vetoes premature stops "
-        "(d > r_out, high conf) and forces terminal when robot stays within "
-        "r_in for confirm_steps consecutive VLM steps.  Off by default."
+        "Enable the return-terminal evidence state machine. A VLM STOP is only "
+        "a proposal; fresh Route-2-trusted next/raw evidence or repeated A0 "
+        "RGB-D plus VLM confirmation is required for success. Missing evidence "
+        "enters bounded VLM-only probing and then safe-fails. Off by default."
     ),
 )
 parser.add_argument("--stop_gate_r_in", type=float, default=3.0, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_r_out", type=float, default=3.0, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_confirm_steps", type=int, default=3, help=argparse.SUPPRESS)
 parser.add_argument("--stop_gate_min_confidence", type=float, default=0.5, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_accept_confirm_steps", type=int, default=2, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_verify_queries", type=int, default=2, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_blind_max_queries", type=int, default=8, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_pre_stop_blind_trigger_queries", type=int, default=4, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_max_evidence_age_updates", type=int, default=25, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_visual_confirm_steps", type=int, default=2, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_home_visual_max_distance_m", type=float, default=1.5, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_home_visual_min_confidence", type=float, default=0.45, help=argparse.SUPPRESS)
+parser.add_argument("--stop_gate_hold_steps", type=int, default=10, help=argparse.SUPPRESS)
 parser.add_argument(
     "--stop_gate_anchor_corroboration",
     action="store_true",
     default=False,
     help=(
-        "Let the route-memory anchor currently tracked as 'current' (its own "
-        "distance-from-start, fixed at anchor creation, not re-measured every "
-        "attempt) bypass stop_gate_min_confidence in both directions: veto a "
-        "stop at low confidence when the anchor isn't a close one AND the "
-        "current reading also says far, or force a stop at low confidence "
-        "after several consecutive attempts where the anchor and the current "
-        "reading both say home. Off by default -- see stop_gate.py's module "
-        "docstring for the 2026-07-19 canonical_report_next_50ep failures "
-        "this targets."
+        "Deprecated compatibility flag. The terminal evidence state machine "
+        "never grants current/rear-anchor identity accept, force, or veto "
+        "authority, regardless of this flag."
     ),
 )
 parser.add_argument("--stop_gate_forced_anchor_confirm_steps", type=int, default=2, help=argparse.SUPPRESS)
@@ -1375,10 +1380,10 @@ import omni.isaac.lab.sim as sim_utils
 from omni.isaac.vlnce.config import *
 from omni.isaac.vlnce.utils import ASSETS_DIR, RslRlVecEnvHistoryWrapper, VLNEnvWrapper
 from omni.isaac.vlnce.utils.eval_utils import (
-    get_vel_command, 
-    read_episodes, 
+    get_vel_command,
+    read_episodes,
     add_instruction_on_img,
-    InstructionData, 
+    InstructionData,
 )
 from omni.isaac.vlnce.utils.measures import PathLength, DistanceToGoal, Success, SPL, OracleNavigationError, OracleSuccess, MeasureManager
 
@@ -1421,7 +1426,7 @@ def define_markers() -> VisualizationMarkers:
 def reset_start_pos_rot(env_cfg, args_cli, episode):
     scene_id = os.path.splitext(os.path.basename(episode["scene_id"]))[0]
     env_cfg.scene.terrain.obj_filepath = os.path.join(ASSETS_DIR, f"matterport_usd/{scene_id}/{scene_id}.usd")
-    
+
     start_pos, start_rot, goal_pos = episode["start_position"], episode["start_rotation"], episode["reference_path"][-1]
     env_cfg.scene.robot.init_state.rot = start_rot
 
@@ -1446,7 +1451,7 @@ def add_measurement(env, episode):
     for measure_name in measure_names:
         measure = eval(measure_name)(env, episode, measure_manager)
         measure_manager.register_measure(measure)
-    
+
     env.measure_manager = measure_manager
     return
 
@@ -1463,7 +1468,7 @@ def sample_images_and_send_to_vlm(image_list, vlm_host, vlm_port, query):
             image_list.insert(0, Image.new('RGB', image_list[-1].size, (0, 0, 0)))
     else:
         image_list = image_list.copy()
-        
+
     num_images = len(image_list)
     indices = [int(i * (num_images - 1) / 7) for i in range(7)]
     sampled_images = [image_list[i] for i in indices]
@@ -1511,23 +1516,23 @@ def sample_images_and_send_to_vlm(image_list, vlm_host, vlm_port, query):
     # Send to VLM server
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((vlm_host, vlm_port))
-        
+
         # Send data
         data_bytes = json.dumps(request_data).encode()
         s.sendall(len(data_bytes).to_bytes(8, 'big'))
         s.sendall(data_bytes)
-        
+
         # Receive response
         size_data = s.recv(8)
         size = int.from_bytes(size_data, 'big')
-        
+
         response_data = b''
         while len(response_data) < size:
             packet = s.recv(4096)
             if not packet:
                 break
             response_data += packet
-            
+
         response = json.loads(response_data.decode())
         return response
 
@@ -2441,6 +2446,7 @@ def route_progress_to_record(progress, configured_source):
             progress.estimate_target_raw_confidence
         ),
         "evidence_age_updates": progress.evidence_age_updates,
+        "estimate_role": progress.estimate_role,
         "oracle_route_current_s_m": progress.oracle_route_current_s_m,
         "oracle_route_target_s_m": progress.oracle_route_target_s_m,
         "oracle_route_lookahead_m": progress.oracle_route_lookahead_m,
@@ -2984,7 +2990,7 @@ def main():
     all_measures = ["PathLength", "DistanceToGoal", "Success", "SPL", "OracleNavigationError", "OracleSuccess"]
     env = VLNEnvWrapper(env, policy, args_cli.task, episode, high_level_obs_key="camera_obs",
                         measure_names=all_measures)
-    
+
     # set view pos and target
     robot_pos_w = env.unwrapped.scene["robot"].data.root_pos_w[0].detach().cpu().numpy()
     robot_quat_w = env.unwrapped.scene["robot"].data.root_quat_w[0].detach().cpu().numpy()
@@ -2993,7 +2999,7 @@ def main():
     cam_target = (robot_pos_w[0], robot_pos_w[1], robot_pos_w[2])
     # set the camera view
     env.unwrapped.sim.set_camera_view(eye=cam_eye, target=cam_target)
-    
+
     # step with zeros actions to get the initial frame
     obs, infos = env.reset()
 
@@ -3203,6 +3209,38 @@ def main():
         )
         _flush_v11_consumer_events()
         return bool(decision.executed_allow)
+
+    def _stop_gate_evidence_trusted(progress):
+        """Resolve terminal evidence trust without invoking a Route-1 consumer.
+
+        The terminal state machine reads the latest Route-2 model assessment
+        directly.  Geometry reconstruction inherits trust from its source
+        anchor; raw evidence uses the reported target anchor.  Freshness and
+        role authority are enforced independently inside ReturnStopGate.
+        """
+        if progress is None:
+            return None
+        source = str(getattr(progress, "source", "") or "")
+        if "oracle" in source:
+            return True
+        if v11_consumer_guard is None:
+            return None
+        if getattr(progress, "estimate_kind", "raw_icp") == "geometry_reconstructed":
+            authority_index = getattr(
+                progress,
+                "estimate_source_anchor_index",
+                None,
+            )
+        else:
+            authority_index = getattr(progress, "target_anchor_index", None)
+        if authority_index is None:
+            return None
+        assessment = v11_consumer_guard.anchor_assessment(
+            int(authority_index)
+        )
+        if assessment is None:
+            return None
+        return bool(assessment.get("jointly_trusted", False))
 
     def _evaluate_v11_promotion_evidence(**proposal):
         nonlocal v11_latest_anchor_state_decision
@@ -3801,6 +3839,10 @@ def main():
                                 requested_next_index=requested_pair[1],
                                 attempt=v11_shadow_last_attempt,
                                 step=int(num_steps),
+                                available_anchor_indices=tuple(
+                                    int(anchor.index)
+                                    for anchor in route_agent.anchors
+                                ),
                             )
                         )
                         route_agent.apply_v11_anchor_support_directive(
@@ -3940,13 +3982,31 @@ def main():
             min_confidence=float(getattr(args_cli, "stop_gate_min_confidence", 0.5)),
             anchor_corroboration_enabled=bool(getattr(args_cli, "stop_gate_anchor_corroboration", False)),
             forced_stop_anchor_confirm_steps=int(getattr(args_cli, "stop_gate_forced_anchor_confirm_steps", 2)),
+            accept_confirm_steps=int(getattr(args_cli, "stop_gate_accept_confirm_steps", 2)),
+            verify_queries=int(getattr(args_cli, "stop_gate_verify_queries", 2)),
+            blind_max_queries=int(getattr(args_cli, "stop_gate_blind_max_queries", 8)),
+            pre_stop_blind_trigger_queries=int(
+                getattr(
+                    args_cli,
+                    "stop_gate_pre_stop_blind_trigger_queries",
+                    4,
+                )
+            ),
+            max_evidence_age_updates=int(
+                getattr(args_cli, "stop_gate_max_evidence_age_updates", 25)
+            ),
+            visual_confirm_steps=int(getattr(args_cli, "stop_gate_visual_confirm_steps", 2)),
+            hold_steps=int(getattr(args_cli, "stop_gate_hold_steps", 10)),
         )
         print(
             f"[stop_gate] enabled: r_in={stop_gate.r_in} r_out={stop_gate.r_out} "
             f"confirm_steps={stop_gate.confirm_steps} "
-            f"min_confidence={stop_gate.min_confidence} "
-            f"anchor_corroboration_enabled={stop_gate.anchor_corroboration_enabled} "
-            f"forced_stop_anchor_confirm_steps={stop_gate.forced_stop_anchor_confirm_steps}",
+            f"accept_confirm_steps={stop_gate.accept_confirm_steps} "
+            f"verify_queries={stop_gate.verify_queries} "
+            f"blind_max_queries={stop_gate.blind_max_queries} "
+            f"pre_stop_blind_trigger_queries="
+            f"{stop_gate.pre_stop_blind_trigger_queries} "
+            f"max_evidence_age_updates={stop_gate.max_evidence_age_updates}",
             flush=True,
         )
     hint_action_arbiter = None
@@ -4030,6 +4090,7 @@ def main():
     outbound_stop_distance_to_goal = None
     outbound_success = False
     return_success = False
+    return_terminal_safe_fail = False
     return_pose_before_oracle = None
     return_pose_after_oracle = None
     oracle_return_pose = None
@@ -4052,9 +4113,29 @@ def main():
                     route_hint_event = None
                     _gate_vlm_progress = None   # reset each VLM step
                     _oracle_hint_bearing_error_deg = None   # reset each VLM step
+                    _navigation_consumers_enabled = bool(
+                        route_agent.route_consumers_enabled
+                        and not (
+                            stop_gate is not None
+                            and stop_gate.navigation_paused
+                        )
+                    )
+                    # Terminal safety remains live when Route 2 or the
+                    # terminal verifier pauses navigation consumers.  The
+                    # progress may be stale; ReturnStopGate explicitly strips
+                    # stale/untrusted readings of authority.
+                    if phase == "return" and args_cli.route_memory:
+                        _gate_vlm_progress = route_progress_override(
+                            args_cli.route_hint_source,
+                            env,
+                            start_pos,
+                            route_agent,
+                        )
+                        if _gate_vlm_progress is None:
+                            _gate_vlm_progress = route_agent.progress()
                     if (
                         phase == "return"
-                        and not route_agent.route_consumers_enabled
+                        and not _navigation_consumers_enabled
                     ):
                         _last_gate_decision = None
                         phase_events.append({
@@ -4065,15 +4146,23 @@ def main():
                                 "route_hint",
                                 "hint_action_override",
                                 "stuck_recovery",
-                                "stop_gate",
                             ],
+                            "terminal_stop_gate_active": stop_gate is not None,
+                            "pause_source": (
+                                "terminal_evidence_state"
+                                if (
+                                    stop_gate is not None
+                                    and stop_gate.navigation_paused
+                                )
+                                else "route2_anchor_support_recovery"
+                            ),
                             "vlm_command_pass_through": True,
                             **route_agent.v11_anchor_support_state,
                         })
                     if (
                         phase == "return"
                         and args_cli.route_memory
-                        and route_agent.route_consumers_enabled
+                        and _navigation_consumers_enabled
                     ):
                         progress_override = route_progress_override(
                             args_cli.route_hint_source,
@@ -4182,6 +4271,15 @@ def main():
                                 "event": "route_memory_hint",
                                 **route_hint_event,
                             })
+                    if (
+                        phase == "return"
+                        and stop_gate is not None
+                        and stop_gate.prompt_suffix()
+                    ):
+                        query_instruction_text = (
+                            query_instruction_text
+                            + stop_gate.prompt_suffix()
+                        )
                     stream_output = sample_images_and_send_to_vlm(
                         image_observations,
                         args_cli.vlm_host,
@@ -4193,7 +4291,7 @@ def main():
                     if (
                         hint_action_arbiter is not None
                         and phase == "return"
-                        and route_agent.route_consumers_enabled
+                        and _navigation_consumers_enabled
                     ):
                         _last_hint_action_decision = hint_action_arbiter.check(
                             progress=_gate_vlm_progress,
@@ -4263,7 +4361,7 @@ def main():
                     if (
                         stuck_recovery is not None
                         and phase == "return"
-                        and route_agent.route_consumers_enabled
+                        and _navigation_consumers_enabled
                     ):
                         _bn = getattr(_gate_vlm_progress, "bearing_to_anchor_deg", None)
                         _bd = getattr(_gate_vlm_progress, "distance_to_start_m", None)
@@ -4313,64 +4411,140 @@ def main():
                         flush=True,
                     )
 
-                    # --- Stop-gate arbiter (return phase only, no-op when disabled) ---
+                    # --- Terminal evidence state machine (return only) ---
                     _vlm_stop_requested = (
                         env_steps_to_go == 0 and "stop" in str(stream_output).lower()
                     )
                     if (
                         stop_gate is not None
                         and phase == "return"
-                        and route_agent.route_consumers_enabled
                     ):
+                        _home_visual_cache = {"evaluated": False, "value": None}
+
+                        def _probe_a0_visual_home():
+                            if _home_visual_cache["evaluated"]:
+                                return _home_visual_cache["value"]
+                            _home_visual_cache["evaluated"] = True
+                            diagnostics = {}
+                            result = None
+                            error = None
+                            try:
+                                start_anchors = [
+                                    anchor for anchor in route_agent.anchors
+                                    if (
+                                        int(anchor.index) == 0
+                                        and anchor.descriptor is not None
+                                    )
+                                ]
+                                if (
+                                    current_route_descriptor is not None
+                                    and start_anchors
+                                ):
+                                    result = feature_depth_anchor_relocalization(
+                                        current_route_descriptor,
+                                        start_anchors,
+                                        max_candidates=1,
+                                        diagnostics=diagnostics,
+                                        matcher_backend="loftr",
+                                        return_candidates=False,
+                                    )
+                            except Exception as exc:
+                                error = f"{type(exc).__name__}:{exc}"
+                            confirmed = None
+                            if result is not None:
+                                confirmed = bool(
+                                    int(result.anchor_index) == 0
+                                    and float(result.distance_to_anchor_m)
+                                    <= float(
+                                        args_cli.stop_gate_home_visual_max_distance_m
+                                    )
+                                    and float(result.confidence)
+                                    >= float(
+                                        args_cli.stop_gate_home_visual_min_confidence
+                                    )
+                                )
+                            _home_visual_cache["value"] = confirmed
+                            phase_events.append({
+                                "step": int(num_steps),
+                                "phase": phase,
+                                "event": "stop_gate_a0_visual_probe",
+                                "available": result is not None,
+                                "confirmed": confirmed,
+                                "distance_to_a0_m": (
+                                    float(result.distance_to_anchor_m)
+                                    if result is not None else None
+                                ),
+                                "confidence": (
+                                    float(result.confidence)
+                                    if result is not None else None
+                                ),
+                                "backend": (
+                                    str(result.backend)
+                                    if result is not None else None
+                                ),
+                                "error": error,
+                                "diagnostics": diagnostics,
+                            })
+                            return confirmed
+
                         _last_gate_decision = stop_gate.check(
                             progress=_gate_vlm_progress,
                             vlm_issued_stop=_vlm_stop_requested,
+                            evidence_trusted=_stop_gate_evidence_trusted(
+                                _gate_vlm_progress
+                            ),
+                            home_visual_probe=(
+                                _probe_a0_visual_home
+                                if (
+                                    _vlm_stop_requested
+                                    or stop_gate.home_visual_probe_requested
+                                )
+                                else None
+                            ),
                         )
-                        _v11_stop_anchor_index = (
-                            _gate_vlm_progress.target_anchor_index
-                            if _gate_vlm_progress is not None else None
-                        )
-                        if (
-                            _last_gate_decision.decision == "forced"
-                            and not _evaluate_v11_consumer(
-                                "forced_stop",
-                                _v11_stop_anchor_index,
-                                _gate_vlm_progress,
-                            )
-                        ):
-                            _last_gate_decision = dataclasses.replace(
-                                _last_gate_decision,
-                                decision="pass",
-                            )
-                        elif (
-                            _last_gate_decision.decision == "vetoed"
-                            and not _evaluate_v11_consumer(
-                                "vlm_stop_veto",
-                                _v11_stop_anchor_index,
-                                _gate_vlm_progress,
-                            )
-                        ):
-                            _last_gate_decision = dataclasses.replace(
-                                _last_gate_decision,
-                                decision="deferred",
-                            )
                         phase_events.append({
                             "step": int(num_steps),
                             "phase": phase,
                             "event": "stop_gate",
                             **_last_gate_decision.as_log_dict(),
                         })
-                        if _last_gate_decision.decision == "vetoed":
-                            vlm_vel_commands = list(_last_gate_decision.suggested_command)
+                        if _last_gate_decision.decision in {"accepted", "forced"}:
+                            _vlm_stop_requested = True
+                        elif _last_gate_decision.decision == "safe_fail":
+                            _vlm_stop_requested = False
+                            return_success = False
+                            return_terminal_safe_fail = True
+                            vlm_vel_commands = [0.0, 0.0, 0.0]
+                            env_steps_to_go = max(1, stop_gate.hold_steps)
+                            target_steps = num_steps + env_steps_to_go
+                            phase_events.append({
+                                "step": int(num_steps),
+                                "phase": phase,
+                                "event": "return_terminal_safe_fail",
+                                "reason": _last_gate_decision.reason,
+                            })
+                            env.set_stop_called(True)
+                        elif _vlm_stop_requested:
+                            # A STOP proposal is suppressed unless the state
+                            # machine explicitly accepted it.  Hold still for a
+                            # short resample; never inject motion from the same
+                            # uncertain route bearing.
+                            vlm_vel_commands = list(
+                                _last_gate_decision.suggested_command
+                                or [0.0, 0.0, 0.0]
+                            )
                             route_agent.update_action_history(vlm_vel_commands)
-                            env_steps_to_go = _last_gate_decision.suggested_steps
+                            env_steps_to_go = max(
+                                1,
+                                int(_last_gate_decision.suggested_steps),
+                            )
                             target_steps = num_steps + env_steps_to_go
                             _vlm_stop_requested = False
-                        elif _last_gate_decision.decision == "forced":
-                            _vlm_stop_requested = True
                         print(
                             f"[stop_gate] step={num_steps} "
                             f"decision={_last_gate_decision.decision} "
+                            f"state={_last_gate_decision.state} "
+                            f"reason={_last_gate_decision.reason} "
                             f"d={_last_gate_decision.authority_d} "
                             f"conf={_last_gate_decision.conf:.3f} "
                             f"teleport={_last_gate_decision.is_teleport_frame}",
@@ -4498,7 +4672,6 @@ def main():
         if (
             stop_gate is not None
             and phase == "return"
-            and route_agent.route_consumers_enabled
         ):
             stop_gate.notify_sim_step(get_robot_position(env))
 
@@ -4662,7 +4835,7 @@ def main():
             curr_frame_copy = curr_frame.copy()
             add_instruction_on_img(curr_frame_copy, f"[{phase}] {current_instruction_text}")
             force_capture_next_image = False
-            
+
         if num_steps % steps_per_viz_image == 0:
             curr_vis_frame = infos["observations"]["viz_camera_obs"][0, :, :, :3].cpu().numpy()
             add_instruction_on_img(curr_vis_frame, stream_output)
@@ -4843,6 +5016,7 @@ def main():
         "completed_phase": phase,
         "outbound_success": outbound_success,
         "return_success": bool(return_success),
+        "return_terminal_safe_fail": bool(return_terminal_safe_fail),
         "round_trip_success": bool(outbound_success and return_success),
         "distance_to_start": distance_to_start,
         "distance_to_goal": distance_to_goal,
@@ -5018,9 +5192,27 @@ def main():
             "r_in": stop_gate.r_in if stop_gate is not None else None,
             "r_out": stop_gate.r_out if stop_gate is not None else None,
             "confirm_steps": stop_gate.confirm_steps if stop_gate is not None else None,
-            "min_confidence": stop_gate.min_confidence if stop_gate is not None else None,
-            "anchor_corroboration_enabled": stop_gate.anchor_corroboration_enabled if stop_gate is not None else None,
-            "forced_stop_anchor_confirm_steps": stop_gate.forced_stop_anchor_confirm_steps if stop_gate is not None else None,
+            "accept_confirm_steps": stop_gate.accept_confirm_steps if stop_gate is not None else None,
+            "verify_queries": stop_gate.verify_queries if stop_gate is not None else None,
+            "blind_max_queries": stop_gate.blind_max_queries if stop_gate is not None else None,
+            "pre_stop_blind_trigger_queries": (
+                stop_gate.pre_stop_blind_trigger_queries
+                if stop_gate is not None else None
+            ),
+            "max_evidence_age_updates": (
+                stop_gate.max_evidence_age_updates
+                if stop_gate is not None else None
+            ),
+            "visual_confirm_steps": stop_gate.visual_confirm_steps if stop_gate is not None else None,
+            "home_visual_max_distance_m": (
+                float(args_cli.stop_gate_home_visual_max_distance_m)
+                if stop_gate is not None else None
+            ),
+            "home_visual_min_confidence": (
+                float(args_cli.stop_gate_home_visual_min_confidence)
+                if stop_gate is not None else None
+            ),
+            "terminal_state": stop_gate.state if stop_gate is not None else None,
         },
     }
 
@@ -5118,9 +5310,22 @@ def main():
 
 
 if __name__ == "__main__":
+    evaluator_failure = None
     try:
         # run the main function
         main()
+    except BaseException as exc:
+        # Do not let SystemExit/KeyboardInterrupt-style application shutdowns
+        # masquerade as clean evaluator completion.  Ordinary Exceptions still
+        # keep their normal traceback; this line also exposes BaseExceptions
+        # that previously jumped straight to the cleanup-only finally block.
+        print(
+            "[fatal_evaluator_exit] "
+            f"type={type(exc).__name__} repr={exc!r}",
+            flush=True,
+        )
+        traceback.print_exc()
+        evaluator_failure = exc
     finally:
         # 2026-07-19: main() previously had no exception handling at all, so
         # any uncaught exception (even a transient one unrelated to this
@@ -5136,4 +5341,23 @@ if __name__ == "__main__":
         # instead of a fast, clean failure, and the eventual forced kill
         # sometimes still leaving GPU-memory-holding orphans behind. `finally`
         # guarantees this always runs, on a clean return or any exception.
-        simulation_app.close()
+        pending_exception = evaluator_failure
+        try:
+            simulation_app.close()
+        except BaseException as close_exc:
+            if pending_exception is None:
+                raise
+            # Some Kit shutdown paths raise SystemExit(0).  Suppress that
+            # cleanup-only exit while an evaluator failure is already active,
+            # otherwise it masks the real traceback and makes the batch
+            # driver record a false exit_code=0.
+            print(
+                "[cleanup_exit_suppressed] "
+                f"type={type(close_exc).__name__} repr={close_exc!r}",
+                flush=True,
+            )
+    if evaluator_failure is not None:
+        # Kit shutdown has historically converted pending Python exceptions
+        # into process exit 0.  The traceback is already printed above; make
+        # the batch contract unambiguous after cleanup.
+        raise SystemExit(1)

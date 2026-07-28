@@ -208,14 +208,18 @@ rows, with ep785's second attempt started but no longer running at the time of
 this implementation check.  No residual process was modified or killed while
 implementing this candidate.
 
-## Launch status
+## 2026-07-28 live follow-up
 
-No new episode has been launched.  Before a live canary:
+ep89 exposed an out-of-range recovery request on a short route:
+`unknown V11 support current anchor 6`. The runtime now receives the available
+anchor-index set, skips every invalid recovery pair, retains the last valid
+pair and enters VLM-only probing if no later valid stage exists. Missing route
+anchors are treated as missing evidence, not a fatal invariant.
 
-1. review the policy thresholds and create an approved policy copy;
-2. set a bounded multi-hop limit appropriate to the route (the old default
-   remains one hop);
-3. run a small canary on the previously diagnosed ep19/ep196 classes;
-4. confirm scan shadow on/off produces identical active directives and robot
-   commands;
-5. only then queue a larger batch.
+The fixed run crossed the old crash point and continued until it was
+deliberately terminated after a separate pre-STOP blind-navigation loop was
+proven. The short-route boundary case is covered by regression.
+
+The exact 50-episode policy copy and hash-locked runner are in
+`../2026-07-28-anchor-stop-active50-readiness/`. Scan is observer-only and all
+obsolete integrated active-controller paths remain off.

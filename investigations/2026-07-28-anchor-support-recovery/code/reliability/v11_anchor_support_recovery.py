@@ -182,7 +182,12 @@ class V11AnchorSupportRecovery:
             return "strongly_untrusted"
         return "uncertain"
 
-    def _pair_for_stage(self, stage: int) -> tuple[int, int] | None:
+    def _pair_for_stage(
+        self,
+        stage: int,
+        *,
+        available_anchor_indices: set[int] | None = None,
+    ) -> tuple[int, int] | None:
         if self._failed_origin_current is None or self._failed_origin_next is None:
             return None
         offsets = self.payload["pair_recovery_offsets"]
@@ -192,6 +197,14 @@ class V11AnchorSupportRecovery:
         current = int(self._failed_origin_current) + int(current_offset)
         next_anchor = int(self._failed_origin_next) + int(next_offset)
         if current < 0 or next_anchor < 0:
+            return None
+        if (
+            available_anchor_indices is not None
+            and (
+                current not in available_anchor_indices
+                or next_anchor not in available_anchor_indices
+            )
+        ):
             return None
         return current, next_anchor
 
@@ -262,6 +275,7 @@ class V11AnchorSupportRecovery:
         requested_next_index: int,
         attempt: int,
         step: int,
+        available_anchor_indices: Sequence[int] | None = None,
     ) -> AnchorSupportDirective:
         """Observe Route-2 judgements and choose the next support pair.
 
@@ -287,6 +301,11 @@ class V11AnchorSupportRecovery:
 
         requested_current = int(requested_current_index)
         requested_next = int(requested_next_index)
+        available = (
+            {int(index) for index in available_anchor_indices}
+            if available_anchor_indices is not None
+            else None
+        )
         current_state = self._state(requested_current)
         next_state = self._state(requested_next)
 
@@ -408,7 +427,25 @@ class V11AnchorSupportRecovery:
             self._raw_hint_blocks.update((requested_current, requested_next))
             self._set_pair_recovery_origin(requested_current, requested_next)
             self._recovery_stage += 1
-            pair = self._pair_for_stage(self._recovery_stage)
+            pair = self._pair_for_stage(
+                self._recovery_stage,
+                available_anchor_indices=available,
+            )
+            # A short route can end at the highest recorded anchor.  In that
+            # case the approved alternating offsets may ask for rear support
+            # beyond the route boundary.  Skip such stages and exhaust into
+            # VLM-only probing: an absent anchor is missing evidence, not a
+            # fatal controller invariant violation.
+            while (
+                pair is None
+                and self._recovery_stage + 1
+                < len(self.payload["pair_recovery_offsets"])
+            ):
+                self._recovery_stage += 1
+                pair = self._pair_for_stage(
+                    self._recovery_stage,
+                    available_anchor_indices=available,
+                )
             if pair is not None:
                 self._current, self._next = pair
                 return self._directive(

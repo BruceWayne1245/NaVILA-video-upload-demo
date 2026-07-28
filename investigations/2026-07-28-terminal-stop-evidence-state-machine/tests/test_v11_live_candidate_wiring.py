@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[1] / "code"
 SCRIPTS = ROOT / "policy_v2_live_candidate" / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
@@ -336,6 +336,7 @@ def test_shadow_candidate_observer_has_no_active_side_effect():
 
 def test_round_trip_candidate_has_policy_v2_and_terminal_state_machine_hooks():
     source = (SCRIPTS / "round_trip_eval.py").read_text(encoding="utf-8")
+    stop_gate_source = (SCRIPTS / "stop_gate.py").read_text(encoding="utf-8")
     ast.parse(source)
     assert '"--reliability_v11_consumer_mode"' in source
     assert '"--reliability_v11_integrated_promotion_mode"' in source
@@ -378,6 +379,8 @@ def test_round_trip_candidate_has_policy_v2_and_terminal_state_machine_hooks():
     assert "home_visual_probe=" in source
     assert 'decision in {"accepted", "forced"}' in source
     assert 'decision == "safe_fail"' in source
+    assert "--stop_gate_pre_stop_blind_trigger_queries" in source
+    assert "pre_stop_terminal_signal_loss" in stop_gate_source
     assert "and route_agent.route_consumers_enabled" not in source[
         source.index("# --- Terminal evidence state machine"):
         source.index("if _vlm_stop_requested:", source.index("# --- Terminal evidence state machine"))
@@ -391,6 +394,8 @@ def test_round_trip_candidate_has_policy_v2_and_terminal_state_machine_hooks():
     assert "commit_hint_event(" in source
     assert '"--route_memory_capture_start_anchor_descriptor"' in source
     assert "initialize_start_anchor_descriptor(" in source
+    assert "available_anchor_indices=tuple(" in source
+    assert "[cleanup_exit_suppressed]" in source
 
 
 def _progress(anchor_index=3):
