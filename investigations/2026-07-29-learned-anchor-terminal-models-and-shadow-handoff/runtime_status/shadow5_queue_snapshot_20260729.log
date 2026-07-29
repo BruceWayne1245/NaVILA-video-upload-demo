@@ -1,0 +1,16 @@
+[preflight] PASS: frozen 50ep scope, code hashes, approval and port range
+[preflight] PASS: frozen models, latest 2026-07-28 code, and five unseen episodes
+[2026-07-29T10:33:19+01:00] queue armed behind navila-promotion-shadow-30ep-queued-20260728.service
+[2026-07-29T10:33:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T10:43:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T10:53:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T11:03:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T11:13:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T11:23:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T11:33:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T11:43:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T11:53:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T12:03:19+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T12:13:20+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T12:23:20+01:00] waiting for promotion-shadow 30ep and GPU release
+[2026-07-29T12:33:20+01:00] waiting for promotion-shadow 30ep and GPU release

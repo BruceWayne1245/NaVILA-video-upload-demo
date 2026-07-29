@@ -1,0 +1,86 @@
+{
+  "anchor_state": {
+    "alignment_sample_weights": {
+      "0.0": 22369,
+      "0.25": 3016,
+      "0.5": 40621,
+      "1.0": 46727
+    },
+    "oracle_target_candidate_coverage": 0.28209131310264074,
+    "rows": 112733,
+    "transition_classes": {
+      "advance_one": 20791,
+      "hold": 24601,
+      "rebase": 13140,
+      "rollback": 27078,
+      "skip_or_rebase": 27123
+    }
+  },
+  "attempt_step_alignment": {
+    "linear_attempt_interpolation_approximate": 127,
+    "v11_shadow_exact_step": 155
+  },
+  "built_episodes": 282,
+  "candidate_capture_directories": 415,
+  "constants": {
+    "arrived_max_route_distance_m": 2.65,
+    "far_min_route_distance_m": 3.35,
+    "raw_margin_m": 0.35,
+    "route_lookahead_m": 1.0,
+    "stop_r_in_m": 3.0
+  },
+  "discovered_unique_episodes": 289,
+  "duplicate_trajectories_removed": 20,
+  "episode_dataset": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/isaaclab_exts/omni.isaac.vlnce/assets/vln_ce_isaac_v1.json.gz",
+  "episode_dataset_sha256": "ceb2a2a9ac1f6d1a1ebbf9fe205867b101b1b7bb61d532a4d491124c7c0b0eec",
+  "exclusions": {
+    "build_JSONDecodeError": 7,
+    "duplicate_trajectory": 20,
+    "measurement_missing": 91,
+    "measurement_unusable": 15
+  },
+  "schema": "navila-anchor-terminal-training-v1",
+  "source_root": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results",
+  "splits": {
+    "test": {
+      "anchor_rows": 19461,
+      "episodes": 42,
+      "scenes": 1,
+      "terminal_rows": 1934
+    },
+    "train": {
+      "anchor_rows": 77114,
+      "episodes": 206,
+      "scenes": 7,
+      "terminal_rows": 7579
+    },
+    "validation": {
+      "anchor_rows": 16158,
+      "episodes": 34,
+      "scenes": 1,
+      "terminal_rows": 1387
+    }
+  },
+  "terminal_decision": {
+    "action_classes": {
+      "accept": 1243,
+      "arrived_without_stop": 836,
+      "continue": 8429,
+      "reject": 364,
+      "verify": 28
+    },
+    "alignment_sample_weights": {
+      "0.0": 2177,
+      "0.25": 320,
+      "0.5": 4127,
+      "1.0": 4276
+    },
+    "rows": 10900,
+    "terminal_classes": {
+      "arrived": 2079,
+      "boundary": 365,
+      "far": 8456
+    },
+    "vlm_stop_rows": 1635
+  }
+}

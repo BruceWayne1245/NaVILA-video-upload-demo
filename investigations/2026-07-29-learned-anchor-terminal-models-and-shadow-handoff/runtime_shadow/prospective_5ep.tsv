@@ -1,0 +1,6 @@
+episode_idx	episode_id	scene	neighbor_idx	neighbor_episode_id	matched_waypoints	mean_distance	baseline_distance_to_start
+319	512	2azQ1b91cZZ	429	721	4	0.000000	2.920037
+498	868	zsNo4HB9uLZ	222	352	4	0.479000	7.425987
+295	476	zsNo4HB9uLZ	45	73	4	0.000000	8.425889
+430	722	2azQ1b91cZZ	318	511	4	0.000000	4.148210
+1008	1717	QUCTc6BB5sX	642	1114	5	0.000000	10.165862
