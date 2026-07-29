@@ -1,0 +1,869 @@
+{
+  "episodes": [
+    {
+      "control_effect": "none",
+      "hint_action": {
+        "control_effect": "none",
+        "historical_gate": {
+          "coverage": 0.36363636363636365,
+          "precision": 0.9166666666666666,
+          "recall": 0.3793103448275862,
+          "weighted_false_negative": 9.0,
+          "weighted_false_positive": 0.5,
+          "weighted_true_negative": 1.5,
+          "weighted_true_positive": 5.5
+        },
+        "model_validation_precision_0p90_threshold": {
+          "coverage": 0.7878787878787878,
+          "precision": 0.9615384615384616,
+          "recall": 0.8620689655172413,
+          "threshold": 0.5606810888243218,
+          "weighted_false_negative": 2.0,
+          "weighted_false_positive": 0.5,
+          "weighted_true_negative": 1.5,
+          "weighted_true_positive": 12.5
+        },
+        "positive_weight_rows": 20,
+        "rows": 47,
+        "three_class": {
+          "balanced_accuracy": 0.3333333333333333,
+          "classification_report": {
+            "abstain": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 1.0
+            },
+            "accuracy": 0.8787878787878788,
+            "keep_vlm": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 1.0
+            },
+            "macro avg": {
+              "f1-score": 0.3118279569892473,
+              "precision": 0.29292929292929293,
+              "recall": 0.3333333333333333,
+              "support": 16.5
+            },
+            "override_hint": {
+              "f1-score": 0.9354838709677419,
+              "precision": 0.8787878787878788,
+              "recall": 1.0,
+              "support": 14.5
+            },
+            "weighted avg": {
+              "f1-score": 0.8220918866080157,
+              "precision": 0.7722681359044995,
+              "recall": 0.8787878787878788,
+              "support": 16.5
+            }
+          },
+          "confusion_matrix": [
+            [
+              0.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.0,
+              1.0
+            ],
+            [
+              0.0,
+              0.0,
+              14.5
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.4735259764399749,
+          "macro_f1": 0.3118279569892473,
+          "per_scene": {
+            "2azQ1b91cZZ": {
+              "balanced_accuracy": 0.3333333333333333,
+              "macro_f1": 0.3118279569892473,
+              "rows": 20
+            }
+          },
+          "roc_auc_ovr_macro": 0.8206340378197998,
+          "rows": 20,
+          "scenes": [
+            "2azQ1b91cZZ"
+          ]
+        }
+      },
+      "physical_episode_id": 319,
+      "readonly_measurement_repairs": [
+        "double_close_before_normalized_eigenvalues",
+        "missing_current_points_value"
+      ],
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319",
+      "scene_id": "2azQ1b91cZZ",
+      "scoreable": true,
+      "source_episode": {
+        "attempt_step_alignment": "v11_shadow_exact_step",
+        "counts": {
+          "anchors": 6,
+          "relocalization_attempts": 908,
+          "return_rows": 4537,
+          "terminal_queries": 76
+        },
+        "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319",
+        "outcome": {
+          "outbound_success": true,
+          "return_success": false,
+          "return_terminal_safe_fail": false,
+          "round_trip_success": false
+        },
+        "physical_episode_id": 319,
+        "scene_id": "2azQ1b91cZZ",
+        "schema": "navila-anchor-terminal-training-v1",
+        "source": {
+          "anchors": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319/icp_replay_dataset/anchors.json",
+          "anchors_sha256": "15cc5edabdbc07478d65fe92cb953dc4ad91e9c6f342ba279c606558b5c58737",
+          "directory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319",
+          "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319/measurements/511.json",
+          "measurement_sha256": null,
+          "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319/trajectories/output_511.jsonl",
+          "trajectory_sha256": "69f90cc8c72ba5844b3b3e709255747347b65936558834d5cfeaa7acddca8825"
+        },
+        "split": "prospective"
+      },
+      "terminal_v2_robust": {
+        "control_effect": "none",
+        "frozen_sequence_policy": {
+          "arrived_recall": 0.0,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 0,
+          "confirmed_rows": 0,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "positive_weight_rows": 41,
+        "rows": 76,
+        "three_class": {
+          "balanced_accuracy": 0.6031746031746031,
+          "classification_report": {
+            "accuracy": 0.8055555555555556,
+            "arrived": {
+              "f1-score": 0.3333333333333333,
+              "precision": 0.3333333333333333,
+              "recall": 0.3333333333333333,
+              "support": 4.5
+            },
+            "boundary": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 0.0
+            },
+            "far": {
+              "f1-score": 0.9322033898305084,
+              "precision": 1.0,
+              "recall": 0.873015873015873,
+              "support": 31.5
+            },
+            "macro avg": {
+              "f1-score": 0.42184557438794723,
+              "precision": 0.4444444444444444,
+              "recall": 0.4021164021164021,
+              "support": 36.0
+            },
+            "weighted avg": {
+              "f1-score": 0.8573446327683616,
+              "precision": 0.9166666666666666,
+              "recall": 0.8055555555555556,
+              "support": 36.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              1.5,
+              3.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              3.0,
+              1.0,
+              27.5
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.4881855372005788,
+          "macro_f1": 0.42184557438794723,
+          "per_scene": {
+            "2azQ1b91cZZ": {
+              "balanced_accuracy": 0.6031746031746031,
+              "macro_f1": 0.42184557438794723,
+              "rows": 41
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 41,
+          "scenes": [
+            "2azQ1b91cZZ"
+          ]
+        }
+      }
+    },
+    {
+      "control_effect": "none",
+      "hint_action": {
+        "control_effect": "none",
+        "historical_gate": {
+          "coverage": 0.13333333333333333,
+          "precision": 1.0,
+          "recall": 0.15384615384615385,
+          "weighted_false_negative": 5.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 1.0,
+          "weighted_true_positive": 1.0
+        },
+        "model_validation_precision_0p90_threshold": {
+          "coverage": 0.13333333333333333,
+          "precision": 1.0,
+          "recall": 0.15384615384615385,
+          "threshold": 0.5606810888243218,
+          "weighted_false_negative": 5.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 1.0,
+          "weighted_true_positive": 1.0
+        },
+        "positive_weight_rows": 8,
+        "rows": 10,
+        "three_class": {
+          "balanced_accuracy": 0.6538461538461539,
+          "classification_report": {
+            "abstain": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.4,
+            "keep_vlm": {
+              "f1-score": 0.3076923076923077,
+              "precision": 0.18181818181818182,
+              "recall": 1.0,
+              "support": 1.0
+            },
+            "macro avg": {
+              "f1-score": 0.2594268476621418,
+              "precision": 0.393939393939394,
+              "recall": 0.4358974358974359,
+              "support": 7.5
+            },
+            "override_hint": {
+              "f1-score": 0.47058823529411764,
+              "precision": 1.0,
+              "recall": 0.3076923076923077,
+              "support": 6.5
+            },
+            "weighted avg": {
+              "f1-score": 0.44886877828054295,
+              "precision": 0.8909090909090909,
+              "recall": 0.4,
+              "support": 7.5
+            }
+          },
+          "confusion_matrix": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              0.0
+            ],
+            [
+              0.0,
+              4.5,
+              2.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 1.536612293033396,
+          "macro_f1": 0.2594268476621418,
+          "per_scene": {
+            "zsNo4HB9uLZ": {
+              "balanced_accuracy": 0.6538461538461539,
+              "macro_f1": 0.2594268476621418,
+              "rows": 8
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 8,
+          "scenes": [
+            "zsNo4HB9uLZ"
+          ]
+        }
+      },
+      "physical_episode_id": 498,
+      "readonly_measurement_repairs": [],
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498",
+      "scene_id": "zsNo4HB9uLZ",
+      "scoreable": true,
+      "source_episode": {
+        "attempt_step_alignment": "v11_shadow_exact_step",
+        "counts": {
+          "anchors": 11,
+          "relocalization_attempts": 228,
+          "return_rows": 1137,
+          "terminal_queries": 25
+        },
+        "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498",
+        "outcome": {
+          "outbound_success": true,
+          "return_success": false,
+          "return_terminal_safe_fail": true,
+          "round_trip_success": false
+        },
+        "physical_episode_id": 498,
+        "scene_id": "zsNo4HB9uLZ",
+        "schema": "navila-anchor-terminal-training-v1",
+        "source": {
+          "anchors": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498/icp_replay_dataset/anchors.json",
+          "anchors_sha256": "fd6e3afe5273076680d5694bbe5a6f9d09240ab3837415dd4805fe996e44f899",
+          "directory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498",
+          "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498/measurements/867.json",
+          "measurement_sha256": "d8a945796cb5661b2239d163c90fadb5b50b925d306f6ea5ea756c673ff54470",
+          "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498/trajectories/output_867.jsonl",
+          "trajectory_sha256": "6572f576bc3686dc85067a0378407accbb9794216135aaac2d1b3a2583d656cd"
+        },
+        "split": "prospective"
+      },
+      "terminal_v2_robust": {
+        "control_effect": "none",
+        "frozen_sequence_policy": {
+          "arrived_recall": 0.0,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 0,
+          "confirmed_rows": 0,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "positive_weight_rows": 14,
+        "rows": 25,
+        "three_class": {
+          "balanced_accuracy": 0.9629629629629629,
+          "classification_report": {
+            "accuracy": 0.9629629629629629,
+            "arrived": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 0.0
+            },
+            "boundary": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 0.0
+            },
+            "far": {
+              "f1-score": 0.9811320754716981,
+              "precision": 1.0,
+              "recall": 0.9629629629629629,
+              "support": 13.5
+            },
+            "macro avg": {
+              "f1-score": 0.3270440251572327,
+              "precision": 0.3333333333333333,
+              "recall": 0.32098765432098764,
+              "support": 13.5
+            },
+            "weighted avg": {
+              "f1-score": 0.9811320754716981,
+              "precision": 1.0,
+              "recall": 0.9629629629629629,
+              "support": 13.5
+            }
+          },
+          "confusion_matrix": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.5,
+              0.0,
+              13.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.09627167049582332,
+          "macro_f1": 0.3270440251572327,
+          "per_scene": {
+            "zsNo4HB9uLZ": {
+              "balanced_accuracy": 0.9629629629629629,
+              "macro_f1": 0.3270440251572327,
+              "rows": 14
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 14,
+          "scenes": [
+            "zsNo4HB9uLZ"
+          ]
+        }
+      }
+    },
+    {
+      "control_effect": "none",
+      "hint_action": {
+        "control_effect": "none",
+        "historical_gate": {
+          "coverage": 0.5625,
+          "precision": 0.8888888888888888,
+          "recall": 0.6666666666666666,
+          "weighted_false_negative": 2.0,
+          "weighted_false_positive": 0.5,
+          "weighted_true_negative": 1.5,
+          "weighted_true_positive": 4.0
+        },
+        "model_validation_precision_0p90_threshold": {
+          "coverage": 0.625,
+          "precision": 1.0,
+          "recall": 0.8333333333333334,
+          "threshold": 0.5606810888243218,
+          "weighted_false_negative": 1.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 2.0,
+          "weighted_true_positive": 5.0
+        },
+        "positive_weight_rows": 9,
+        "rows": 9,
+        "three_class": {
+          "balanced_accuracy": 0.6111111111111112,
+          "classification_report": {
+            "abstain": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 0.5
+            },
+            "accuracy": 0.8125,
+            "keep_vlm": {
+              "f1-score": 0.75,
+              "precision": 0.6,
+              "recall": 1.0,
+              "support": 1.5
+            },
+            "macro avg": {
+              "f1-score": 0.5398550724637681,
+              "precision": 0.503030303030303,
+              "recall": 0.6111111111111112,
+              "support": 8.0
+            },
+            "override_hint": {
+              "f1-score": 0.8695652173913043,
+              "precision": 0.9090909090909091,
+              "recall": 0.8333333333333334,
+              "support": 6.0
+            },
+            "weighted avg": {
+              "f1-score": 0.7927989130434783,
+              "precision": 0.7943181818181817,
+              "recall": 0.8125,
+              "support": 8.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0.0,
+              0.0,
+              0.5
+            ],
+            [
+              0.0,
+              1.5,
+              0.0
+            ],
+            [
+              0.0,
+              1.0,
+              5.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.41671815254072875,
+          "macro_f1": 0.5398550724637681,
+          "per_scene": {
+            "zsNo4HB9uLZ": {
+              "balanced_accuracy": 0.6111111111111112,
+              "macro_f1": 0.5398550724637681,
+              "rows": 9
+            }
+          },
+          "roc_auc_ovr_macro": 1.0,
+          "rows": 9,
+          "scenes": [
+            "zsNo4HB9uLZ"
+          ]
+        }
+      },
+      "physical_episode_id": 295,
+      "readonly_measurement_repairs": [],
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295",
+      "scene_id": "zsNo4HB9uLZ",
+      "scoreable": true,
+      "source_episode": {
+        "attempt_step_alignment": "v11_shadow_exact_step",
+        "counts": {
+          "anchors": 15,
+          "relocalization_attempts": 278,
+          "return_rows": 1387,
+          "terminal_queries": 23
+        },
+        "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295",
+        "outcome": {
+          "outbound_success": true,
+          "return_success": false,
+          "return_terminal_safe_fail": false,
+          "round_trip_success": false
+        },
+        "physical_episode_id": 295,
+        "scene_id": "zsNo4HB9uLZ",
+        "schema": "navila-anchor-terminal-training-v1",
+        "source": {
+          "anchors": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295/icp_replay_dataset/anchors.json",
+          "anchors_sha256": "9070a74f53f0a9a397174d092fcd633ce69cbd947f5d721462728ee16102f4eb",
+          "directory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295",
+          "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295/measurements/475.json",
+          "measurement_sha256": "ab28ae9c52ca8bd7fad3774347f387a6e20c249aa61c1ba88a9f65f11b3dd4c6",
+          "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295/trajectories/output_475.jsonl",
+          "trajectory_sha256": "cfed575f80627680499ae71fbd676bf974bb02f20c2916995ba53ddf09e2f729"
+        },
+        "split": "prospective"
+      },
+      "terminal_v2_robust": {
+        "control_effect": "none",
+        "frozen_sequence_policy": {
+          "arrived_recall": 0.0,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 0,
+          "confirmed_rows": 0,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "positive_weight_rows": 23,
+        "rows": 23,
+        "three_class": {
+          "balanced_accuracy": 0.8695652173913043,
+          "classification_report": {
+            "accuracy": 0.8695652173913043,
+            "arrived": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 0.0
+            },
+            "boundary": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 0.0
+            },
+            "far": {
+              "f1-score": 0.9302325581395349,
+              "precision": 1.0,
+              "recall": 0.8695652173913043,
+              "support": 23.0
+            },
+            "macro avg": {
+              "f1-score": 0.31007751937984496,
+              "precision": 0.3333333333333333,
+              "recall": 0.2898550724637681,
+              "support": 23.0
+            },
+            "weighted avg": {
+              "f1-score": 0.9302325581395349,
+              "precision": 1.0,
+              "recall": 0.8695652173913043,
+              "support": 23.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              3.0,
+              20.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.2857118207557631,
+          "macro_f1": 0.31007751937984496,
+          "per_scene": {
+            "zsNo4HB9uLZ": {
+              "balanced_accuracy": 0.8695652173913043,
+              "macro_f1": 0.31007751937984496,
+              "rows": 23
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 23,
+          "scenes": [
+            "zsNo4HB9uLZ"
+          ]
+        }
+      }
+    },
+    {
+      "control_effect": "none",
+      "error": "SkipEpisode:measurement_not_completed_return",
+      "physical_episode_id": 430,
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep430",
+      "scoreable": false
+    },
+    {
+      "control_effect": "none",
+      "hint_action": {
+        "control_effect": "none",
+        "historical_gate": {
+          "coverage": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "weighted_false_negative": 8.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 5.0,
+          "weighted_true_positive": 0.0
+        },
+        "model_validation_precision_0p90_threshold": {
+          "coverage": 0.46153846153846156,
+          "precision": 0.6666666666666666,
+          "recall": 0.5,
+          "threshold": 0.5606810888243218,
+          "weighted_false_negative": 4.0,
+          "weighted_false_positive": 2.0,
+          "weighted_true_negative": 3.0,
+          "weighted_true_positive": 4.0
+        },
+        "positive_weight_rows": 13,
+        "rows": 13,
+        "three_class": {
+          "balanced_accuracy": 0.5125,
+          "classification_report": {
+            "abstain": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0,
+              "support": 0.0
+            },
+            "accuracy": 0.5384615384615384,
+            "keep_vlm": {
+              "f1-score": 0.4,
+              "precision": 0.4,
+              "recall": 0.4,
+              "support": 5.0
+            },
+            "macro avg": {
+              "f1-score": 0.3416666666666666,
+              "precision": 0.3416666666666666,
+              "recall": 0.3416666666666666,
+              "support": 13.0
+            },
+            "override_hint": {
+              "f1-score": 0.625,
+              "precision": 0.625,
+              "recall": 0.625,
+              "support": 8.0
+            },
+            "weighted avg": {
+              "f1-score": 0.5384615384615384,
+              "precision": 0.5384615384615384,
+              "recall": 0.5384615384615384,
+              "support": 13.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              0.0,
+              0.0,
+              0.0
+            ],
+            [
+              0.0,
+              2.0,
+              3.0
+            ],
+            [
+              0.0,
+              3.0,
+              5.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.7185617777367992,
+          "macro_f1": 0.3416666666666666,
+          "per_scene": {
+            "QUCTc6BB5sX": {
+              "balanced_accuracy": 0.5125,
+              "macro_f1": 0.3416666666666666,
+              "rows": 13
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 13,
+          "scenes": [
+            "QUCTc6BB5sX"
+          ]
+        }
+      },
+      "physical_episode_id": 1008,
+      "readonly_measurement_repairs": [],
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008",
+      "scene_id": "QUCTc6BB5sX",
+      "scoreable": true,
+      "source_episode": {
+        "attempt_step_alignment": "v11_shadow_exact_step",
+        "counts": {
+          "anchors": 16,
+          "relocalization_attempts": 1001,
+          "return_rows": 5002,
+          "terminal_queries": 87
+        },
+        "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008",
+        "outcome": {
+          "outbound_success": true,
+          "return_success": false,
+          "return_terminal_safe_fail": false,
+          "round_trip_success": false
+        },
+        "physical_episode_id": 1008,
+        "scene_id": "QUCTc6BB5sX",
+        "schema": "navila-anchor-terminal-training-v1",
+        "source": {
+          "anchors": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008/icp_replay_dataset/anchors.json",
+          "anchors_sha256": "6e445b46b2a91774ec67c470e32491fb9b68472b1a93a8096357f98ac3c3d079",
+          "directory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008",
+          "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008/measurements/1716.json",
+          "measurement_sha256": "4250ce24fbbdbd09feb66608e888e63b4480b704050134ae2bb3f1fe92d4891b",
+          "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008/trajectories/output_1716.jsonl",
+          "trajectory_sha256": "aceded85449887e6b8e6c0c6a47a7833d88f9f88cc391a6617a511ee70629820"
+        },
+        "split": "prospective"
+      },
+      "terminal_v2_robust": {
+        "control_effect": "none",
+        "frozen_sequence_policy": {
+          "arrived_recall": 0.7027027027027027,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 1,
+          "confirmed_rows": 26,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "positive_weight_rows": 87,
+        "rows": 87,
+        "three_class": {
+          "balanced_accuracy": 0.981981981981982,
+          "classification_report": {
+            "accuracy": 0.9770114942528736,
+            "arrived": {
+              "f1-score": 0.9722222222222222,
+              "precision": 1.0,
+              "recall": 0.9459459459459459,
+              "support": 37.0
+            },
+            "boundary": {
+              "f1-score": 0.8571428571428571,
+              "precision": 0.75,
+              "recall": 1.0,
+              "support": 6.0
+            },
+            "far": {
+              "f1-score": 1.0,
+              "precision": 1.0,
+              "recall": 1.0,
+              "support": 44.0
+            },
+            "macro avg": {
+              "f1-score": 0.943121693121693,
+              "precision": 0.9166666666666666,
+              "recall": 0.981981981981982,
+              "support": 87.0
+            },
+            "weighted avg": {
+              "f1-score": 0.9783342455756249,
+              "precision": 0.9827586206896551,
+              "recall": 0.9770114942528736,
+              "support": 87.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              35.0,
+              2.0,
+              0.0
+            ],
+            [
+              0.0,
+              6.0,
+              0.0
+            ],
+            [
+              0.0,
+              0.0,
+              44.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.13789117918049074,
+          "macro_f1": 0.943121693121693,
+          "per_scene": {
+            "QUCTc6BB5sX": {
+              "balanced_accuracy": 0.981981981981982,
+              "macro_f1": 0.943121693121693,
+              "rows": 87
+            }
+          },
+          "roc_auc_ovr_macro": 0.9982678975271568,
+          "rows": 87,
+          "scenes": [
+            "QUCTc6BB5sX"
+          ]
+        }
+      }
+    }
+  ],
+  "hint_model": "/home/teambruce/navila-anchor-terminal-training-data-20260729/models/v1/hint_action_decision_v1.joblib",
+  "schema": "navila-hint-terminal-v2-prospective-replay",
+  "terminal_model": "/home/teambruce/navila-anchor-terminal-training-data-20260729/models/v2/terminal_decision_v2_robust.joblib"
+}

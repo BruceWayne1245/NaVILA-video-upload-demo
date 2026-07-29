@@ -1,0 +1,412 @@
+{
+  "artifact_path": "/home/teambruce/navila-anchor-terminal-training-data-20260729/models/v2/terminal_decision_v2_robust.joblib",
+  "artifact_sha256": "f033696bf632134c48edf3ce1734850833c98a93bfdadc7173780ef5ebef6bbb",
+  "classes": [
+    "arrived",
+    "boundary",
+    "far"
+  ],
+  "decision_policy": {
+    "arrived_sequence_confirmation": {
+      "arrived_recall": 0.33868943007783076,
+      "boundary_forced_arrived": 0,
+      "confirmed_episodes": 12,
+      "confirmed_rows": 515,
+      "per_scene": {
+        "2azQ1b91cZZ": {
+          "arrived_recall": 0.10256410256410256,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 2,
+          "confirmed_rows": 4,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "EU6Fwq7SyZv": {
+          "arrived_recall": 0.4152671755725191,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 1,
+          "confirmed_rows": 68,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "QUCTc6BB5sX": {
+          "arrived_recall": 0.10093457943925234,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 2,
+          "confirmed_rows": 27,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "TbHJrupSAjP": {
+          "arrived_recall": 0.0,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 0,
+          "confirmed_rows": 0,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "X7HyMhZNoso": {
+          "arrived_recall": 0.44512482336316533,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 5,
+          "confirmed_rows": 385,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "Z6MFQCViBuw": {
+          "arrived_recall": 0.0,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 0,
+          "confirmed_rows": 0,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "x8F5xyUWy9e": {
+          "arrived_recall": 0.12627291242362526,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 2,
+          "confirmed_rows": 31,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        }
+      },
+      "streak": 4,
+      "threshold": 0.7132822580645162,
+      "true_far_false_arrived": 0,
+      "weighted_boundary_forced_arrived": 0.0,
+      "weighted_true_far_false_arrived": 0.0,
+      "worst_scene_arrived_recall": 0.10093457943925234
+    },
+    "boundary_action": "verify",
+    "integration_status": "shadow_only"
+  },
+  "development_scenes": [
+    "2azQ1b91cZZ",
+    "EU6Fwq7SyZv",
+    "QUCTc6BB5sX",
+    "TbHJrupSAjP",
+    "X7HyMhZNoso",
+    "Z6MFQCViBuw",
+    "x8F5xyUWy9e"
+  ],
+  "feature_count": 377,
+  "metrics": {
+    "development_oof": {
+      "balanced_accuracy": 0.7347448250739967,
+      "classification_report": {
+        "accuracy": 0.8623353904465717,
+        "arrived": {
+          "f1-score": 0.7547821466524973,
+          "precision": 0.8014104372355431,
+          "recall": 0.713281446146121,
+          "support": 995.75
+        },
+        "boundary": {
+          "f1-score": 0.35724743777452417,
+          "precision": 0.25902335456475584,
+          "recall": 0.5754716981132075,
+          "support": 212.0
+        },
+        "far": {
+          "f1-score": 0.9331995598420609,
+          "precision": 0.9516171617161716,
+          "recall": 0.9154813309626619,
+          "support": 3937.0
+        },
+        "macro avg": {
+          "f1-score": 0.6817430480896941,
+          "precision": 0.6706836511721569,
+          "recall": 0.7347448250739967,
+          "support": 5144.75
+        },
+        "weighted avg": {
+          "f1-score": 0.874934145767164,
+          "precision": 0.8940053763004204,
+          "recall": 0.8623353904465717,
+          "support": 5144.75
+        }
+      },
+      "confusion_matrix": [
+        [
+          710.25,
+          152.75,
+          132.75
+        ],
+        [
+          39.5,
+          122.0,
+          50.5
+        ],
+        [
+          136.5,
+          196.25,
+          3604.25
+        ]
+      ],
+      "episodes": 232,
+      "log_loss": 0.3723175179835735,
+      "macro_f1": 0.6817430480896941,
+      "per_scene": {
+        "2azQ1b91cZZ": {
+          "balanced_accuracy": 0.7172125260360555,
+          "macro_f1": 0.5712585010104466,
+          "rows": 1020
+        },
+        "EU6Fwq7SyZv": {
+          "balanced_accuracy": 0.7206057739920296,
+          "macro_f1": 0.7147047772394778,
+          "rows": 1103
+        },
+        "QUCTc6BB5sX": {
+          "balanced_accuracy": 0.5842567284195591,
+          "macro_f1": 0.5312653179791518,
+          "rows": 956
+        },
+        "TbHJrupSAjP": {
+          "balanced_accuracy": 0.659148106132932,
+          "macro_f1": 0.4790951177228308,
+          "rows": 283
+        },
+        "X7HyMhZNoso": {
+          "balanced_accuracy": 0.8423322882159797,
+          "macro_f1": 0.726701968730778,
+          "rows": 2282
+        },
+        "Z6MFQCViBuw": {
+          "balanced_accuracy": 0.6,
+          "macro_f1": 0.4398782343987823,
+          "rows": 43
+        },
+        "x8F5xyUWy9e": {
+          "balanced_accuracy": 0.714755481175851,
+          "macro_f1": 0.6554129808754193,
+          "rows": 1171
+        }
+      },
+      "roc_auc_ovr_macro": 0.9224864472792612,
+      "rows": 6858,
+      "scenes": [
+        "2azQ1b91cZZ",
+        "EU6Fwq7SyZv",
+        "QUCTc6BB5sX",
+        "TbHJrupSAjP",
+        "X7HyMhZNoso",
+        "Z6MFQCViBuw",
+        "x8F5xyUWy9e"
+      ]
+    },
+    "test": {
+      "balanced_accuracy": 0.7415553437757687,
+      "classification_report": {
+        "accuracy": 0.9393474928837311,
+        "arrived": {
+          "f1-score": 0.780952380952381,
+          "precision": 0.7578558225508318,
+          "recall": 0.8055009823182712,
+          "support": 127.25
+        },
+        "boundary": {
+          "f1-score": 0.37254901960784315,
+          "precision": 0.31666666666666665,
+          "recall": 0.4523809523809524,
+          "support": 21.0
+        },
+        "far": {
+          "f1-score": 0.9751269035532995,
+          "precision": 0.9836149513568868,
+          "recall": 0.9667840966280825,
+          "support": 993.5
+        },
+        "macro avg": {
+          "f1-score": 0.7095427680378412,
+          "precision": 0.6860458135247951,
+          "recall": 0.7415553437757687,
+          "support": 1141.75
+        },
+        "weighted avg": {
+          "f1-score": 0.942402713876206,
+          "precision": 0.9461866499607272,
+          "recall": 0.9393474928837311,
+          "support": 1141.75
+        }
+      },
+      "confusion_matrix": [
+        [
+          102.5,
+          13.25,
+          11.5
+        ],
+        [
+          7.0,
+          9.5,
+          4.5
+        ],
+        [
+          25.75,
+          7.25,
+          960.5
+        ]
+      ],
+      "episodes": 41,
+      "log_loss": 0.16872995406930585,
+      "macro_f1": 0.7095427680378412,
+      "per_scene": {
+        "zsNo4HB9uLZ": {
+          "balanced_accuracy": 0.7415553437757687,
+          "macro_f1": 0.7095427680378412,
+          "rows": 1588
+        }
+      },
+      "roc_auc_ovr_macro": 0.9676302902057147,
+      "rows": 1588,
+      "scenes": [
+        "zsNo4HB9uLZ"
+      ]
+    }
+  },
+  "schema": "navila-terminal-controller-bundle-v2-robust",
+  "sequence_policy": {
+    "development_oof": {
+      "arrived_recall": 0.33868943007783076,
+      "boundary_forced_arrived": 0,
+      "confirmed_episodes": 12,
+      "confirmed_rows": 515,
+      "per_scene": {
+        "2azQ1b91cZZ": {
+          "arrived_recall": 0.10256410256410256,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 2,
+          "confirmed_rows": 4,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "EU6Fwq7SyZv": {
+          "arrived_recall": 0.4152671755725191,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 1,
+          "confirmed_rows": 68,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "QUCTc6BB5sX": {
+          "arrived_recall": 0.10093457943925234,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 2,
+          "confirmed_rows": 27,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "TbHJrupSAjP": {
+          "arrived_recall": 0.0,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 0,
+          "confirmed_rows": 0,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "X7HyMhZNoso": {
+          "arrived_recall": 0.44512482336316533,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 5,
+          "confirmed_rows": 385,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "Z6MFQCViBuw": {
+          "arrived_recall": 0.0,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 0,
+          "confirmed_rows": 0,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        },
+        "x8F5xyUWy9e": {
+          "arrived_recall": 0.12627291242362526,
+          "boundary_forced_arrived": 0,
+          "confirmed_episodes": 2,
+          "confirmed_rows": 31,
+          "streak": 4,
+          "threshold": 0.7132822580645162,
+          "true_far_false_arrived": 0,
+          "weighted_boundary_forced_arrived": 0.0,
+          "weighted_true_far_false_arrived": 0.0
+        }
+      },
+      "streak": 4,
+      "threshold": 0.7132822580645162,
+      "true_far_false_arrived": 0,
+      "weighted_boundary_forced_arrived": 0.0,
+      "weighted_true_far_false_arrived": 0.0,
+      "worst_scene_arrived_recall": 0.10093457943925234
+    },
+    "test": {
+      "arrived_recall": 0.2691552062868369,
+      "boundary_forced_arrived": 0,
+      "confirmed_episodes": 4,
+      "confirmed_rows": 98,
+      "streak": 4,
+      "threshold": 0.7132822580645162,
+      "true_far_false_arrived": 5,
+      "weighted_boundary_forced_arrived": 0.0,
+      "weighted_true_far_false_arrived": 1.25
+    }
+  },
+  "task": "terminal_decision",
+  "temperature": 1.0,
+  "test_scenes": [
+    "zsNo4HB9uLZ"
+  ],
+  "training": {
+    "calibration": "leave_one_scene_out",
+    "class_weights": {
+      "arrived": 1.6166902404526167,
+      "boundary": 8.282608695652174,
+      "far": 0.4423374613003096
+    },
+    "dataset_path": "/home/teambruce/navila-anchor-terminal-training-data-20260729/data/v1/terminal_decision.jsonl.gz",
+    "dataset_sha256": "c95f7243ad7e1971e01a906400420b1800420067ca6738aef086b30df925c1c7",
+    "development_rows": 6858,
+    "numpy_version": "1.26.4",
+    "python": "3.10.20 (main, Mar 11 2026, 17:46:40) [GCC 14.3.0]",
+    "sklearn_version": "1.7.2"
+  }
+}

@@ -58,6 +58,13 @@ V1.1 仍然是有价值的 ICP 可靠性模型。已有失败取证表明，它�
 
 详细分析见 [FINDINGS.md](FINDINGS.md)。
 
+当天后续完成的专用 hint-action 模型、Anchor wider-candidate pilot、
+Terminal v2 robust 训练及 unseen 5ep 固定回放见
+[HINT_ACTION_AND_V2_FOLLOWUP.md](../2026-07-29-hint-action-v2-terminal-v2-anchor-replay-shadow30/HINT_ACTION_AND_V2_FOLLOWUP.md)。
+
+三模型新 30ep read-only shadow 的 cohort、冻结哈希、隔离边界和监控入口见
+[THREE_MODEL_SHADOW30_LAUNCH.md](../2026-07-29-hint-action-v2-terminal-v2-anchor-replay-shadow30/THREE_MODEL_SHADOW30_LAUNCH.md)。
+
 ### 3. Active-50 前缀的两类失败
 
 停止 Active-50 时，共有：

@@ -1,0 +1,15 @@
+{
+  "candidate_records": 30,
+  "elapsed_seconds": 12.344588934996864,
+  "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_capture_reliability_16ep_20260721_accumulated_ep1038",
+  "historical_oracle_candidate_coverage": 0.125,
+  "historical_oracle_candidate_present": 1,
+  "missing_frames": 0,
+  "oracle_candidate_present": 5,
+  "replayed_rows": 8,
+  "requested_rows": 8,
+  "schema": "navila-wider-anchor-replay-v2",
+  "shard": "/home/teambruce/navila-anchor-terminal-training-data-20260729/data/v2/wider_candidate_shards/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_capture_reliability_16ep_20260721_accumulated_ep1038.jsonl",
+  "shard_sha256": "319dcca73bc09e63a3ef4f3219fefc535716f4a876dc0802bc1f7077d8cc15f9",
+  "wider_oracle_candidate_coverage": 0.625
+}

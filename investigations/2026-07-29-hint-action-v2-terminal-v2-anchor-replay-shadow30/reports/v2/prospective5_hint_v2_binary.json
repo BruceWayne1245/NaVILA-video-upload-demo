@@ -1,0 +1,922 @@
+{
+  "control_effect": "none",
+  "episodes": [
+    {
+      "control_effect": "none",
+      "hint_action_v2": {
+        "control_effect": "none",
+        "frozen_advisory_clearance_gated": {
+          "blocked_by_clearance_weight": 10.5,
+          "coverage": 0.0,
+          "eligible_weight": 6.0,
+          "positive_eligible_weight": 5.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": true,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7068855405893102,
+          "weighted_false_negative": 5.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 0.5,
+          "weighted_true_positive": 0.0
+        },
+        "frozen_advisory_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.3939393939393939,
+          "eligible_weight": 16.5,
+          "positive_eligible_weight": 14.5,
+          "precision": 0.9230769230769231,
+          "recall": 0.41379310344827586,
+          "require_clearance": false,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7068855405893102,
+          "weighted_false_negative": 8.5,
+          "weighted_false_positive": 0.5,
+          "weighted_true_negative": 1.5,
+          "weighted_true_positive": 6.0
+        },
+        "frozen_executable_policy": {
+          "blocked_by_clearance_weight": 10.5,
+          "coverage": 0.0,
+          "eligible_weight": 6.0,
+          "positive_eligible_weight": 5.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": true,
+          "same_kind_streak": 2,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 5.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 0.5,
+          "weighted_true_positive": 0.0
+        },
+        "frozen_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.18181818181818182,
+          "eligible_weight": 16.5,
+          "positive_eligible_weight": 14.5,
+          "precision": 1.0,
+          "recall": 0.20689655172413793,
+          "require_clearance": false,
+          "same_kind_streak": 2,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 11.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 2.0,
+          "weighted_true_positive": 3.0
+        },
+        "historical_gate": {
+          "coverage": 0.36363636363636365,
+          "precision": 0.9166666666666666,
+          "recall": 0.3793103448275862,
+          "weighted_false_negative": 9.0,
+          "weighted_false_positive": 0.5,
+          "weighted_true_negative": 1.5,
+          "weighted_true_positive": 5.5
+        },
+        "positive_weight_rows": 20,
+        "rows": 47,
+        "three_class": {
+          "balanced_accuracy": 0.6293103448275862,
+          "classification_report": {
+            "accuracy": 0.7272727272727273,
+            "do_not_override": {
+              "f1-score": 0.3076923076923077,
+              "precision": 0.2222222222222222,
+              "recall": 0.5,
+              "support": 2.0
+            },
+            "macro avg": {
+              "f1-score": 0.5689404934687954,
+              "precision": 0.5694444444444444,
+              "recall": 0.6293103448275862,
+              "support": 16.5
+            },
+            "override_hint": {
+              "f1-score": 0.8301886792452831,
+              "precision": 0.9166666666666666,
+              "recall": 0.7586206896551724,
+              "support": 14.5
+            },
+            "weighted avg": {
+              "f1-score": 0.7668557857237103,
+              "precision": 0.8324915824915825,
+              "recall": 0.7272727272727273,
+              "support": 16.5
+            }
+          },
+          "confusion_matrix": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              3.5,
+              11.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.5505145465645753,
+          "macro_f1": 0.5689404934687954,
+          "per_scene": {
+            "2azQ1b91cZZ": {
+              "balanced_accuracy": 0.6293103448275862,
+              "macro_f1": 0.5689404934687954,
+              "rows": 20
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 20,
+          "scenes": [
+            "2azQ1b91cZZ"
+          ]
+        },
+        "threshold_only_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.24242424242424243,
+          "eligible_weight": 16.5,
+          "positive_eligible_weight": 14.5,
+          "precision": 1.0,
+          "recall": 0.27586206896551724,
+          "require_clearance": false,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 10.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 2.0,
+          "weighted_true_positive": 4.0
+        }
+      },
+      "physical_episode_id": 319,
+      "readonly_measurement_repairs": [
+        "double_close_before_normalized_eigenvalues",
+        "missing_current_points_value"
+      ],
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319",
+      "scene_id": "2azQ1b91cZZ",
+      "scoreable": true,
+      "source_episode": {
+        "attempt_step_alignment": "v11_shadow_exact_step",
+        "counts": {
+          "anchors": 6,
+          "relocalization_attempts": 908,
+          "return_rows": 4537,
+          "terminal_queries": 76
+        },
+        "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319",
+        "outcome": {
+          "outbound_success": true,
+          "return_success": false,
+          "return_terminal_safe_fail": false,
+          "round_trip_success": false
+        },
+        "physical_episode_id": 319,
+        "scene_id": "2azQ1b91cZZ",
+        "schema": "navila-anchor-terminal-training-v1",
+        "source": {
+          "anchors": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319/icp_replay_dataset/anchors.json",
+          "anchors_sha256": "15cc5edabdbc07478d65fe92cb953dc4ad91e9c6f342ba279c606558b5c58737",
+          "directory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319",
+          "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319/measurements/511.json",
+          "measurement_sha256": null,
+          "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep319/trajectories/output_511.jsonl",
+          "trajectory_sha256": "69f90cc8c72ba5844b3b3e709255747347b65936558834d5cfeaa7acddca8825"
+        },
+        "split": "prospective"
+      }
+    },
+    {
+      "control_effect": "none",
+      "hint_action_v2": {
+        "control_effect": "none",
+        "frozen_advisory_clearance_gated": {
+          "blocked_by_clearance_weight": 6.5,
+          "coverage": 1.0,
+          "eligible_weight": 1.0,
+          "positive_eligible_weight": 1.0,
+          "precision": 1.0,
+          "recall": 1.0,
+          "require_clearance": true,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7068855405893102,
+          "weighted_false_negative": 0.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 0.0,
+          "weighted_true_positive": 1.0
+        },
+        "frozen_advisory_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.13333333333333333,
+          "eligible_weight": 7.5,
+          "positive_eligible_weight": 6.5,
+          "precision": 1.0,
+          "recall": 0.15384615384615385,
+          "require_clearance": false,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7068855405893102,
+          "weighted_false_negative": 5.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 1.0,
+          "weighted_true_positive": 1.0
+        },
+        "frozen_executable_policy": {
+          "blocked_by_clearance_weight": 6.5,
+          "coverage": 0.0,
+          "eligible_weight": 1.0,
+          "positive_eligible_weight": 1.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": true,
+          "same_kind_streak": 2,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 1.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 0.0,
+          "weighted_true_positive": 0.0
+        },
+        "frozen_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.0,
+          "eligible_weight": 7.5,
+          "positive_eligible_weight": 6.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": false,
+          "same_kind_streak": 2,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 6.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 1.0,
+          "weighted_true_positive": 0.0
+        },
+        "historical_gate": {
+          "coverage": 0.13333333333333333,
+          "precision": 1.0,
+          "recall": 0.15384615384615385,
+          "weighted_false_negative": 5.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 1.0,
+          "weighted_true_positive": 1.0
+        },
+        "positive_weight_rows": 8,
+        "rows": 10,
+        "three_class": {
+          "balanced_accuracy": 0.5769230769230769,
+          "classification_report": {
+            "accuracy": 0.26666666666666666,
+            "do_not_override": {
+              "f1-score": 0.26666666666666666,
+              "precision": 0.15384615384615385,
+              "recall": 1.0,
+              "support": 1.0
+            },
+            "macro avg": {
+              "f1-score": 0.26666666666666666,
+              "precision": 0.5769230769230769,
+              "recall": 0.5769230769230769,
+              "support": 7.5
+            },
+            "override_hint": {
+              "f1-score": 0.26666666666666666,
+              "precision": 1.0,
+              "recall": 0.15384615384615385,
+              "support": 6.5
+            },
+            "weighted avg": {
+              "f1-score": 0.26666666666666666,
+              "precision": 0.8871794871794872,
+              "recall": 0.26666666666666666,
+              "support": 7.5
+            }
+          },
+          "confusion_matrix": [
+            [
+              1.0,
+              0.0
+            ],
+            [
+              5.5,
+              1.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 1.0023489909950998,
+          "macro_f1": 0.26666666666666666,
+          "per_scene": {
+            "zsNo4HB9uLZ": {
+              "balanced_accuracy": 0.5769230769230769,
+              "macro_f1": 0.26666666666666666,
+              "rows": 8
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 8,
+          "scenes": [
+            "zsNo4HB9uLZ"
+          ]
+        },
+        "threshold_only_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.0,
+          "eligible_weight": 7.5,
+          "positive_eligible_weight": 6.5,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": false,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 6.5,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 1.0,
+          "weighted_true_positive": 0.0
+        }
+      },
+      "physical_episode_id": 498,
+      "readonly_measurement_repairs": [],
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498",
+      "scene_id": "zsNo4HB9uLZ",
+      "scoreable": true,
+      "source_episode": {
+        "attempt_step_alignment": "v11_shadow_exact_step",
+        "counts": {
+          "anchors": 11,
+          "relocalization_attempts": 228,
+          "return_rows": 1137,
+          "terminal_queries": 25
+        },
+        "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498",
+        "outcome": {
+          "outbound_success": true,
+          "return_success": false,
+          "return_terminal_safe_fail": true,
+          "round_trip_success": false
+        },
+        "physical_episode_id": 498,
+        "scene_id": "zsNo4HB9uLZ",
+        "schema": "navila-anchor-terminal-training-v1",
+        "source": {
+          "anchors": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498/icp_replay_dataset/anchors.json",
+          "anchors_sha256": "fd6e3afe5273076680d5694bbe5a6f9d09240ab3837415dd4805fe996e44f899",
+          "directory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498",
+          "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498/measurements/867.json",
+          "measurement_sha256": "d8a945796cb5661b2239d163c90fadb5b50b925d306f6ea5ea756c673ff54470",
+          "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498/trajectories/output_867.jsonl",
+          "trajectory_sha256": "6572f576bc3686dc85067a0378407accbb9794216135aaac2d1b3a2583d656cd"
+        },
+        "split": "prospective"
+      }
+    },
+    {
+      "control_effect": "none",
+      "hint_action_v2": {
+        "control_effect": "none",
+        "frozen_advisory_clearance_gated": {
+          "blocked_by_clearance_weight": 3.5,
+          "coverage": 0.6666666666666666,
+          "eligible_weight": 4.5,
+          "positive_eligible_weight": 4.0,
+          "precision": 1.0,
+          "recall": 0.75,
+          "require_clearance": true,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7068855405893102,
+          "weighted_false_negative": 1.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 0.5,
+          "weighted_true_positive": 3.0
+        },
+        "frozen_advisory_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.375,
+          "eligible_weight": 8.0,
+          "positive_eligible_weight": 6.0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "require_clearance": false,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7068855405893102,
+          "weighted_false_negative": 3.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 2.0,
+          "weighted_true_positive": 3.0
+        },
+        "frozen_executable_policy": {
+          "blocked_by_clearance_weight": 3.5,
+          "coverage": 0.0,
+          "eligible_weight": 4.5,
+          "positive_eligible_weight": 4.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": true,
+          "same_kind_streak": 2,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 4.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 0.5,
+          "weighted_true_positive": 0.0
+        },
+        "frozen_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.0,
+          "eligible_weight": 8.0,
+          "positive_eligible_weight": 6.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": false,
+          "same_kind_streak": 2,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 6.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 2.0,
+          "weighted_true_positive": 0.0
+        },
+        "historical_gate": {
+          "coverage": 0.5625,
+          "precision": 0.8888888888888888,
+          "recall": 0.6666666666666666,
+          "weighted_false_negative": 2.0,
+          "weighted_false_positive": 0.5,
+          "weighted_true_negative": 1.5,
+          "weighted_true_positive": 4.0
+        },
+        "positive_weight_rows": 9,
+        "rows": 9,
+        "three_class": {
+          "balanced_accuracy": 0.75,
+          "classification_report": {
+            "accuracy": 0.875,
+            "do_not_override": {
+              "f1-score": 0.6666666666666666,
+              "precision": 1.0,
+              "recall": 0.5,
+              "support": 2.0
+            },
+            "macro avg": {
+              "f1-score": 0.7948717948717949,
+              "precision": 0.9285714285714286,
+              "recall": 0.75,
+              "support": 8.0
+            },
+            "override_hint": {
+              "f1-score": 0.9230769230769231,
+              "precision": 0.8571428571428571,
+              "recall": 1.0,
+              "support": 6.0
+            },
+            "weighted avg": {
+              "f1-score": 0.8589743589743589,
+              "precision": 0.8928571428571428,
+              "recall": 0.875,
+              "support": 8.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              1.0,
+              1.0
+            ],
+            [
+              0.0,
+              6.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.44114118719263906,
+          "macro_f1": 0.7948717948717949,
+          "per_scene": {
+            "zsNo4HB9uLZ": {
+              "balanced_accuracy": 0.75,
+              "macro_f1": 0.7948717948717949,
+              "rows": 9
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 9,
+          "scenes": [
+            "zsNo4HB9uLZ"
+          ]
+        },
+        "threshold_only_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.125,
+          "eligible_weight": 8.0,
+          "positive_eligible_weight": 6.0,
+          "precision": 1.0,
+          "recall": 0.16666666666666666,
+          "require_clearance": false,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 5.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 2.0,
+          "weighted_true_positive": 1.0
+        }
+      },
+      "physical_episode_id": 295,
+      "readonly_measurement_repairs": [],
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295",
+      "scene_id": "zsNo4HB9uLZ",
+      "scoreable": true,
+      "source_episode": {
+        "attempt_step_alignment": "v11_shadow_exact_step",
+        "counts": {
+          "anchors": 15,
+          "relocalization_attempts": 278,
+          "return_rows": 1387,
+          "terminal_queries": 23
+        },
+        "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295",
+        "outcome": {
+          "outbound_success": true,
+          "return_success": false,
+          "return_terminal_safe_fail": false,
+          "round_trip_success": false
+        },
+        "physical_episode_id": 295,
+        "scene_id": "zsNo4HB9uLZ",
+        "schema": "navila-anchor-terminal-training-v1",
+        "source": {
+          "anchors": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295/icp_replay_dataset/anchors.json",
+          "anchors_sha256": "9070a74f53f0a9a397174d092fcd633ce69cbd947f5d721462728ee16102f4eb",
+          "directory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295",
+          "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295/measurements/475.json",
+          "measurement_sha256": "ab28ae9c52ca8bd7fad3774347f387a6e20c249aa61c1ba88a9f65f11b3dd4c6",
+          "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep295/trajectories/output_475.jsonl",
+          "trajectory_sha256": "cfed575f80627680499ae71fbd676bf974bb02f20c2916995ba53ddf09e2f729"
+        },
+        "split": "prospective"
+      }
+    },
+    {
+      "control_effect": "none",
+      "error": "SkipEpisode:measurement_not_completed_return",
+      "physical_episode_id": 430,
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep430",
+      "scoreable": false
+    },
+    {
+      "control_effect": "none",
+      "hint_action_v2": {
+        "control_effect": "none",
+        "frozen_advisory_clearance_gated": {
+          "blocked_by_clearance_weight": 13.0,
+          "coverage": 0.0,
+          "eligible_weight": 0.0,
+          "positive_eligible_weight": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": true,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7068855405893102,
+          "weighted_false_negative": 0.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 0.0,
+          "weighted_true_positive": 0.0
+        },
+        "frozen_advisory_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.3076923076923077,
+          "eligible_weight": 13.0,
+          "positive_eligible_weight": 8.0,
+          "precision": 1.0,
+          "recall": 0.5,
+          "require_clearance": false,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7068855405893102,
+          "weighted_false_negative": 4.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 5.0,
+          "weighted_true_positive": 4.0
+        },
+        "frozen_executable_policy": {
+          "blocked_by_clearance_weight": 13.0,
+          "coverage": 0.0,
+          "eligible_weight": 0.0,
+          "positive_eligible_weight": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "require_clearance": true,
+          "same_kind_streak": 2,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 0.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 0.0,
+          "weighted_true_positive": 0.0
+        },
+        "frozen_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.07692307692307693,
+          "eligible_weight": 13.0,
+          "positive_eligible_weight": 8.0,
+          "precision": 1.0,
+          "recall": 0.125,
+          "require_clearance": false,
+          "same_kind_streak": 2,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 7.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 5.0,
+          "weighted_true_positive": 1.0
+        },
+        "historical_gate": {
+          "coverage": 0.0,
+          "precision": 0.0,
+          "recall": 0.0,
+          "weighted_false_negative": 8.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 5.0,
+          "weighted_true_positive": 0.0
+        },
+        "positive_weight_rows": 13,
+        "rows": 13,
+        "three_class": {
+          "balanced_accuracy": 0.6125,
+          "classification_report": {
+            "accuracy": 0.6153846153846154,
+            "do_not_override": {
+              "f1-score": 0.5454545454545454,
+              "precision": 0.5,
+              "recall": 0.6,
+              "support": 5.0
+            },
+            "macro avg": {
+              "f1-score": 0.606060606060606,
+              "precision": 0.6071428571428572,
+              "recall": 0.6125,
+              "support": 13.0
+            },
+            "override_hint": {
+              "f1-score": 0.6666666666666666,
+              "precision": 0.7142857142857143,
+              "recall": 0.625,
+              "support": 8.0
+            },
+            "weighted avg": {
+              "f1-score": 0.62004662004662,
+              "precision": 0.631868131868132,
+              "recall": 0.6153846153846154,
+              "support": 13.0
+            }
+          },
+          "confusion_matrix": [
+            [
+              3.0,
+              2.0
+            ],
+            [
+              3.0,
+              5.0
+            ]
+          ],
+          "episodes": 1,
+          "log_loss": 0.5418875656237232,
+          "macro_f1": 0.606060606060606,
+          "per_scene": {
+            "QUCTc6BB5sX": {
+              "balanced_accuracy": 0.6125,
+              "macro_f1": 0.606060606060606,
+              "rows": 13
+            }
+          },
+          "roc_auc_ovr_macro": null,
+          "rows": 13,
+          "scenes": [
+            "QUCTc6BB5sX"
+          ]
+        },
+        "threshold_only_route_recommendation": {
+          "blocked_by_clearance_weight": 0.0,
+          "coverage": 0.15384615384615385,
+          "eligible_weight": 13.0,
+          "positive_eligible_weight": 8.0,
+          "precision": 1.0,
+          "recall": 0.25,
+          "require_clearance": false,
+          "same_kind_streak": 1,
+          "same_target_streak": 1,
+          "threshold": 0.7988654635214614,
+          "weighted_false_negative": 6.0,
+          "weighted_false_positive": 0.0,
+          "weighted_true_negative": 5.0,
+          "weighted_true_positive": 2.0
+        }
+      },
+      "physical_episode_id": 1008,
+      "readonly_measurement_repairs": [],
+      "result_dir": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008",
+      "scene_id": "QUCTc6BB5sX",
+      "scoreable": true,
+      "source_episode": {
+        "attempt_step_alignment": "v11_shadow_exact_step",
+        "counts": {
+          "anchors": 16,
+          "relocalization_attempts": 1001,
+          "return_rows": 5002,
+          "terminal_queries": 87
+        },
+        "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008",
+        "outcome": {
+          "outbound_success": true,
+          "return_success": false,
+          "return_terminal_safe_fail": false,
+          "round_trip_success": false
+        },
+        "physical_episode_id": 1008,
+        "scene_id": "QUCTc6BB5sX",
+        "schema": "navila-anchor-terminal-training-v1",
+        "source": {
+          "anchors": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008/icp_replay_dataset/anchors.json",
+          "anchors_sha256": "6e445b46b2a91774ec67c470e32491fb9b68472b1a93a8096357f98ac3c3d079",
+          "directory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008",
+          "measurement": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008/measurements/1716.json",
+          "measurement_sha256": "4250ce24fbbdbd09feb66608e888e63b4480b704050134ae2bb3f1fe92d4891b",
+          "trajectory": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep1008/trajectories/output_1716.jsonl",
+          "trajectory_sha256": "aceded85449887e6b8e6c0c6a47a7833d88f9f88cc391a6617a511ee70629820"
+        },
+        "split": "prospective"
+      }
+    }
+  ],
+  "model": "/home/teambruce/navila-anchor-terminal-training-data-20260729/models/v2/hint_action_decision_v2_binary.joblib",
+  "pooled_scoreable": {
+    "control_effect": "none",
+    "frozen_advisory_clearance_gated": {
+      "blocked_by_clearance_weight": 33.5,
+      "coverage": 0.34782608695652173,
+      "eligible_weight": 11.5,
+      "positive_eligible_weight": 10.5,
+      "precision": 1.0,
+      "recall": 0.38095238095238093,
+      "require_clearance": true,
+      "same_kind_streak": 1,
+      "same_target_streak": 1,
+      "threshold": 0.7068855405893102,
+      "weighted_false_negative": 6.5,
+      "weighted_false_positive": 0.0,
+      "weighted_true_negative": 1.0,
+      "weighted_true_positive": 4.0
+    },
+    "frozen_advisory_route_recommendation": {
+      "blocked_by_clearance_weight": 0.0,
+      "coverage": 0.32222222222222224,
+      "eligible_weight": 45.0,
+      "positive_eligible_weight": 35.0,
+      "precision": 0.9655172413793104,
+      "recall": 0.4,
+      "require_clearance": false,
+      "same_kind_streak": 1,
+      "same_target_streak": 1,
+      "threshold": 0.7068855405893102,
+      "weighted_false_negative": 21.0,
+      "weighted_false_positive": 0.5,
+      "weighted_true_negative": 9.5,
+      "weighted_true_positive": 14.0
+    },
+    "frozen_executable_policy": {
+      "blocked_by_clearance_weight": 33.5,
+      "coverage": 0.0,
+      "eligible_weight": 11.5,
+      "positive_eligible_weight": 10.5,
+      "precision": 0.0,
+      "recall": 0.0,
+      "require_clearance": true,
+      "same_kind_streak": 2,
+      "same_target_streak": 1,
+      "threshold": 0.7988654635214614,
+      "weighted_false_negative": 10.5,
+      "weighted_false_positive": 0.0,
+      "weighted_true_negative": 1.0,
+      "weighted_true_positive": 0.0
+    },
+    "frozen_route_recommendation": {
+      "blocked_by_clearance_weight": 0.0,
+      "coverage": 0.08888888888888889,
+      "eligible_weight": 45.0,
+      "positive_eligible_weight": 35.0,
+      "precision": 1.0,
+      "recall": 0.11428571428571428,
+      "require_clearance": false,
+      "same_kind_streak": 2,
+      "same_target_streak": 1,
+      "threshold": 0.7988654635214614,
+      "weighted_false_negative": 31.0,
+      "weighted_false_positive": 0.0,
+      "weighted_true_negative": 10.0,
+      "weighted_true_positive": 4.0
+    },
+    "historical_gate": {
+      "coverage": 0.25555555555555554,
+      "precision": 0.9130434782608695,
+      "recall": 0.3,
+      "weighted_false_negative": 24.5,
+      "weighted_false_positive": 1.0,
+      "weighted_true_negative": 9.0,
+      "weighted_true_positive": 10.5
+    },
+    "positive_weight_rows": 50,
+    "rows": 79,
+    "three_class": {
+      "balanced_accuracy": 0.6285714285714286,
+      "classification_report": {
+        "accuracy": 0.6444444444444445,
+        "do_not_override": {
+          "f1-score": 0.42857142857142855,
+          "precision": 0.3333333333333333,
+          "recall": 0.6,
+          "support": 10.0
+        },
+        "macro avg": {
+          "f1-score": 0.5852534562211982,
+          "precision": 0.5925925925925926,
+          "recall": 0.6285714285714286,
+          "support": 45.0
+        },
+        "override_hint": {
+          "f1-score": 0.7419354838709677,
+          "precision": 0.8518518518518519,
+          "recall": 0.6571428571428571,
+          "support": 35.0
+        },
+        "weighted avg": {
+          "f1-score": 0.6722990271377368,
+          "precision": 0.7366255144032923,
+          "recall": 0.6444444444444445,
+          "support": 45.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          6.0,
+          4.0
+        ],
+        [
+          12.0,
+          23.0
+        ]
+      ],
+      "episodes": 4,
+      "log_loss": 0.6038838955872945,
+      "macro_f1": 0.5852534562211982,
+      "per_scene": {
+        "2azQ1b91cZZ": {
+          "balanced_accuracy": 0.6293103448275862,
+          "macro_f1": 0.5689404934687954,
+          "rows": 20
+        },
+        "QUCTc6BB5sX": {
+          "balanced_accuracy": 0.6125,
+          "macro_f1": 0.606060606060606,
+          "rows": 13
+        },
+        "zsNo4HB9uLZ": {
+          "balanced_accuracy": 0.6133333333333333,
+          "macro_f1": 0.5319396051103369,
+          "rows": 17
+        }
+      },
+      "roc_auc_ovr_macro": null,
+      "rows": 50,
+      "scenes": [
+        "2azQ1b91cZZ",
+        "QUCTc6BB5sX",
+        "zsNo4HB9uLZ"
+      ]
+    },
+    "threshold_only_route_recommendation": {
+      "blocked_by_clearance_weight": 0.0,
+      "coverage": 0.15555555555555556,
+      "eligible_weight": 45.0,
+      "positive_eligible_weight": 35.0,
+      "precision": 1.0,
+      "recall": 0.2,
+      "require_clearance": false,
+      "same_kind_streak": 1,
+      "same_target_streak": 1,
+      "threshold": 0.7988654635214614,
+      "weighted_false_negative": 28.0,
+      "weighted_false_positive": 0.0,
+      "weighted_true_negative": 10.0,
+      "weighted_true_positive": 7.0
+    }
+  },
+  "schema": "navila-hint-v2-prospective-replay"
+}

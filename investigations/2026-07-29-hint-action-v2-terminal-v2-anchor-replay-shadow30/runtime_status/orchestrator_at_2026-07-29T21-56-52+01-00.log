@@ -1,0 +1,111 @@
+[preflight] PASS: frozen 50ep scope, code hashes, approval and port range
+[2026-07-29T21:44:31+01:00] preflight PASS: 30 unseen episodes, 9 scenes, frozen models, control consumers off
+[preflight] PASS: frozen 50ep scope, code hashes, approval and port range
+[2026-07-29T21:44:39+01:00] preflight PASS: 30 unseen episodes, 9 scenes, frozen models, control consumers off
+[2026-07-29T21:44:39+01:00] starting canary ep=670
+[2026-07-29T21:44:39+01:00] launching evaluator tag=three_model_readonly_shadow30_canary_20260729 episodes=670
+Batch started at 2026-07-29T21:44:39+01:00
+Each episode uses a fresh 8-bit VLM server and a fresh Isaac evaluation process.
+Each episode uses a unique VLM port: PORT_BASE(58000) + episode_idx.
+Running only episodes: 670
+Route hint config: --route_memory --route_hint_mode=compact --route_hint_source=integrated --route_relocalization_backend=sequential_pair
+Episode timeout: 7200s (kill-after 300s)
+Return yaw alignment enabled: --oracle_align_return_yaw_to_anchor_segment
+Extra Isaac args: --route_relocalization_interval_updates=5 --stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0 --stop_gate_accept_confirm_steps=2 --stop_gate_verify_queries=2 --stop_gate_blind_max_queries=8 --stop_gate_pre_stop_blind_trigger_queries=4 --stop_gate_max_evidence_age_updates=25 --stop_gate_visual_confirm_steps=2 --stop_gate_home_visual_max_distance_m=1.5 --stop_gate_home_visual_min_confidence=0.45 --topdown_route_map --hint_action_arbiter --hint_arbiter_min_relocalization_confidence=0.90 --sequential_pair_quarantine --sequential_pair_quarantine_mode=trend --route_local_map_icp_objective=point_to_point --route_local_map_voxel_size_m=0.10 --route_local_map_max_points=512 --route_local_map_profile=default --route_local_map_quality_policy=diagnostic --sequential_pair_promotion_mode=bounded_evidence --sequential_pair_promotion_window=5 --sequential_pair_promotion_min_votes=3 --sequential_pair_promotion_alias_aware --sequential_pair_promotion_alias_threshold=0.6 --sequential_pair_promotion_alias_window=8 --sequential_pair_promotion_alias_min_votes=5 --sequential_pair_promotion_alias_stall_attempts=200 --sequential_pair_promotion_use_pre_closure_estimates --sequential_pair_short_baseline_disambiguation --sequential_pair_short_baseline_min_travel_m=0.3 --sequential_pair_short_baseline_max_rotation_disagreement_deg=20.0 --sequential_pair_disable_temporal_smoothing --sequential_pair_closure_check --sequential_pair_closure_reconciliation_signal=bearing --sequential_pair_report_next_anchor --sequential_pair_report_next_anchor_suppress_if_stale --sequential_pair_anchor_geometry_source=accumulated --capture_icp_replay_dataset --sequential_pair_reliability_quarantine --reliability_quarantine_threshold=2.5 --sequential_pair_reliability_demote_current --sequential_pair_reliability_distrust_downstream --reliability_quarantine_shared_trend_budget --stuck_recovery --route_memory_capture_start_anchor_descriptor --sequential_pair_reconstructed_confidence_source_one_hop --reliability_v11_online_shadow --reliability_v11_runtime_root=/home/teambruce/navila-reliability-v1_1-anchor-support-recovery-20260728 --reliability_v11_portable_artifact=/home/teambruce/navila-reliability-v1_1-anchor-support-recovery-20260728/artifacts/reliability_v1_1_portable_shadow.json --reliability_v11_decision_shadow --reliability_v11_decision_policy=/home/teambruce/navila-reliability-v1_1-anchor-support-recovery-20260728/configs/v11_decision_shadow_v1.json --reliability_v11_consumer_mode=off --reliability_v11_derived_evidence_mode=off --reliability_v11_integrated_promotion_mode=off --reliability_v11_integrated_anchor_state_mode=off --reliability_v11_integrated_candidate_selector_mode=off --reliability_v11_integrated_candidate_controller_mode=off --reliability_v11_active_scan_plan_mode=off --reliability_v11_anchor_support_recovery_mode=off --low_level_policy_log_root=/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/logs/rsl_rl
+Skipping episode 4; ONLY_EPISODES=670
+Skipping episode 5; ONLY_EPISODES=670
+Skipping episode 134; ONLY_EPISODES=670
+Skipping episode 187; ONLY_EPISODES=670
+Skipping episode 367; ONLY_EPISODES=670
+Skipping episode 368; ONLY_EPISODES=670
+Skipping episode 408; ONLY_EPISODES=670
+Skipping episode 678; ONLY_EPISODES=670
+Skipping episode 680; ONLY_EPISODES=670
+Skipping episode 994; ONLY_EPISODES=670
+Skipping episode 1040; ONLY_EPISODES=670
+Skipping episode 144; ONLY_EPISODES=670
+Skipping episode 166; ONLY_EPISODES=670
+Skipping episode 1008; ONLY_EPISODES=670
+Skipping episode 1058; ONLY_EPISODES=670
+Skipping episode 89; ONLY_EPISODES=670
+Skipping episode 647; ONLY_EPISODES=670
+Skipping episode 381; ONLY_EPISODES=670
+Skipping episode 651; ONLY_EPISODES=670
+Skipping episode 409; ONLY_EPISODES=670
+Skipping episode 639; ONLY_EPISODES=670
+Skipping episode 319; ONLY_EPISODES=670
+Skipping episode 49; ONLY_EPISODES=670
+Skipping episode 488; ONLY_EPISODES=670
+Skipping episode 56; ONLY_EPISODES=670
+Skipping episode 273; ONLY_EPISODES=670
+Skipping episode 708; ONLY_EPISODES=670
+Skipping episode 486; ONLY_EPISODES=670
+Skipping episode 1068; ONLY_EPISODES=670
+Skipping episode 498; ONLY_EPISODES=670
+Skipping episode 974; ONLY_EPISODES=670
+Skipping episode 640; ONLY_EPISODES=670
+Skipping episode 1000; ONLY_EPISODES=670
+Skipping episode 1038; ONLY_EPISODES=670
+Skipping episode 500; ONLY_EPISODES=670
+Skipping episode 1011; ONLY_EPISODES=670
+Skipping episode 589; ONLY_EPISODES=670
+Skipping episode 758; ONLY_EPISODES=670
+Skipping episode 875; ONLY_EPISODES=670
+Skipping episode 295; ONLY_EPISODES=670
+Skipping episode 973; ONLY_EPISODES=670
+Skipping episode 342; ONLY_EPISODES=670
+Skipping episode 515; ONLY_EPISODES=670
+Skipping episode 281; ONLY_EPISODES=670
+Skipping episode 268; ONLY_EPISODES=670
+Skipping episode 96; ONLY_EPISODES=670
+Skipping episode 354; ONLY_EPISODES=670
+Skipping episode 347; ONLY_EPISODES=670
+Skipping episode 430; ONLY_EPISODES=670
+Skipping episode 214; ONLY_EPISODES=670
+Skipping episode 338; ONLY_EPISODES=670
+Skipping episode 277; ONLY_EPISODES=670
+Skipping episode 410; ONLY_EPISODES=670
+Skipping episode 137; ONLY_EPISODES=670
+Skipping episode 198; ONLY_EPISODES=670
+Skipping episode 189; ONLY_EPISODES=670
+Skipping episode 491; ONLY_EPISODES=670
+Skipping episode 963; ONLY_EPISODES=670
+Skipping episode 55; ONLY_EPISODES=670
+Skipping episode 337; ONLY_EPISODES=670
+Skipping episode 289; ONLY_EPISODES=670
+Skipping episode 813; ONLY_EPISODES=670
+Skipping episode 537; ONLY_EPISODES=670
+Skipping episode 932; ONLY_EPISODES=670
+Skipping episode 382; ONLY_EPISODES=670
+Skipping episode 726; ONLY_EPISODES=670
+Skipping episode 546; ONLY_EPISODES=670
+Skipping episode 336; ONLY_EPISODES=670
+Skipping episode 889; ONLY_EPISODES=670
+Skipping episode 20; ONLY_EPISODES=670
+Skipping episode 1004; ONLY_EPISODES=670
+Skipping episode 178; ONLY_EPISODES=670
+Skipping episode 783; ONLY_EPISODES=670
+Skipping episode 162; ONLY_EPISODES=670
+Skipping episode 467; ONLY_EPISODES=670
+Skipping episode 653; ONLY_EPISODES=670
+Skipping episode 88; ONLY_EPISODES=670
+Skipping episode 136; ONLY_EPISODES=670
+Skipping episode 1002; ONLY_EPISODES=670
+Skipping episode 1035; ONLY_EPISODES=670
+Skipping episode 669; ONLY_EPISODES=670
+Skipping episode 1042; ONLY_EPISODES=670
+Skipping episode 692; ONLY_EPISODES=670
+Skipping episode 652; ONLY_EPISODES=670
+Skipping episode 248; ONLY_EPISODES=670
+Skipping episode 953; ONLY_EPISODES=670
+Skipping episode 1001; ONLY_EPISODES=670
+Skipping episode 696; ONLY_EPISODES=670
+Skipping episode 1039; ONLY_EPISODES=670
+Skipping episode 525; ONLY_EPISODES=670
+Skipping episode 271; ONLY_EPISODES=670
+Skipping episode 447; ONLY_EPISODES=670
+Skipping episode 386; ONLY_EPISODES=670
+Skipping episode 830; ONLY_EPISODES=670
+Skipping episode 122; ONLY_EPISODES=670
+[2026-07-29T21:44:39+01:00] starting episode 670 (X7HyMhZNoso), port=58670, suffix=three_model_readonly_shadow30_canary_20260729_ep670
+VLM server ready on port 58670, pid=171128

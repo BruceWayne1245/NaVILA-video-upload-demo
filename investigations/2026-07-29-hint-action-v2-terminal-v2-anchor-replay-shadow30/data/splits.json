@@ -1,0 +1,33 @@
+{
+  "group": "scene_id",
+  "scene_to_split": {
+    "2azQ1b91cZZ": "train",
+    "EU6Fwq7SyZv": "validation",
+    "QUCTc6BB5sX": "train",
+    "TbHJrupSAjP": "train",
+    "X7HyMhZNoso": "train",
+    "Z6MFQCViBuw": "train",
+    "oLBMNvg9in8": "train",
+    "x8F5xyUWy9e": "train",
+    "zsNo4HB9uLZ": "test"
+  },
+  "schema": "navila-anchor-terminal-training-v1",
+  "seed_material": "navila-anchor-terminal-training-v1",
+  "split_to_scenes": {
+    "test": [
+      "zsNo4HB9uLZ"
+    ],
+    "train": [
+      "2azQ1b91cZZ",
+      "QUCTc6BB5sX",
+      "TbHJrupSAjP",
+      "X7HyMhZNoso",
+      "Z6MFQCViBuw",
+      "oLBMNvg9in8",
+      "x8F5xyUWy9e"
+    ],
+    "validation": [
+      "EU6Fwq7SyZv"
+    ]
+  }
+}

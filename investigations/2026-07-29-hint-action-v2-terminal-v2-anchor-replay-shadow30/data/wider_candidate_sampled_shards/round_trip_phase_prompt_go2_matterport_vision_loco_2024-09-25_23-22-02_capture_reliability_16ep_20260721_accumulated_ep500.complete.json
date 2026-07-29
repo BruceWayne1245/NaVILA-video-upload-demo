@@ -1,0 +1,16 @@
+{
+  "candidate_records": 11,
+  "elapsed_seconds": 13.7813094239973,
+  "episode_key": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_capture_reliability_16ep_20260721_accumulated_ep500",
+  "historical_oracle_candidate_coverage": 0.3333333333333333,
+  "historical_oracle_candidate_present": 1,
+  "missing_frames": 0,
+  "oracle_candidate_present": 3,
+  "replayed_rows": 3,
+  "request_sha256": "e3f78a41aa94a204f1242a6f883e413fb712f16f7125083184fc00730b26a856",
+  "requested_rows": 3,
+  "schema": "navila-wider-anchor-replay-v2",
+  "shard": "data/v2/wider_candidate_sampled_shards/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_capture_reliability_16ep_20260721_accumulated_ep500.jsonl",
+  "shard_sha256": "4df0e744285975fd9ffa1f4321194af4b8016982559e8769461922f25c0e6259",
+  "wider_oracle_candidate_coverage": 1.0
+}

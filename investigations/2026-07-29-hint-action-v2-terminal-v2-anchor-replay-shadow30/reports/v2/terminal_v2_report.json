@@ -1,0 +1,317 @@
+{
+  "artifact_path": "/home/teambruce/navila-anchor-terminal-training-data-20260729/models/v2/terminal_decision_v2.joblib",
+  "artifact_sha256": "00f805703df25d5ddf9fd26f6b98babb61c7b2153c7e3440964dfed64e6ad6ef",
+  "classes": [
+    "arrived",
+    "boundary",
+    "far"
+  ],
+  "decision_policy": {
+    "arrived_sequence_confirmation": {
+      "arrived_recall": 0.6687022900763359,
+      "boundary_forced_arrived": 0,
+      "confirmed_episodes": 2,
+      "confirmed_rows": 110,
+      "streak": 3,
+      "threshold": 0.51,
+      "true_far_false_arrived": 0,
+      "weighted_boundary_forced_arrived": 0.0,
+      "weighted_true_far_false_arrived": 0.0
+    },
+    "boundary_action": "verify",
+    "integration_status": "shadow_only"
+  },
+  "estimator_candidates": {
+    "linear_logistic": {
+      "temperature": 2.9000000000000004,
+      "validation_balanced_accuracy": 0.6250645508242298,
+      "validation_log_loss": 0.6639191415883516,
+      "validation_macro_f1": 0.5800538769649554
+    },
+    "regularized_hgb": {
+      "temperature": 1.05,
+      "validation_balanced_accuracy": 0.7206057739920296,
+      "validation_log_loss": 0.44309645248424084,
+      "validation_macro_f1": 0.7147047772394778
+    }
+  },
+  "feature_count": 373,
+  "metrics": {
+    "test": {
+      "balanced_accuracy": 0.6438263720262726,
+      "classification_report": {
+        "accuracy": 0.9062842128311802,
+        "arrived": {
+          "f1-score": 0.5188172043010753,
+          "precision": 0.8212765957446808,
+          "recall": 0.3791748526522593,
+          "support": 127.25
+        },
+        "boundary": {
+          "f1-score": 0.3902439024390244,
+          "precision": 0.2962962962962963,
+          "recall": 0.5714285714285714,
+          "support": 21.0
+        },
+        "far": {
+          "f1-score": 0.9572691552062869,
+          "precision": 0.9347721822541967,
+          "recall": 0.980875691997987,
+          "support": 993.5
+        },
+        "macro avg": {
+          "f1-score": 0.6221100873154621,
+          "precision": 0.6841150247650579,
+          "recall": 0.6438263720262726,
+          "support": 1141.75
+        },
+        "weighted avg": {
+          "f1-score": 0.8979737393439696,
+          "precision": 0.9103795332605887,
+          "recall": 0.9062842128311802,
+          "support": 1141.75
+        }
+      },
+      "confusion_matrix": [
+        [
+          48.25,
+          14.5,
+          64.5
+        ],
+        [
+          5.5,
+          12.0,
+          3.5
+        ],
+        [
+          5.0,
+          14.0,
+          974.5
+        ]
+      ],
+      "episodes": 41,
+      "log_loss": 0.23380160263115124,
+      "macro_f1": 0.6221100873154621,
+      "per_scene": {
+        "zsNo4HB9uLZ": {
+          "balanced_accuracy": 0.6438263720262726,
+          "macro_f1": 0.6221100873154621,
+          "rows": 1588
+        }
+      },
+      "roc_auc_ovr_macro": 0.9591860709322164,
+      "rows": 1588,
+      "scenes": [
+        "zsNo4HB9uLZ"
+      ]
+    },
+    "train": {
+      "balanced_accuracy": 0.9627441077158333,
+      "classification_report": {
+        "accuracy": 0.959536218305323,
+        "arrived": {
+          "f1-score": 0.9636636636636636,
+          "precision": 0.9630852340936374,
+          "recall": 0.9642427884615384,
+          "support": 832.0
+        },
+        "boundary": {
+          "f1-score": 0.6647127784290738,
+          "precision": 0.5067024128686327,
+          "recall": 0.9659284497444633,
+          "support": 146.75
+        },
+        "far": {
+          "f1-score": 0.9779742515898868,
+          "precision": 0.9987327736416918,
+          "recall": 0.9580610849414982,
+          "support": 3290.5
+        },
+        "macro avg": {
+          "f1-score": 0.8687835645608747,
+          "precision": 0.8228401402013207,
+          "recall": 0.9627441077158333,
+          "support": 4269.25
+        },
+        "weighted avg": {
+          "f1-score": 0.9644174136579392,
+          "precision": 0.974872796280931,
+          "recall": 0.959536218305323,
+          "support": 4269.25
+        }
+      },
+      "confusion_matrix": [
+        [
+          802.25,
+          27.25,
+          2.5
+        ],
+        [
+          3.5,
+          141.75,
+          1.5
+        ],
+        [
+          27.25,
+          110.75,
+          3152.5
+        ]
+      ],
+      "episodes": 199,
+      "log_loss": 0.15361037568776417,
+      "macro_f1": 0.8687835645608747,
+      "per_scene": {
+        "2azQ1b91cZZ": {
+          "balanced_accuracy": 0.952388647766799,
+          "macro_f1": 0.7830875254585502,
+          "rows": 1020
+        },
+        "QUCTc6BB5sX": {
+          "balanced_accuracy": 0.9547816652565841,
+          "macro_f1": 0.8740337065055807,
+          "rows": 956
+        },
+        "TbHJrupSAjP": {
+          "balanced_accuracy": 0.8745963107312269,
+          "macro_f1": 0.7516279302206916,
+          "rows": 283
+        },
+        "X7HyMhZNoso": {
+          "balanced_accuracy": 0.9767324382957424,
+          "macro_f1": 0.8915263671170743,
+          "rows": 2282
+        },
+        "Z6MFQCViBuw": {
+          "balanced_accuracy": 1.0,
+          "macro_f1": 0.6666666666666666,
+          "rows": 43
+        },
+        "x8F5xyUWy9e": {
+          "balanced_accuracy": 0.9726342761126346,
+          "macro_f1": 0.8727616953885362,
+          "rows": 1171
+        }
+      },
+      "roc_auc_ovr_macro": 0.9971659651232286,
+      "rows": 5755,
+      "scenes": [
+        "2azQ1b91cZZ",
+        "QUCTc6BB5sX",
+        "TbHJrupSAjP",
+        "X7HyMhZNoso",
+        "Z6MFQCViBuw",
+        "x8F5xyUWy9e"
+      ]
+    },
+    "validation": {
+      "balanced_accuracy": 0.7206057739920296,
+      "classification_report": {
+        "accuracy": 0.8549400342661336,
+        "arrived": {
+          "f1-score": 0.7936507936507936,
+          "precision": 0.8264462809917356,
+          "recall": 0.7633587786259542,
+          "support": 163.75
+        },
+        "boundary": {
+          "f1-score": 0.4329896907216495,
+          "precision": 0.3925233644859813,
+          "recall": 0.4827586206896552,
+          "support": 65.25
+        },
+        "far": {
+          "f1-score": 0.9174738473459899,
+          "precision": 0.9192546583850931,
+          "recall": 0.9156999226604795,
+          "support": 646.5
+        },
+        "macro avg": {
+          "f1-score": 0.7147047772394778,
+          "precision": 0.7127414346209365,
+          "recall": 0.7206057739920296,
+          "support": 875.5
+        },
+        "weighted avg": {
+          "f1-score": 0.8582064387082667,
+          "precision": 0.8626394799441115,
+          "recall": 0.8549400342661336,
+          "support": 875.5
+        }
+      },
+      "confusion_matrix": [
+        [
+          125.0,
+          10.5,
+          28.25
+        ],
+        [
+          10.0,
+          31.5,
+          23.75
+        ],
+        [
+          16.25,
+          38.25,
+          592.0
+        ]
+      ],
+      "episodes": 33,
+      "log_loss": 0.44309645248424084,
+      "macro_f1": 0.7147047772394778,
+      "per_scene": {
+        "EU6Fwq7SyZv": {
+          "balanced_accuracy": 0.7206057739920296,
+          "macro_f1": 0.7147047772394778,
+          "rows": 1103
+        }
+      },
+      "roc_auc_ovr_macro": 0.888197401913959,
+      "rows": 1103,
+      "scenes": [
+        "EU6Fwq7SyZv"
+      ]
+    }
+  },
+  "schema": "navila-terminal-controller-bundle-v2",
+  "selected_estimator": "regularized_hgb",
+  "sequence_policy": {
+    "test": {
+      "arrived_recall": 0.11591355599214145,
+      "boundary_forced_arrived": 1,
+      "confirmed_episodes": 6,
+      "confirmed_rows": 41,
+      "streak": 3,
+      "threshold": 0.51,
+      "true_far_false_arrived": 6,
+      "weighted_boundary_forced_arrived": 1.0,
+      "weighted_true_far_false_arrived": 1.5
+    },
+    "validation": {
+      "arrived_recall": 0.6687022900763359,
+      "boundary_forced_arrived": 0,
+      "confirmed_episodes": 2,
+      "confirmed_rows": 110,
+      "streak": 3,
+      "threshold": 0.51,
+      "true_far_false_arrived": 0,
+      "weighted_boundary_forced_arrived": 0.0,
+      "weighted_true_far_false_arrived": 0.0
+    }
+  },
+  "task": "terminal_decision",
+  "temperature": 1.05,
+  "training": {
+    "class_weights": {
+      "arrived": 1.5827832783278328,
+      "boundary": 10.36936936936937,
+      "far": 0.4401866299525776
+    },
+    "dataset_path": "/home/teambruce/navila-anchor-terminal-training-data-20260729/data/v1/terminal_decision.jsonl.gz",
+    "dataset_sha256": "c95f7243ad7e1971e01a906400420b1800420067ca6738aef086b30df925c1c7",
+    "numpy_version": "1.26.4",
+    "python": "3.10.20 (main, Mar 11 2026, 17:46:40) [GCC 14.3.0]",
+    "skipped_oracle_source_rows": 291,
+    "sklearn_version": "1.7.2",
+    "train_rows": 5755
+  }
+}

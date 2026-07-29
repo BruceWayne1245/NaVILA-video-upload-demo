@@ -1,0 +1,61 @@
+{
+  "class_counts": {
+    "abstain": 703,
+    "keep_vlm": 1339,
+    "override_hint": 1949
+  },
+  "episodes": 280,
+  "exclusions": {
+    "arbiter_not_logged": 89,
+    "included": 3991,
+    "no_direction_conflict": 4421,
+    "nonfar_owned_by_terminal": 688,
+    "terminal_stop_owned_elsewhere": 1711
+  },
+  "historical_policy": {
+    "evaluated_rows": 2617,
+    "false_negative": 1109,
+    "false_positive": 153,
+    "override_precision": 0.7656967840735069,
+    "override_recall": 0.3107520198881293,
+    "true_negative": 855,
+    "true_positive": 500
+  },
+  "label_policy": {
+    "arbiter_forward_cone_deg": 15.0,
+    "arbiter_forward_conflict_deg": 30.0,
+    "boundary_margin_deg": 5.0,
+    "collision_authority": "independent_hard_gate_not_a_model_label",
+    "oracle_forward_cone_deg": 20.0,
+    "scope": "movement_direction_conflicts_while_oracle_far",
+    "stop_authority": "excluded_owned_by_terminal_model"
+  },
+  "oracle_source_rows_excluded_at_training": 94,
+  "output": "/home/teambruce/navila-anchor-terminal-training-data-20260729/data/v1/hint_action_decision.jsonl.gz",
+  "output_sha256": "9d2ab50076b0e8dadf99cca6f27ef188b43d160f013f45be2fd1485fafd28e6f",
+  "parent_terminal_dataset": "/home/teambruce/navila-anchor-terminal-training-data-20260729/data/v1/terminal_decision.jsonl.gz",
+  "parent_terminal_dataset_sha256": "c95f7243ad7e1971e01a906400420b1800420067ca6738aef086b30df925c1c7",
+  "positive_weight_class_counts": {
+    "abstain": 484,
+    "keep_vlm": 1008,
+    "override_hint": 1609
+  },
+  "rows": 3991,
+  "scenes": [
+    "2azQ1b91cZZ",
+    "EU6Fwq7SyZv",
+    "QUCTc6BB5sX",
+    "TbHJrupSAjP",
+    "X7HyMhZNoso",
+    "Z6MFQCViBuw",
+    "oLBMNvg9in8",
+    "x8F5xyUWy9e",
+    "zsNo4HB9uLZ"
+  ],
+  "schema": "navila-hint-action-training-v1",
+  "split_counts": {
+    "test": 685,
+    "train": 2742,
+    "validation": 564
+  }
+}
