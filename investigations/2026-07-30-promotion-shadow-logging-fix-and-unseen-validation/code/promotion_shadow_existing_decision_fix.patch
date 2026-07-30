@@ -1,0 +1,122 @@
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@ -2927,6 +2927,7 @@
+     v11_shadow_session = None
+     v11_shadow_last_attempt = None
+     promotion_shadow_session = None
++    promotion_shadow_pending = None
+     if args_cli.sequential_pair_promotion_model_shadow:
+         from promotion_controller_runtime import (
+             PromotionDecisionPolicy,
+@@ -3128,13 +3129,23 @@
+         def _sequential_pair_relocalizer_with_v11_shadow(descriptor, anchors):
+-            nonlocal v11_shadow_last_attempt
++            nonlocal v11_shadow_last_attempt, promotion_shadow_pending
+             records = route_relocalization_diagnostics.setdefault(
+                 "covisibility_records", []
+             )
+             record_start = len(records)
++            # Snapshotted here (before this closure's own ICP call), which IS
++            # correctly "before route_agent's real decision for this attempt":
++            # this closure runs from inside update_relocalization() (called at
++            # its self.relocalizer(...) line), and the code that actually
++            # mutates _target_anchor_index/_quarantined_anchor_indices from
++            # this call's returned estimates runs in update_relocalization()'s
++            # continuation, AFTER this closure returns -- not before it, despite
++            # what an earlier version of this comment claimed. Do not compare
++            # against a same-closure "after" snapshot (that would observe state
++            # from before the real decision runs); the real "after" is captured
++            # once route_agent.update_return_motion() has fully returned, see
++            # the promotion_shadow_pending consumer below.
+             current_idx_before = route_agent._target_anchor_index
+             quarantined_before = set(route_agent._quarantined_anchor_indices)
+             result = sequential_pair_anchor_relocalization(
+                 descriptor,
+                 *route_agent.sequential_target_anchor_pair(),
+                 diagnostics=route_relocalization_diagnostics,
+                 return_candidates=True,
+                 capture_match_snapshots=args_cli.capture_anchor_match_snapshots,
+                 icp_objective=args_cli.route_local_map_icp_objective,
+                 voxel_size_m=local_map_voxel_size_m,
+                 max_points=local_map_max_points,
+                 quality_policy=args_cli.route_local_map_quality_policy,
+                 loftr_rear_yaw_check=args_cli.sequential_pair_loftr_rear_yaw_check,
+                 vision_disagreement_mode=args_cli.sequential_pair_vision_disagreement_mode,
+                 vision_disagreement_confidence_penalty=args_cli.sequential_pair_vision_disagreement_confidence_penalty,
+             )
+             if v11_shadow_session is not None:
+                 new_records = records[record_start:]
+                 v11_shadow_session.score_records(
+                     new_records,
+                     step=int(num_steps),
+                 )
+                 if new_records:
+                     v11_shadow_last_attempt = int(new_records[-1]["attempt"])
+             if promotion_shadow_session is not None:
+-                # NOTE: called AFTER sequential_pair_anchor_relocalization / route_agent's own
+-                # update_relocalization has already run this attempt (route_agent.
+-                # update_return_motion, which calls update_relocalization, executes before this
+-                # relocalizer closure inside the interval-gated block) -- so current_idx_before/
+-                # quarantined_before were snapshotted before THIS call but route_agent's own
+-                # decision for this exact attempt has already landed by the time we compare. This
+-                # is fine for shadow logging (we're comparing outcomes, not gating anything on
+-                # them) but means "before" here is "before this closure ran", not "before this
+-                # attempt's heuristic decision" -- do not repurpose this comparison for anything
+-                # that needs strict pre/post-decision ordering without re-checking that assumption.
+                 new_records = records[record_start:]
+-                existing_decision = None
+                 if new_records:
+-                    current_idx_after = route_agent._target_anchor_index
+-                    if current_idx_after != current_idx_before:
+-                        existing_decision = {"action": "promote", "from": current_idx_before, "to": current_idx_after}
+-                    else:
+-                        newly_quarantined = set(route_agent._quarantined_anchor_indices) - quarantined_before
+-                        existing_decision = (
+-                            {"action": "quarantine", "indices": sorted(newly_quarantined)}
+-                            if newly_quarantined else {"action": "wait"}
+-                        )
+-                    promotion_shadow_session.score_attempt(
+-                        step=int(num_steps),
+-                        attempt=int(new_records[-1]["attempt"]),
+-                        records=new_records,
+-                        existing_heuristic_decision=existing_decision,
+-                    )
++                    promotion_shadow_pending = {
++                        "step": int(num_steps),
++                        "attempt": int(new_records[-1]["attempt"]),
++                        "records": new_records,
++                        "idx_before": current_idx_before,
++                        "quarantined_before": quarantined_before,
++                    }
+             return result
+@@ -3785,6 +3787,30 @@
+                     v11_shadow_last_attempt = None
++                if promotion_shadow_session is not None and promotion_shadow_pending is not None:
++                    # Real "after" state, now that update_relocalization()'s
++                    # continuation (called inside update_return_motion() above)
++                    # has actually applied this attempt's promote/quarantine
++                    # decision -- see the comment in the relocalizer closure
++                    # for why comparing here (not inside that closure) is the
++                    # correct pre/post-decision boundary.
++                    idx_after = route_agent._target_anchor_index
++                    idx_before = promotion_shadow_pending["idx_before"]
++                    if idx_after != idx_before:
++                        existing_decision = {"action": "promote", "from": idx_before, "to": idx_after}
++                    else:
++                        newly_quarantined = (
++                            set(route_agent._quarantined_anchor_indices)
++                            - promotion_shadow_pending["quarantined_before"]
++                        )
++                        existing_decision = (
++                            {"action": "quarantine", "indices": sorted(newly_quarantined)}
++                            if newly_quarantined else {"action": "wait"}
++                        )
++                    promotion_shadow_session.score_attempt(
++                        step=promotion_shadow_pending["step"],
++                        attempt=promotion_shadow_pending["attempt"],
++                        records=promotion_shadow_pending["records"],
++                        existing_heuristic_decision=existing_decision,
++                    )
++                    promotion_shadow_pending = None
+
+         route_memory_progress = None
