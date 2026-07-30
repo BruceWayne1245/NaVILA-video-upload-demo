@@ -1,0 +1,32 @@
+{
+  "schema": "navila-terminal-evidence-ablation-v1",
+  "control_effect": "none",
+  "distance_bands_m": {
+    "arrived_max": 2.65,
+    "direct_far_strictly_greater_than": 3.35
+  },
+  "a0_visual": {
+    "legacy_min_confidence": 0.45,
+    "diagnostic_strong_min_confidence": 0.6,
+    "max_reported_distance_m": 1.5,
+    "required_consecutive_queries": 2
+  },
+  "policies": {
+    "terminal_model_only": {
+      "description": "Frozen Terminal v2 four-query confirmation; A0 is not required."
+    },
+    "a0_hard_required_with_terminal": {
+      "description": "Terminal v2 confirmation and strong repeated A0 observation are both required."
+    },
+    "legacy_a0_sufficient_fallback": {
+      "description": "Repeated VLM STOP plus repeated legacy-threshold A0 confirmation."
+    },
+    "strong_a0_sufficient_fallback": {
+      "description": "Repeated VLM STOP plus repeated A0 observations at confidence >=0.60."
+    },
+    "conditional_hierarchical": {
+      "description": "Fresh trusted raw route-near confirmation may accept without A0; blind fallback requires repeated strong A0 plus VLM STOP; trusted-far evidence vetoes."
+    }
+  },
+  "status": "postepisode_readonly_ablation_not_an_activation_policy"
+}
