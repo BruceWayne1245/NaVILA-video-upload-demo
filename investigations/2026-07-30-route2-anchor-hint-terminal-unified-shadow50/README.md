@@ -35,6 +35,14 @@ verify that the runtime candidate still matches them.
 - **GPU/runtime status at handoff:** no valid batch process is running; the
   last service exited failed at 2026-07-30 11:33:28 BST.
 
+## Retry2 repair and queue update
+
+The namespace and false-clean-exit defects were repaired later on
+2026-07-30.  The frozen experiment is queued behind Route 1's corrected
+unseen30 v2 batch.  See `repair_retry2/README.md` and
+`runtime_status/RETRY2_QUEUE.md`; the original handoff snapshot above remains
+the audit record of the two failed attempts.
+
 ## Most important numbers
 
 | Area | Result | Decision |
@@ -67,6 +75,8 @@ verify that the runtime candidate still matches them.
 - `data/` — frozen 50-episode manifest and JSON policy definitions.
 - `code/` — exact small runtime/scoring/launch snapshots used today.
 - `tests/` — focused regression tests from the isolated candidate.
+- `repair_retry2/` — collision-free runtime, strict capture validation,
+  retry2 tests, and exact launch/queue scripts.
 - `ARTIFACT_MANIFEST.sha256` — integrity hashes for every archived artifact.
 
 ## Safety statement
