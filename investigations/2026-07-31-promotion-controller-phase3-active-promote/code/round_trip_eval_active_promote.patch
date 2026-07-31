@@ -1,0 +1,192 @@
+Documentation-quality diff (see route_memory_agent_active_promote.patch in this same
+folder for why this isn't a mechanically-applicable patch). Exact hunks added 2026-07-31
+to NaVILA-Bench/scripts/round_trip_eval.py, shown in application order.
+
+=== Hunk 1: new CLI flag (after --sequential_pair_promotion_model_quarantine_threshold) ===
+
+@@ argparse setup @@
+ parser.add_argument(
+     "--sequential_pair_promotion_model_quarantine_threshold",
+     type=float,
+     default=0.65,
+     help="Only used with --sequential_pair_promotion_model_shadow. proba_quarantine threshold for the "
+          "shadow PromotionDecisionPolicy (F1-optimal region found offline was 0.6-0.7; see FINDINGS.md "
+-         "section 4.1). Purely logged in shadow mode -- does not affect any real decision.",
++         "section 4.1). Purely logged in shadow mode unless --sequential_pair_promotion_model_active_promote "
++         "is also set, in which case this threshold's quarantine branch still only ever suppresses an "
++         "active promote call (see that flag's help) -- it never writes to _quarantined_anchor_indices. "
++         "2026-07-31 combined-batch (0728+reliable30v3, 13086 rows) threshold sweep found 0.85 is the "
++         "F1-optimal operating point for the quarantine class specifically (precision 0.297->0.560 vs. "
++         "this 0.65 default, at a recall cost of 0.737->0.549) -- worth raising if quarantine shadow "
++         "logging is what you actually care about tuning; irrelevant to promote/wait quality either way.",
+ )
++parser.add_argument(
++    "--sequential_pair_promotion_model_active_promote",
++    action="store_true",
++    default=False,
++    help="(2026-07-31, Phase 3 -- promote/wait ONLY, quarantine stays shadow-only by explicit user "
++         "decision). Off by default. Requires --sequential_pair_promotion_model_shadow to also be set "
++         "(same bundle is reused). When set, the model's promote-vs-wait call (scored on the exact same "
++         "covisibility_records the shadow path already logs) REPLACES the bounded_evidence vote-aggregation "
++         "result inside RouteMemoryAgent._select_sequential_pair_relocalization for real -- this is no "
++         "longer shadow/observation-only, it changes which anchor gets promoted. quality_ok/close_enough/"
++         "trend_ok are deliberately NOT reapplied as a second gate on top of the model (see "
++         "route_memory_agent.py's sequential_pair_promotion_model_active_promote docstring for why -- "
++         "briefly, quality_ok has a known false-negative failure mode Injection B was added to work around, "
++         "and the model's own features already subsume it). closure_reject_reason's cross-check veto and "
++         "the short-baseline-unresolved withhold both still apply on top of the model's call, unchanged. "
++         "The model's quarantine class, if it fires, only suppresses this attempt's promote (mapped to "
++         "'not promote', i.e. same as wait) -- it never adds to _quarantined_anchor_indices; that mechanism "
++         "is still exclusively driven by the existing --sequential_pair_quarantine_mode heuristic. See "
++         "investigations/2026-07-28-promotion-quarantine-controller-model/INTEGRATION_PLAN.md Phase 3 and "
++         "this repo's 2026-07-31 reliable30v3 dwell-based re-validation for why promote/wait (not "
++         "quarantine) were judged ready: precision/recall/AUC replicated almost exactly across two "
++         "independent live batches (wait 0.988/0.986, promote 0.902/0.857 precision, both AUC>=0.98).",
++)
+
+=== Hunk 2: bundle/session setup block (startup validation + separate feature builder) ===
+
+@@ shadow/active setup, before the main episode loop @@
+     promotion_shadow_session = None
+     promotion_shadow_pending = None
++    active_promotion_feature_builder = None
++    if args_cli.sequential_pair_promotion_model_active_promote and not args_cli.sequential_pair_promotion_model_shadow:
++        raise RuntimeError(
++            "--sequential_pair_promotion_model_active_promote requires "
++            "--sequential_pair_promotion_model_shadow=<path> (the bundle is loaded once and reused "
++            "by both the shadow-logging path and the active promote/wait path)."
++        )
+     if args_cli.sequential_pair_promotion_model_shadow:
+         from promotion_controller_runtime import (
+             PromotionDecisionPolicy,
++            PromotionFeatureBuilder,
+             PromotionModelBundle,
+             PromotionShadowJsonlSession,
+         )
+         promotion_bundle = PromotionModelBundle.load(
+             args_cli.sequential_pair_promotion_model_shadow, mode="shadow"
+         )
++        promotion_episode_key = (
++            f"{args_cli.result_suffix or 'round_trip'}::"
++            f"ep{int(args_cli.episode_idx)}"
++        )
++        promotion_decision_policy = PromotionDecisionPolicy(
++            quarantine_threshold=args_cli.sequential_pair_promotion_model_quarantine_threshold
++        )
+         promotion_shadow_session = PromotionShadowJsonlSession(
+             promotion_bundle,
+-            episode_key=(
+-                f"{args_cli.result_suffix or 'round_trip'}::"
+-                f"ep{int(args_cli.episode_idx)}"
+-            ),
++            episode_key=promotion_episode_key,
+             log_path=os.path.join(result_dir, "promotion_controller_shadow.jsonl"),
+-            decision_policy=PromotionDecisionPolicy(
+-                quarantine_threshold=args_cli.sequential_pair_promotion_model_quarantine_threshold
+-            ),
++            decision_policy=promotion_decision_policy,
+             physical_episode_id=int(args_cli.episode_idx),
+             scene_id=os.path.splitext(
+                 os.path.basename(str(episode.get("scene_id") or "unknown"))
+             )[0],
++            active_promote=bool(args_cli.sequential_pair_promotion_model_active_promote),
+         )
++        if args_cli.sequential_pair_promotion_model_active_promote:
++            # Separate instance from promotion_shadow_session's own internal
++            # feature builder -- both are pure causal accumulators fed the
++            # identical records in the identical order, so they stay in sync,
++            # but sharing one instance would double-append to its rolling
++            # history (each attempt scored twice: once here for the real
++            # decision, once later in the deferred score_attempt() shadow-log
++            # call) and quietly corrupt every rolling-mean/std feature.
++            active_promotion_feature_builder = PromotionFeatureBuilder()
+         print(
+             "[promotion-shadow] initialized "
+             f"bundle_sha256={getattr(promotion_bundle, 'source_artifact_sha256', None)} "
+             f"quarantine_threshold={args_cli.sequential_pair_promotion_model_quarantine_threshold} "
+-            "enforcement=False controller_effect=False",
++            f"active_promote={bool(args_cli.sequential_pair_promotion_model_active_promote)} "
++            f"enforcement={bool(args_cli.sequential_pair_promotion_model_active_promote)} "
++            "controller_effect=False",
+             flush=True,
+         )
+
+=== Hunk 3: _sequential_pair_relocalizer_with_v11_shadow closure (the actual scoring) ===
+
+@@ closure, right before promotion_shadow_pending assembly and `return result` @@
++            if active_promotion_feature_builder is not None:
++                # 2026-07-31 (Phase 3, promote/wait only): scores THIS attempt's
++                # records right now, synchronously, so route_agent can consume
++                # the decision a few lines below (inside update_relocalization's
++                # continuation, same call stack, same attempt) -- unlike
++                # promotion_shadow_pending above, this cannot be deferred to
++                # after update_return_motion() returns, the real promote
++                # decision needs it immediately. Uses its own feature-builder
++                # instance (see where it's constructed) so this never
++                # double-counts an attempt into promotion_shadow_session's
++                # rolling history.
++                active_new_records = records[record_start:]
++                route_agent._active_promotion_model_decision = None
++                if active_new_records:
++                    try:
++                        active_attempt = int(active_new_records[-1]["attempt"])
++                        active_feat = active_promotion_feature_builder.build_attempt(
++                            promotion_episode_key, active_attempt, active_new_records
++                        )
++                        if active_feat is not None:
++                            active_proba = promotion_bundle.predict_proba(active_feat)
++                            active_decision = promotion_decision_policy.decide(active_proba)
++                            # Only "promote" ever sets True -- "wait" and
++                            # "quarantine" both fall through to "do not
++                            # promote" (i.e. wait) in route_memory_agent.py;
++                            # quarantine is never allowed to touch
++                            # _quarantined_anchor_indices from here.
++                            route_agent._active_promotion_model_decision = (
++                                active_decision == "promote"
++                            )
++                    except Exception as exc:  # fail-open, mirrors PromotionShadowJsonlSession.score_attempt
++                        route_agent._active_promotion_model_decision = None
++                        print(
++                            f"[promotion-active] scoring exception at step={num_steps}, "
++                            f"falling back to heuristic bounded_evidence vote for this attempt: "
++                            f"{type(exc).__name__}: {exc}",
++                            flush=True,
++                        )
+             if promotion_shadow_session is not None:
+                 new_records = records[record_start:]
+                 if new_records:
+                     promotion_shadow_pending = {
+                         "step": int(num_steps),
+                         "attempt": int(new_records[-1]["attempt"]),
+                         "records": new_records,
+                         "idx_before": current_idx_before,
+                         "quarantined_before": quarantined_before,
+                     }
+             return result
+
+=== Hunk 4: RouteMemoryAgent(...) instantiation kwarg ===
+
+@@ route_agent = RouteMemoryAgent(...) @@
+         sequential_pair_promotion_use_pre_closure_estimates=bool(
+             args_cli.sequential_pair_promotion_use_pre_closure_estimates
+         ),
++        sequential_pair_promotion_model_active_promote=bool(
++            args_cli.sequential_pair_promotion_model_active_promote
++        ),
+         sequential_pair_short_baseline_disambiguation=bool(
+
+=== Hunk 5: episode metadata JSON ===
+
+@@ result metadata dict @@
+         "sequential_pair_promotion_model_quarantine_threshold": float(
+             args_cli.sequential_pair_promotion_model_quarantine_threshold
+         ),
++        "sequential_pair_promotion_model_active_promote": bool(
++            args_cli.sequential_pair_promotion_model_active_promote
++        ),
+         "sequential_pair_promotion_model_shadow_summary": promotion_shadow_summary,
+
+Net effect when --sequential_pair_promotion_model_active_promote is omitted (default):
+active_promotion_feature_builder stays None, the new closure block is a no-op,
+PromotionShadowJsonlSession(active_promote=False) reproduces the exact old JSONL log
+fields -- verified via a synthetic session smoke test (see PHASE3_IMPLEMENTATION.md).

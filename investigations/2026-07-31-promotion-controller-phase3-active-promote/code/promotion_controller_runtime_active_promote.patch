@@ -1,0 +1,62 @@
+--- /tmp/claude-1006/-home-teambruce/c26c1924-d639-4a9c-b712-10d36d74d793/scratchpad/navila-publish-20260731/investigations/2026-07-28-promotion-quarantine-controller-model/code/promotion_controller_runtime.py	2026-07-31 20:33:48.003479468 +0100
++++ /tmp/claude-1006/-home-teambruce/c26c1924-d639-4a9c-b712-10d36d74d793/scratchpad/navila-publish-20260731/investigations/2026-07-31-promotion-controller-phase3-active-promote/code/promotion_controller_runtime.py	2026-07-31 20:33:56.993698394 +0100
+@@ -297,8 +297,16 @@
+ class PromotionShadowJsonlSession:
+     """Fail-open online shadow session with durable per-attempt JSONL
+     logging -- mirrors reliability/v11_runtime.py's V11ShadowJsonlSession.
+-    enforcement_enabled/controller_effect are always False here; nothing
+-    in round_trip_eval.py acts on score_attempt's return value yet."""
++    enforcement_enabled/controller_effect are False unless active_promote is
++    set (2026-07-31, Phase 3 promote/wait-only -- see round_trip_eval.py's
++    --sequential_pair_promotion_model_active_promote), in which case this
++    session's own decisions were NOT what got applied (round_trip_eval.py
++    scores promote/wait independently, on a separate PromotionFeatureBuilder,
++    to avoid double-appending to this session's rolling history) -- but the
++    two computations are deterministic and see identical records/policy, so
++    what's logged here still accurately reflects what happened for real.
++    quarantine is never enforced regardless of active_promote -- that class
++    only ever maps to a suppressed promote (see route_memory_agent.py)."""
+ 
+     def __init__(
+         self,
+@@ -309,6 +317,7 @@
+         decision_policy: Optional[PromotionDecisionPolicy] = None,
+         physical_episode_id: Optional[int] = None,
+         scene_id: Optional[str] = None,
++        active_promote: bool = False,
+     ):
+         self.bundle = bundle
+         self.episode_key = str(episode_key)
+@@ -316,6 +325,7 @@
+         self.physical_episode_id = int(physical_episode_id) if physical_episode_id is not None else None
+         self.scene_id = str(scene_id) if scene_id is not None else None
+         self.decision_policy = decision_policy or PromotionDecisionPolicy()
++        self.active_promote = bool(active_promote)
+         self.log_path.parent.mkdir(parents=True, exist_ok=True)
+         self._feature_builder = PromotionFeatureBuilder()
+         self._feature_builder.start_episode(self.episode_key)
+@@ -327,9 +337,10 @@
+             "episode_key": self.episode_key,
+             "physical_episode_id": self.physical_episode_id,
+             "scene_id": self.scene_id,
+-            "mode": "shadow",
+-            "enforcement_enabled": False,
+-            "controller_effect": False,
++            "mode": "shadow" if not self.active_promote else "shadow+active_promote",
++            "enforcement_enabled": self.active_promote,
++            "controller_effect": self.active_promote,
++            "controller_effect_scope": ["promote", "wait"] if self.active_promote else [],
+             "model_format": self.bundle.metadata.get("format", self.bundle.FORMAT),
+             "source_artifact_sha256": getattr(self.bundle, "source_artifact_sha256", None),
+             "feature_count": len(self.bundle.feature_names),
+@@ -375,8 +386,8 @@
+                 "existing_heuristic_decision": (
+                     dict(existing_heuristic_decision) if existing_heuristic_decision else None
+                 ),
+-                "enforcement_enabled": False,
+-                "controller_effect": False,
++                "enforcement_enabled": self.active_promote,
++                "controller_effect": self.active_promote,
+             })
+             return output
+         except Exception as exc:  # fail-open: never let shadow scoring break a real episode
