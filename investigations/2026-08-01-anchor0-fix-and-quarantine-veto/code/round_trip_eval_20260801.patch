@@ -1,0 +1,124 @@
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@ -647,6 +647,28 @@
+          "independent live batches (wait 0.988/0.986, promote 0.902/0.857 precision, both AUC>=0.98).",
+ )
+ parser.add_argument(
++    "--sequential_pair_promotion_model_quarantine_veto",
++    action="store_true",
++    default=False,
++    help="(2026-08-01). Off by default. Requires --sequential_pair_promotion_model_shadow to also be set "
++         "(reuses the same active-promote scoring call, no extra model inference). Grants the model VETO "
++         "power over the existing heuristic quarantine mechanisms (_record_next_anchor_trend/_quality/"
++         "_reliability/_stability) -- NOT the authority to initiate a quarantine itself. When the heuristic "
++         "is about to add an anchor to _quarantined_anchor_indices, the veto only blocks that specific add "
++         "if the model's own classification for that same attempt is NOT 'quarantine' (i.e. the model has "
++         "no independent evidence this anchor is bad); if the model agrees it's quarantine-worthy, the "
++         "heuristic's quarantine proceeds unchanged. Deliberately NOT symmetric with "
++         "--sequential_pair_promotion_model_active_promote: this repo's own quarantine-class precision was "
++         "measured at only 0.246-0.327 offline (investigations/2026-07-31-promotion-controller-phase3-"
++         "active-promote/FINDINGS.md section 3) -- far too weak to trust with the power to blacklist an "
++         "anchor (irreversible for the rest of the episode) on its own initiative, so it is only ever used "
++         "as an additional AND-gate that can lower the false-positive rate of an already-heuristic-approved "
++         "quarantine, never raise it. Motivated by investigations/2026-08-01-.../FINDINGS.md's ep498: three "
++         "real heuristic trend-quarantines in a row exhausted every candidate down to the (separately fixed) "
++         "empty-point-cloud anchor0, permanently starving relocalization for the rest of the episode; the "
++         "model's own contemporaneous classification was 'wait' (not 'quarantine') on all three.",
++)
++parser.add_argument(
+     "--sequential_pair_short_baseline_disambiguation",
+     action="store_true",
+     default=False,
+@@ -2964,6 +2986,11 @@
+             "--sequential_pair_promotion_model_shadow=<path> (the bundle is loaded once and reused "
+             "by both the shadow-logging path and the active promote/wait path)."
+         )
++    if args_cli.sequential_pair_promotion_model_quarantine_veto and not args_cli.sequential_pair_promotion_model_shadow:
++        raise RuntimeError(
++            "--sequential_pair_promotion_model_quarantine_veto requires "
++            "--sequential_pair_promotion_model_shadow=<path> (reuses the same scoring call as active_promote)."
++        )
+     if args_cli.sequential_pair_promotion_model_shadow:
+         from promotion_controller_runtime import (
+             PromotionDecisionPolicy,
+@@ -2992,7 +3019,10 @@
+             )[0],
+             active_promote=bool(args_cli.sequential_pair_promotion_model_active_promote),
+         )
+-        if args_cli.sequential_pair_promotion_model_active_promote:
++        if (
++            args_cli.sequential_pair_promotion_model_active_promote
++            or args_cli.sequential_pair_promotion_model_quarantine_veto
++        ):
+             # Separate instance from promotion_shadow_session's own internal
+             # feature builder -- both are pure causal accumulators fed the
+             # identical records in the identical order, so they stay in sync,
+@@ -3000,12 +3030,16 @@
+             # history (each attempt scored twice: once here for the real
+             # decision, once later in the deferred score_attempt() shadow-log
+             # call) and quietly corrupt every rolling-mean/std feature.
++            # quarantine_veto reuses this same builder/scoring call as
++            # active_promote (2026-08-01) -- one model inference per attempt
++            # feeds both decisions, not two.
+             active_promotion_feature_builder = PromotionFeatureBuilder()
+         print(
+             "[promotion-shadow] initialized "
+             f"bundle_sha256={getattr(promotion_bundle, 'source_artifact_sha256', None)} "
+             f"quarantine_threshold={args_cli.sequential_pair_promotion_model_quarantine_threshold} "
+             f"active_promote={bool(args_cli.sequential_pair_promotion_model_active_promote)} "
++            f"quarantine_veto={bool(args_cli.sequential_pair_promotion_model_quarantine_veto)} "
+             f"enforcement={bool(args_cli.sequential_pair_promotion_model_active_promote)} "
+             "controller_effect=False",
+             flush=True,
+@@ -3234,6 +3268,7 @@
+                 # rolling history.
+                 active_new_records = records[record_start:]
+                 route_agent._active_promotion_model_decision = None
++                route_agent._active_quarantine_veto_decision = None
+                 if active_new_records:
+                     try:
+                         active_attempt = int(active_new_records[-1]["attempt"])
+@@ -3251,8 +3286,23 @@
+                             route_agent._active_promotion_model_decision = (
+                                 active_decision == "promote"
+                             )
++                            # 2026-08-01 (quarantine_veto): the SAME classification,
++                            # reused, not a second model call. The model does not
++                            # get to INITIATE a quarantine (only "wait"/"promote"
++                            # ever reach _active_promotion_model_decision above) --
++                            # this only tells route_memory_agent.py's existing
++                            # heuristic quarantine mechanisms whether the model
++                            # independently agrees this candidate looks bad. Veto
++                            # (True) whenever the model does NOT think this is a
++                            # quarantine case; consumed only if
++                            # --sequential_pair_promotion_model_quarantine_veto is
++                            # set (no-op field otherwise).
++                            route_agent._active_quarantine_veto_decision = (
++                                active_decision != "quarantine"
++                            )
+                     except Exception as exc:  # fail-open, mirrors PromotionShadowJsonlSession.score_attempt
+                         route_agent._active_promotion_model_decision = None
++                        route_agent._active_quarantine_veto_decision = None
+                         print(
+                             f"[promotion-active] scoring exception at step={num_steps}, "
+                             f"falling back to heuristic bounded_evidence vote for this attempt: "
+@@ -3337,6 +3387,9 @@
+         sequential_pair_promotion_model_active_promote=bool(
+             args_cli.sequential_pair_promotion_model_active_promote
+         ),
++        sequential_pair_promotion_model_quarantine_veto=bool(
++            args_cli.sequential_pair_promotion_model_quarantine_veto
++        ),
+         sequential_pair_short_baseline_disambiguation=bool(
+             args_cli.sequential_pair_short_baseline_disambiguation
+         ),
+@@ -4109,6 +4162,9 @@
+         "sequential_pair_promotion_model_active_promote": bool(
+             args_cli.sequential_pair_promotion_model_active_promote
+         ),
++        "sequential_pair_promotion_model_quarantine_veto": bool(
++            args_cli.sequential_pair_promotion_model_quarantine_veto
++        ),
+         "sequential_pair_promotion_model_shadow_summary": promotion_shadow_summary,
+         "sequential_pair_anchor_geometry_source": args_cli.sequential_pair_anchor_geometry_source,
+         "sequential_pair_closure_check": bool(args_cli.sequential_pair_closure_check),
