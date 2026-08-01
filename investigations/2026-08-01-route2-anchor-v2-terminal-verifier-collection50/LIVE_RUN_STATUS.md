@@ -1,5 +1,9 @@
 # Live run status — snapshot 2026-08-01 16:00:57 BST
 
+> **Historical snapshot:** this V1.1-off collection was subsequently canceled.
+> The service names, PIDs, progress and continuation rules below are no longer
+> current. See `STOP_AND_QUEUE_AUDIT.md` and `LIVE_CORE_RUN_STATUS.md`.
+
 This is a time-stamped operational snapshot. Re-check the host before using
 any PID, service state, episode or GPU claim in a later session.
 

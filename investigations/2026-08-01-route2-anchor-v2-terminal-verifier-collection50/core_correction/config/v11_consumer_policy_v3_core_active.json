@@ -1,0 +1,22 @@
+{
+  "schema": "navila-v11-consumer-policy-v3-core",
+  "name": "route2-v11-head-specific-core-active-20260801",
+  "mode": "active",
+  "enforcement_approved": true,
+  "approval_basis": "user_directive_2026-08-01_v11_is_route2_core_unless_evidence_supports_downgrade",
+  "identity_override_authorized": false,
+  "candidate_flow": "preserve_reversible_candidates",
+  "operation_heads": {
+    "anchor_promotion": "pose",
+    "route_hint": "bearing",
+    "hint_action_override": "bearing",
+    "forced_stop": "distance",
+    "vlm_stop_veto": "distance"
+  },
+  "missing_assessment_action": "deny_guarded_operation",
+  "invalid_model_action": "deny_guarded_operations_preserve_observation",
+  "raw_icp_confidence_fallback": false,
+  "promotion_veto_warning_streak": 10,
+  "promotion_veto_recovery_streak": 30,
+  "notes": "Active candidate policy only; no run is launched by this artifact. Reversible ICP observations are preserved. Missing/invalid V1.1 denies only high-consequence ICP-derived operations while VLM, collision, and independent A0 paths remain available. A bounded promotion streak requests recovery and never restores raw-confidence authority."
+}

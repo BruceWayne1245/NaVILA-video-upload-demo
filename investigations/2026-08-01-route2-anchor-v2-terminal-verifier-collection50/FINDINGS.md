@@ -1,5 +1,11 @@
 # Findings — 2026-08-01 Route 2 optimization
 
+> **Status amendment:** sections below document the earlier V1.1-off system.
+> They remain useful forensic evidence but do not characterize the corrected
+> Route 2 Core architecture. See `CORE_CORRECTION_2026-08-01.md` for the
+> superseding finding and retraining results. No old metric was deleted or
+> rewritten.
+
 ## 1. Frozen Unified50 accounting
 
 The frozen retry4 run produced 48 per-episode scoring summaries. Ep855 is not

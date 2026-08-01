@@ -1,0 +1,49 @@
+{
+  "current_50_control_effect": "none",
+  "dataset": "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/isaaclab_exts/omni.isaac.vlnce/assets/vln_ce_isaac_v1.json.gz",
+  "dataset_sha256": "ceb2a2a9ac1f6d1a1ebbf9fe205867b101b1b7bb61d532a4d491124c7c0b0eec",
+  "development": {
+    "episodes": 24,
+    "manifest": "/home/teambruce/navila-route2-v11-core-20260801/manifest/route2_core_development24.tsv",
+    "manifest_sha256": "35e06e51ebb0747e4d5a9fcadb843298766ee5a81cc384892ce51337afb29fd1",
+    "may_enter_future_training": true,
+    "scene_counts": {
+      "2azQ1b91cZZ": 4,
+      "EU6Fwq7SyZv": 1,
+      "QUCTc6BB5sX": 4,
+      "TbHJrupSAjP": 4,
+      "X7HyMhZNoso": 3,
+      "Z6MFQCViBuw": 2,
+      "oLBMNvg9in8": 1,
+      "x8F5xyUWy9e": 1,
+      "zsNo4HB9uLZ": 4
+    }
+  },
+  "evidence": "/home/teambruce/navila-route2-v11-core-20260801/manifest/route2_core_cohort_evidence.tsv",
+  "evidence_sha256": "62aa9cc37dede5ac8527758b3a9e9e096ac6f2aca0f51022d9f01ed1706f44a4",
+  "execution_authorized": false,
+  "locked_validation": {
+    "canonical_history_attempt_id_overlap": 0,
+    "current_50_id_overlap": 0,
+    "current_or_development_route_pair_overlap": 0,
+    "development_id_overlap": 0,
+    "episodes": 20,
+    "excluded_geometry_overlap": 0,
+    "manifest": "/home/teambruce/navila-route2-v11-core-20260801/manifest/route2_core_locked_validation20.tsv",
+    "manifest_sha256": "4faafb4bec7e36505fd46a0f2060bb0ec9a6046556de36a2013809820f807ef0",
+    "may_enter_future_training": false,
+    "may_tune_thresholds": false,
+    "old_training_id_overlap": 0,
+    "scene_counts": {
+      "2azQ1b91cZZ": 7,
+      "QUCTc6BB5sX": 5,
+      "TbHJrupSAjP": 2,
+      "zsNo4HB9uLZ": 6
+    }
+  },
+  "queue_authorized": false,
+  "schema": "navila-route2-core-cohort-lock-v1",
+  "selection_tool": "/home/teambruce/navila-route2-v11-core-20260801/tools/build_core_episode_cohorts.py",
+  "selection_tool_sha256": "03d8121b5023cd113d7e7e243b655e49da933fd756727d678342790cc5787f17",
+  "state": "sealed_before_execution"
+}

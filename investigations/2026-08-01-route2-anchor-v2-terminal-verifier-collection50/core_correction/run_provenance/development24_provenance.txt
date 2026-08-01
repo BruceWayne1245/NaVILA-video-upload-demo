@@ -1,0 +1,9 @@
+started=2026-08-01T22:07:13+01:00
+scope=route2_only
+cohort=development
+episode_count=24
+v11_core_mode=active
+anchor_core_v1_mode=shadow
+terminal_core_v1_mode=postepisode_shadow
+hint_core_v1_mode=postepisode_shadow
+current_50_control_effect=none

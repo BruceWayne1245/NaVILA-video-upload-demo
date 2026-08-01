@@ -1,0 +1,110 @@
+{
+  "artifacts": {
+    "anchor_transition": {
+      "feature_count": 270,
+      "integration_status": "shadow_only",
+      "matching_v11_feature_count": 57,
+      "new": {
+        "features": 270,
+        "test_balanced_accuracy": 0.7834710700664861,
+        "validation_balanced_accuracy": 0.752763032700863
+      },
+      "new_minus_old": {
+        "features": -141,
+        "test_balanced_accuracy": 0.012486606420636703
+      },
+      "old": {
+        "features": 411,
+        "test_balanced_accuracy": 0.7709844636458494
+      },
+      "path": "/home/teambruce/navila-route2-v11-core-20260801/models/core_v1/anchor_transition_core_v1.joblib",
+      "raw_icp_quality_proxy_count": 0,
+      "required_v11_head": "pose",
+      "schema": "navila-route2-core-downstream-bundle-v1",
+      "sha256": "cf920f45852c3ed7e0d15068c7e67a943bb01372ce9d922c7dfaa7531f73fa37",
+      "wrong_v11_head_feature_count": 0
+    },
+    "hint_action": {
+      "feature_count": 192,
+      "integration_status": "shadow_only",
+      "matching_v11_feature_count": 38,
+      "new": {
+        "features": 192,
+        "test_average_precision": 0.806911147359636,
+        "test_balanced_accuracy": 0.7373989525055169,
+        "test_execution_precision": 1.0,
+        "test_execution_recall": 0.05113636363636364
+      },
+      "new_minus_old": {
+        "features": -172,
+        "test_average_precision": 0.019746835681038077,
+        "test_balanced_accuracy": 0.058375634517766395
+      },
+      "old": {
+        "features": 364,
+        "test_average_precision": 0.7871643116785979,
+        "test_balanced_accuracy": 0.6790233179877505
+      },
+      "path": "/home/teambruce/navila-route2-v11-core-20260801/models/core_v1/hint_action_core_v1.joblib",
+      "raw_icp_quality_proxy_count": 0,
+      "required_v11_head": "bearing",
+      "schema": "navila-route2-core-downstream-bundle-v1",
+      "sha256": "2829784b30920a9e270a5c9f7050303f7ef2488cbedabb3a8c9c4901b9e97e7e",
+      "wrong_v11_head_feature_count": 0
+    },
+    "terminal_decision": {
+      "feature_count": 275,
+      "integration_status": "shadow_only",
+      "matching_v11_feature_count": 96,
+      "new": {
+        "development_arrived_recall": 0.23173487321114739,
+        "features": 275,
+        "test_arrived_recall": 0.0,
+        "test_balanced_accuracy": 0.7744244408752315,
+        "test_true_far_false_arrived": 0
+      },
+      "new_minus_old": {
+        "features": -102,
+        "test_arrived_recall": -0.2691552062868369,
+        "test_balanced_accuracy": 0.03286909709946284,
+        "test_true_far_false_arrived": -5
+      },
+      "old": {
+        "features": 377,
+        "test_arrived_recall": 0.2691552062868369,
+        "test_balanced_accuracy": 0.7415553437757687,
+        "test_true_far_false_arrived": 5
+      },
+      "path": "/home/teambruce/navila-route2-v11-core-20260801/models/core_v1/terminal_decision_core_v1.joblib",
+      "raw_icp_quality_proxy_count": 0,
+      "required_v11_head": "distance",
+      "schema": "navila-route2-core-downstream-bundle-v1",
+      "sha256": "49358cb7b53397469792718fc33765f87617b009290727c0cfac23eae0d1fa5b",
+      "wrong_v11_head_feature_count": 0
+    }
+  },
+  "feature_firewall_sha256": "27eefecc1e34e7b765f4cd6a78f60e33e229d408330878cf619ef19a81735166",
+  "schema": "navila-route2-core-training-audit-v1",
+  "source_split_contract": {
+    "scene_disjoint": true,
+    "test_scenes": [
+      "zsNo4HB9uLZ"
+    ],
+    "train_scenes": 7,
+    "validation_scenes": [
+      "EU6Fwq7SyZv"
+    ]
+  },
+  "training_source_sha256": {
+    "training/core_v1_src/hint_action_features.py": "e9531076eaf2591b5f87843c93b97d7164f0554333448aca5646898fc33c34f9",
+    "training/core_v1_src/hint_action_v2_features.py": "a6963f284bd582771b26e1468e7a86252e44ac66f6c47a4b54d77068cf9265ab",
+    "training/core_v1_src/model_features.py": "ca3030a878e44038b4d9e8ed9be4fa56b7263d423eaed48e9be523edf76a95a1",
+    "training/core_v1_src/terminal_v2_features.py": "f96d7a75bcc62f82da08d525d9cb640e2e7a03d8f5774294cb09d7e0d357133b",
+    "training/core_v1_src/train_hint_action_model.py": "4542181f0f6395cf4ff3a6c2ad361c1652625926d1312954b42fadbeda64c9ae",
+    "training/core_v1_src/train_hint_action_v2_binary.py": "66c90c912fb949050695c9c84b28ea48231ac482b23fddbfb45ef873ec028dd7",
+    "training/core_v1_src/train_hint_action_v2_robust.py": "3a5091ff6db4a7af8db5688a9a4eb1edc06f2a74295382fbe763f69719cf7c54",
+    "training/core_v1_src/train_models.py": "0ac2d92669f332a3187af35ba11e37f82e3269f7561c0b3b731a0f4209a49adf",
+    "training/core_v1_src/train_terminal_v2.py": "bbbe63c159b2914c3fef782ba7032950eff3fc85cf4c47c35e6dfb33732509f8",
+    "training/core_v1_src/train_terminal_v2_robust.py": "44de6ae6b0917e571e6de4607a41818013a422cb06d332ae0082c0fd6ea818e1"
+  }
+}

@@ -1,0 +1,17 @@
+created=2026-08-01T13:46:50+01:00
+github_authoritative_commit=2521bc80647b0e5493837ef4d67dc5ff05b1d1e8
+purpose=anchor_v2_shadow_and_terminal_a0_all_return_query_collection
+control_effect=none
+development_cohort=true
+locked_fresh49_excluded=true
+ep670_excluded=true
+predecessor=promotion_active_promote_30ep_20260731
+canary_tag=route2_anchorv2_terminal_collection50_20260801_canary
+batch_tag=route2_anchorv2_terminal_collection50_20260801_batch49
+episodes=368 87 88 134 310 678 4 187 994 680 579 539 367 5 89 351 264 95 962 1040 647 276 658 484 581 961 1038 646 764 268 844 427 688 815 888 214 500 93 671 19 420 205 490 355 196 1062 669 687 489 366
+port_base=54000
+manifest_sha256=c4ca21a0407df0b39ce04e163238758d67b66d618f625b9021376a4075fcaac5
+selection_evidence_sha256=d33c5d20314795d1f248b255bf088d8ab575829015c9e9a07a29d7b567c28630
+round_trip_eval_sha256=5459f0d71ac78e69d5516ee25a087d25cee52b0711142c72df8119982e5b8a2f
+anchor_guard_sha256=fd5ff72689b5c6d4736f8054de1f9b8032b1ed53de75bf5116119f5c5e9664d4
+anchor_model_sha256=4d37f9bcb341f093d4cdc87e92c041db7d582a912acdb629963039cf7b27dc55

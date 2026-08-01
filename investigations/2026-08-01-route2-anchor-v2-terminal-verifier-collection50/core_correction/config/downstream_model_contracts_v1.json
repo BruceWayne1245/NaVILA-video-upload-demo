@@ -1,0 +1,33 @@
+{
+  "schema": "navila-route2-downstream-model-contracts-v1",
+  "root_model": "reliability_v1_1",
+  "common_forbidden_inputs": [
+    "raw_icp_confidence",
+    "raw_icp_residual",
+    "raw_icp_inlier_or_overlap",
+    "raw_icp_basin_or_ambiguity",
+    "raw_scan_context_quality",
+    "raw_localizability_quality",
+    "legacy_u"
+  ],
+  "models": {
+    "anchor_transition": {
+      "required_head": "pose",
+      "allowed_context": ["task_geometry", "motion", "sequence", "freshness", "role"],
+      "maximum_authority": "bounded_negative_deferral",
+      "current_artifact_status": "transitional_shadow"
+    },
+    "hint_action": {
+      "required_head": "bearing",
+      "allowed_context": ["task_geometry", "vlm_action", "clearance", "freshness", "role"],
+      "maximum_authority": "replace_vlm_action_after_clearance_and_core_gate",
+      "current_artifact_status": "transitional_shadow"
+    },
+    "terminal_probability": {
+      "required_head": "distance",
+      "allowed_context": ["task_geometry", "vlm_stop", "a0_visual", "motion", "freshness", "role"],
+      "maximum_authority": "advisory_probability_only",
+      "current_artifact_status": "transitional_shadow"
+    }
+  }
+}

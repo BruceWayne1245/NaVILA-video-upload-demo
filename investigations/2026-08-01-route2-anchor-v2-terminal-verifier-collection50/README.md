@@ -1,5 +1,16 @@
 # Route 2 — 2026-08-01 Anchor V2 and Terminal verifier collection50
 
+> **Superseding 2026-08-01 correction:** later audit proved that this
+> collection launched with `reliability_v11_consumer_mode=off`. It is not a
+> valid evaluation of the intended V1.1-core Route 2 architecture. The old
+> collection was canceled after 24 clean completions; head-specific downstream
+> models were retrained through a raw-quality feature firewall, and a new
+> development24 + locked-validation20 chain was launched with the V1.1 Core
+> consumer active. Start with `CORE_CORRECTION_2026-08-01.md`,
+> `COHORTS_24_PLUS_20.md` and `LIVE_CORE_RUN_STATUS.md`. The material below is
+> preserved as the earlier time-stamped record, not current architecture
+> authority.
+
 ## Scope and authority
 
 This investigation records the Route 2 work performed on 2026-08-01 after
@@ -169,12 +180,26 @@ or alter this collection's code, process tree, ports or artifacts.
 
 ## Directory map
 
+- `CORE_CORRECTION_2026-08-01.md` — root-cause finding, corrected consumer
+  graph, cleaning/retraining results and current model status.
+- `COHORTS_24_PLUS_20.md` — development/validation isolation, hashes and
+  execution contract.
+- `STOP_AND_QUEUE_AUDIT.md` — canceled collection accounting, resource cleanup
+  checks and final queue order.
+- `LIVE_CORE_RUN_STATUS.md` — time-stamped snapshot of the corrected chain.
+- `core_correction/` — exact small docs/config/reports/manifests/source and
+  launch provenance for the correction; no model binaries or raw captures.
 - `FINDINGS.md` — detailed three-model results and candidate analyses.
 - `LIVE_RUN_STATUS.md` — detached-service proof, exact paths, live snapshot,
   and continuation rules.
 - `data/route2_anchorv2_terminal50.tsv` — frozen ordered development cohort.
 - `data/selection_evidence.tsv` — historical outbound and return-data evidence
   used for cohort selection.
+- `data/cancelled_collection50_canary_summary.tsv` and
+  `data/cancelled_collection50_batch49_summary.tsv` — final append-only old-run
+  accounting at cancellation (24 clean completions plus ep581 incomplete).
+- `data/cancelled_collection50_provenance.txt` — immutable old-run identity and
+  artifact hashes.
 - `code/anchor_v2_candidate.patch` — exact semantic delta from the frozen
   Anchor V1 promotion guard.
 - `code/terminal_a0_all_return_queries_shadow.patch` — exact evaluator delta
@@ -183,18 +208,19 @@ or alter this collection's code, process tree, ports or artifacts.
 
 ## Next steps
 
-1. Let collection50 finish without changing its runtime snapshot.
-2. Separate infrastructure validity, return-data yield and model scoreability.
-3. Aggregate Anchor V2 harmful-catch precision/recall and safe-delay rate,
+1. Do not resume the canceled V1.1-off collection50 as Core evidence.
+2. Let the frozen Core development24 and locked-validation20 run in order.
+3. Separate infrastructure validity, return-data yield and model scoreability.
+4. Aggregate Anchor V2 harmful-catch precision/recall and safe-delay rate,
    including adjacent versus non-adjacent rollback cases.
-4. Build Terminal candidate windows with per-query A0, action-integrated
+5. Build Terminal candidate windows with per-query A0, action-integrated
    motion/viewpoint displacement, authority transitions and contradictions.
-5. Do not fit a verifier until there are at least 30 non-arrived candidate
+6. Do not fit a verifier until there are at least 30 non-arrived candidate
    events across five scenes and at least two matched arrived controls per
    non-arrived event, with A0 and deployable motion represented in every class.
-6. Use scene-grouped development and preserve a completely untouched scene
+7. Use scene-grouped development and preserve a completely untouched scene
    before a new prospective shadow run.
-7. Require separate authorization before giving any learned component control
+8. Require separate authorization before giving any learned component control
    authority.
 
 No access credential, model binary, raw simulator log bundle or video

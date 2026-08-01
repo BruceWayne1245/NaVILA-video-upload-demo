@@ -1,0 +1,27 @@
+{
+  "authority": {
+    "may_bypass_occupied_clearance": false,
+    "may_create_movement_action": false,
+    "may_create_stop": false,
+    "may_request_clearance_refresh": true,
+    "may_request_hint_rescore": true
+  },
+  "bounds": {
+    "max_rechecks_per_episode_target": 2,
+    "minimum_simulator_step_gap": 10
+  },
+  "estimator": {
+    "path": "/home/teambruce/navila-route2-v11-core-20260801/models/core_v1/hint_action_core_v1.joblib",
+    "sha256": "2829784b30920a9e270a5c9f7050303f7ef2488cbedabb3a8c9c4901b9e97e7e",
+    "task": "hint_action_binary",
+    "required_v11_head": "bearing"
+  },
+  "frozen_hint_v2": {
+    "advisory_threshold": 0.6798711156420532,
+    "execution_same_kind_streak": 3,
+    "execution_same_target_streak": 1,
+    "execution_threshold": 0.7842763284453879
+  },
+  "integration_status": "shadow_only",
+  "schema": "navila-route2-core-hint-shadow-policy-v1"
+}

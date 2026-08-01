@@ -1,0 +1,20 @@
+{
+  "arm": "development_core_shadow",
+  "label_bands": {
+    "arrived": 10,
+    "boundary": 5,
+    "far": 25
+  },
+  "legacy_oracle_trajectory_motion_used_as_feature": false,
+  "motion_source": "action_integrated",
+  "observation_label_files_physically_separate": true,
+  "physical_episode_id": 319,
+  "production_candidate_first_bands": {},
+  "proposal_strata": {
+    "background": 39,
+    "near_threshold_auxiliary": 1
+  },
+  "query_rows": 40,
+  "scene_id": "2azQ1b91cZZ",
+  "schema": "navila-terminal-active-evidence-export-summary-v1"
+}

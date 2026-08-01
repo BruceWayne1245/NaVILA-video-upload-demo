@@ -1,0 +1,86 @@
+{
+  "schema": "navila-route2-v11-core-contract-v1",
+  "root_model": "reliability_v1_1",
+  "raw_icp_quality_authority": false,
+  "legacy_u_authority": false,
+  "preserve_reversible_relocalization": true,
+  "invalid_model_behavior": {
+    "reversible_observation": "preserve_non_authoritative",
+    "high_consequence_icp_action": "deny",
+    "sensor_independent_control": "preserve",
+    "acceptance": "fail"
+  },
+  "consumers": {
+    "relocalization_update": {
+      "head": null,
+      "authority_role": "observation_only",
+      "missing_action": "preserve_non_authoritative"
+    },
+    "route_progress_pose": {
+      "head": "pose",
+      "authority_role": "estimate_source",
+      "missing_action": "hypothesis_only"
+    },
+    "anchor_promotion": {
+      "head": "pose",
+      "authority_role": "proposed_next",
+      "missing_action": "deny_and_recover"
+    },
+    "anchor_transition_model": {
+      "head": "pose",
+      "authority_role": "current_and_proposed_next",
+      "missing_action": "no_model_authority"
+    },
+    "quarantine_entry": {
+      "head": "pose",
+      "authority_role": "affected_anchor",
+      "missing_action": "deny"
+    },
+    "quarantine_release": {
+      "head": "pose",
+      "authority_role": "affected_anchor",
+      "missing_action": "hold"
+    },
+    "route_hint": {
+      "head": "bearing",
+      "authority_role": "bearing_source",
+      "missing_action": "omit_hint"
+    },
+    "hint_action_override": {
+      "head": "bearing",
+      "authority_role": "bearing_source",
+      "missing_action": "preserve_vlm_action"
+    },
+    "forced_stop": {
+      "head": "distance",
+      "authority_role": "fresh_raw_next",
+      "missing_action": "deny_numeric_stop"
+    },
+    "vlm_stop_veto": {
+      "head": "distance",
+      "authority_role": "fresh_raw_next",
+      "missing_action": "deny_numeric_veto"
+    }
+  },
+  "derived_evidence": {
+    "route_hint": {
+      "head": "bearing",
+      "authority_role": "source_anchor",
+      "max_edge_hops": 1,
+      "max_age_updates": 25
+    },
+    "hint_action_override": {
+      "head": "bearing",
+      "authority_role": "source_anchor",
+      "max_edge_hops": 1,
+      "max_age_updates": 25
+    },
+    "forced_stop": "forbidden",
+    "vlm_stop_veto": "forbidden"
+  },
+  "visual_a0": {
+    "independent_modality": true,
+    "may_corroborate_terminal": true,
+    "may_override_untrusted_pose": false
+  }
+}
