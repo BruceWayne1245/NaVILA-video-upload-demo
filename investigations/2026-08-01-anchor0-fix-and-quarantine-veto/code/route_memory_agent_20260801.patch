@@ -1,0 +1,131 @@
+--- a/scripts/route_memory_agent.py
++++ b/scripts/route_memory_agent.py
+@@ -394,6 +394,7 @@
+         sequential_pair_promotion_alias_stall_attempts: int = 200,
+         sequential_pair_promotion_use_pre_closure_estimates: bool = False,
+         sequential_pair_promotion_model_active_promote: bool = False,
++        sequential_pair_promotion_model_quarantine_veto: bool = False,
+         sequential_pair_short_baseline_disambiguation: bool = False,
+         sequential_pair_short_baseline_min_travel_m: float = 0.3,
+         sequential_pair_short_baseline_max_rotation_disagreement_deg: float = 20.0,
+@@ -628,6 +629,31 @@
+             sequential_pair_promotion_model_active_promote
+         )
+         self._active_promotion_model_decision: Optional[bool] = None
++        # 2026-08-01: off by default. Unlike active_promote above, this does NOT
++        # let the model initiate anything -- _quarantined_anchor_indices is still
++        # written exclusively by the existing heuristic mechanisms
++        # (_record_next_anchor_trend/_quality/_reliability/_stability). It only
++        # gives the model VETO power: when True (set externally, once per
++        # attempt, via _active_quarantine_veto_decision, same closure as
++        # active_promote above), any of those mechanisms about to add an anchor
++        # to _quarantined_anchor_indices this attempt is blocked instead. Kept
++        # deliberately asymmetric with active_promote because this project's own
++        # offline validation measured the model's quarantine-class precision at
++        # only 0.246-0.327 (investigations/2026-07-31-promotion-controller-
++        # phase3-active-promote/FINDINGS.md section 3) -- far too weak to trust
++        # with the power to blacklist an anchor on its own initiative (that's
++        # irreversible for the rest of the episode), but using it only as an
++        # additional AND-gate on an already-heuristic-approved quarantine can
++        # only reduce false positives, never introduce new ones. Motivated by
++        # investigations/2026-08-01-.../FINDINGS.md's ep498: three real
++        # heuristic trend-quarantines in a row exhausted every remaining
++        # candidate down to anchor0, permanently starving relocalization for
++        # the rest of the episode; the model's own contemporaneous
++        # classification was 'wait' (not 'quarantine') on all three attempts.
++        self.sequential_pair_promotion_model_quarantine_veto: bool = bool(
++            sequential_pair_promotion_model_quarantine_veto
++        )
++        self._active_quarantine_veto_decision: Optional[bool] = None
+         self._promotion_alias_stall_counter: dict[int, int] = {}
+         # Short-baseline yaw disambiguation (2026-07-12, problem-2 step 5, per
+         # investigations/2026-07-09-.../route_memory_literature_survey.md
+@@ -1033,6 +1059,28 @@
+     ) -> None:
+         if not self.enabled:
+             return
++        if (
++            self.anchors
++            and self.anchors[0].index == 0
++            and self.anchors[0].descriptor is None
++            and descriptor is not None
++        ):
++            # 2026-08-01: anchor0 is created in __init__ (_append_anchor(
++            # descriptor=None, ...)) before the environment has produced a
++            # single sensor frame, so its local map is permanently empty by
++            # construction -- it can never be ICP-matched against. Usually
++            # harmless (promotion/return-success normally resolves via
++            # anchor1+ well before anchor0 is ever needed as a live
++            # candidate), but investigations/2026-08-01-.../FINDINGS.md
++            # found a real episode (ep498) where quarantine exhausted every
++            # other candidate down to anchor0, and the resulting permanent
++            # zero-candidate state silently froze relocalization for the
++            # rest of the episode. Backfill with the first real descriptor
++            # this episode ever produces -- anchor0's identity
++            # (pose_from_start=[0,0,0], distance_from_start_m=0.0) is
++            # untouched; only its descriptor moves from None to real data,
++            # making it a normal, matchable anchor like every other one.
++            self.anchors[0].descriptor = descriptor
+         self._outbound_pose_from_start = compose_pose(self._outbound_pose_from_start, delta)
+         dx, dy, _ = [float(v) for v in delta]
+         self._outbound_distance_m += float(math.hypot(dx, dy))
+@@ -1272,6 +1320,23 @@
+         })
+         return estimate
+ 
++    def _quarantine_vetoed_by_model(self) -> bool:
++        """2026-08-01: returns True when the promotion-controller model has
++        veto power (sequential_pair_promotion_model_quarantine_veto) AND its
++        most recent classification for this attempt was NOT 'quarantine' --
++        i.e. it has no independent evidence backing the heuristic's quarantine
++        call. A plain read (not a consume-and-reset like
++        _active_promotion_model_decision): every quarantine mechanism below
++        that checks this within the same attempt must see the same answer,
++        and round_trip_eval.py's closure already resets
++        _active_quarantine_veto_decision to None at the start of each new
++        attempt. False whenever the flag is off or no model decision is
++        available this attempt (fail-open: heuristic behaves exactly as
++        before)."""
++        if not self.sequential_pair_promotion_model_quarantine_veto:
++            return False
++        return self._active_quarantine_veto_decision is True
++
+     def _record_next_anchor_stability(self, estimates: list[AnchorRelocalization]) -> None:
+         """Bad-anchor quarantine (user-proposed 2026-07-04): accumulate a rolling
+         window of ICP readings for any anchor still in the "next" role (i.e. not
+@@ -1310,7 +1375,7 @@
+             if (
+                 distance_spread > self.quarantine_distance_spread_m
+                 or heading_spread > self.quarantine_heading_spread_rad
+-            ):
++            ) and not self._quarantine_vetoed_by_model():
+                 self._quarantined_anchor_indices.add(idx)
+ 
+     def _record_next_anchor_trend(self, estimates: list[AnchorRelocalization]) -> None:
+@@ -1374,6 +1439,8 @@
+             improving = closer_bad < farther_bad - 1e-9
+             if improving:
+                 continue
++            if self._quarantine_vetoed_by_model():
++                continue
+             # 2026-07-22 trend-cascade fix: when reliability_quarantine_shared_trend_budget
+             # is on (and the reliability machinery is active), a trend quarantine consumes the
+             # SAME per-promotion anti-cascade budget as Injection A. Once A + trend together
+@@ -1417,7 +1484,7 @@
+             if len(history) < self.quarantine_next_quality_min_samples:
+                 continue
+             mean_ratio = sum(history) / len(history)
+-            if mean_ratio > self.quarantine_next_quality_threshold:
++            if mean_ratio > self.quarantine_next_quality_threshold and not self._quarantine_vetoed_by_model():
+                 self._quarantined_anchor_indices.add(idx)
+ 
+     # z-stats (mean, std) fit offline on 90,075 labeled readings; see
+@@ -1485,7 +1552,7 @@
+             bad_fraction = sum(
+                 1 for uu in history if uu >= self.reliability_quarantine_threshold
+             ) / len(history)
+-            if bad_fraction > self.reliability_quarantine_bad_fraction:
++            if bad_fraction > self.reliability_quarantine_bad_fraction and not self._quarantine_vetoed_by_model():
+                 self._quarantined_anchor_indices.add(idx)
+                 self._reliability_quarantines_since_promotion += 1
+ 
