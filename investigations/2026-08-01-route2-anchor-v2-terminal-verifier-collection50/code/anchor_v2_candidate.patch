@@ -1,0 +1,56 @@
+--- anchor_transition_runtime/promotion_guard.py.frozen-v1
++++ anchor_transition_runtime/promotion_guard.py.anchor-v2-candidate
+@@ -1,4 +1,4 @@
+-"""Bounded active guard for Anchor Transition V1.
++"""Bounded promotion guard using the Anchor Transition V1 estimator.
+ 
+ The learned model is deliberately not an anchor selector.  A complete model
+ observation from attempt ``t`` may only defer a baseline promotion proposed on
+@@ -13,11 +13,11 @@
+ from typing import Optional
+ 
+ 
+-SCHEMA = "navila-anchor-transition-promotion-guard-v1"
++SCHEMA = "navila-anchor-transition-promotion-guard-v2-candidate"
+ KNOWN_ACTIONS = frozenset(
+     {"advance_one", "hold", "rebase", "rollback", "skip_or_rebase"}
+ )
+-OVER_ADVANCE_RISK_ACTIONS = frozenset({"rollback", "skip_or_rebase"})
++OVER_ADVANCE_RISK_ACTIONS = frozenset({"rollback"})
+ 
+ 
+ @dataclass(frozen=True)
+@@ -156,8 +156,6 @@
+             reason = "fail_open_no_signal"
+             if kill_switch_engaged:
+                 reason = "fail_open_kill_switch"
+-            elif next_anchor_index != current_anchor_index - 1:
+-                reason = "fail_open_non_adjacent_identity"
+             elif signal is None:
+                 reason = "fail_open_no_signal"
+             elif (
+@@ -165,8 +163,10 @@
+                 != self.required_signal_age_attempts
+             ):
+                 reason = "fail_open_stale_or_same_attempt_signal"
++            elif signal.action == "skip_or_rebase":
++                reason = "allow_lagging_or_rebase_signal"
+             elif signal.action not in OVER_ADVANCE_RISK_ACTIONS:
+-                reason = "allow_no_over_advance_risk"
++                reason = "allow_no_rollback_risk"
+             elif signal.confidence < self.confidence_threshold:
+                 reason = "allow_below_confidence_threshold"
+             elif used >= self.max_deferrals_per_candidate:
+@@ -176,7 +176,11 @@
+                 self._deferrals_by_candidate[next_anchor_index] = used
+                 executed_vote = False
+                 effect = "defer_promotion"
+-                reason = "bounded_previous_attempt_over_advance_veto"
++                reason = (
++                    "bounded_adjacent_rollback_veto"
++                    if next_anchor_index == current_anchor_index - 1
++                    else "bounded_non_adjacent_rollback_candidate"
++                )
+ 
+         decision = PromotionGuardDecision(
+             current_anchor_index=current_anchor_index,

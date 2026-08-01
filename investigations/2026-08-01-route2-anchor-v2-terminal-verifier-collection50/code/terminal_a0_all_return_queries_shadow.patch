@@ -1,0 +1,36 @@
+--- runtime_candidate/scripts/round_trip_eval.py.frozen-unified50
++++ runtime_candidate/scripts/round_trip_eval.py.terminal-a0-collection
+@@ -1288,6 +1288,17 @@
+ parser.add_argument("--stop_gate_home_visual_min_confidence", type=float, default=0.45, help=argparse.SUPPRESS)
+ parser.add_argument("--stop_gate_hold_steps", type=int, default=10, help=argparse.SUPPRESS)
+ parser.add_argument(
++    "--terminal_a0_probe_all_return_queries_shadow",
++    action="store_true",
++    default=False,
++    help=(
++        "Observation-only Route 2 collection: evaluate and log the A0 RGB-D "
++        "probe at every return VLM query. The cached result may still be read "
++        "by the unchanged stop gate, but this flag never changes a command, "
++        "STOP decision, anchor index, or controller state."
++    ),
++)
++parser.add_argument(
+     "--stop_gate_anchor_corroboration",
+     action="store_true",
+     default=False,
+@@ -4777,6 +4788,15 @@
+                             })
+                             return confirmed
+ 
++                        # Route 2 Terminal verifier data collection.  Calling
++                        # the existing probe eagerly makes A0 evidence complete
++                        # at every return query; the per-query cache guarantees
++                        # the stop gate sees the same result without a second
++                        # computation.  The result is deliberately not used to
++                        # alter navigation outside the already-existing gate.
++                        if args_cli.terminal_a0_probe_all_return_queries_shadow:
++                            _probe_a0_visual_home()
++
+                         _last_gate_decision = stop_gate.check(
+                             progress=_gate_vlm_progress,
+                             vlm_issued_stop=_vlm_stop_requested,
