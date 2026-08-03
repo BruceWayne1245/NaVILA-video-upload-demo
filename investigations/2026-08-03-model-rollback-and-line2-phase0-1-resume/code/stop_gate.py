@@ -60,6 +60,13 @@ class GateDecision:
     anchor_progress_role: Optional[str] = None
     anchor_index: Optional[int] = None
     anchor_route_remaining: Optional[float] = None
+    # 2026-08-03 (line-2 Phase 0.2 diagnostic): the actual internal CURRENT
+    # index and eviction's own live state -- anchor_index/anchor_progress_role
+    # above can point at "next" (see RelativeStartProgress.anchor_progress_role's
+    # docstring), so they cannot be used to tell whether eviction ever fires.
+    current_anchor_index: Optional[int] = None
+    current_anchor_unreliable: Optional[bool] = None
+    current_evict_streak: Optional[int] = None
 
     def as_log_dict(self) -> Dict[str, Any]:
         d: Dict[str, Any] = {
@@ -70,6 +77,9 @@ class GateDecision:
             "gate_anchor_progress_role": self.anchor_progress_role,
             "gate_anchor_index": self.anchor_index,
             "gate_anchor_route_remaining": self.anchor_route_remaining,
+            "gate_current_anchor_index": self.current_anchor_index,
+            "gate_current_anchor_unreliable": self.current_anchor_unreliable,
+            "gate_current_evict_streak": self.current_evict_streak,
         }
         if self.suggested_command is not None:
             d["gate_suggested_command"] = [round(x, 4) for x in self.suggested_command]
@@ -199,10 +209,16 @@ class ReturnStopGate:
         # 2026-08-03 diagnostic (see GateDecision.anchor_progress_role's docstring).
         anchor_progress_role: Optional[str] = getattr(progress, "anchor_progress_role", None)
         anchor_idx: Optional[int] = getattr(progress, "target_anchor_index", None)
+        current_anchor_idx: Optional[int] = getattr(progress, "current_target_anchor_index", None)
+        current_anchor_unreliable: Optional[bool] = getattr(progress, "current_anchor_unreliable", None)
+        current_evict_streak: Optional[int] = getattr(progress, "current_evict_streak", None)
         _diag = dict(
             anchor_progress_role=anchor_progress_role,
             anchor_index=anchor_idx,
             anchor_route_remaining=anchor_route_remaining,
+            current_anchor_index=current_anchor_idx,
+            current_anchor_unreliable=current_anchor_unreliable,
+            current_evict_streak=current_evict_streak,
         )
 
         # No authoritative distance → cannot arbitrate
