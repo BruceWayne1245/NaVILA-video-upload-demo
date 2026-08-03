@@ -1,0 +1,170 @@
+NaVILA-video-upload-demo — paper-writing context
+Generated: 2026-08-03
+
+PURPOSE
+=======
+This project reproduces NaVILA (RSS 2025) in Isaac Sim for VLN-CE-style indoor
+navigation on an RTX 4090 workstation. The robot first follows a route using
+the VLM and records route anchors. It then attempts to return to the start by
+relocalizing against those anchors. The research focus has shifted from merely
+making the benchmark run to making return navigation reliable, diagnosable,
+and safe under perceptual aliasing and runtime failures.
+
+HOW TO READ THIS PACKAGE
+========================
+Read paper_writing_materials/README.md first. Then read the curated material
+in chronological order. The original repository README is useful for the early
+July baseline but is not the latest project status. Later progress is recorded
+under investigations/. The files in this package are copies; the original files
+remain in place.
+
+CENTRAL RESEARCH QUESTION
+=========================
+How can a VLM-guided robot perform reliable closed-loop route return when
+LiDAR/ICP localization can be geometrically plausible yet confidently wrong in
+repetitive indoor scenes, and when downstream anchor, hint, and terminal-stop
+decisions can amplify such errors?
+
+SYSTEM PIPELINE
+==============
+The current design is:
+
+  ICP / A0 / VLM / action-integrated motion
+              |
+              v
+  Reliability V1.1 + dependency health
+       pose / bearing / distance authority
+              |
+              v
+  Temporal Route Belief
+  anchor/home posterior, evidence age, contradictions, motion, OOD
+         /             |              \
+        v              v               v
+  Anchor V2       Hint split       Terminal sequence
+   active          models             shadow
+              |
+              v
+  deterministic safety executor
+
+Authority boundaries are important: V1.1 is the only ICP-derived reliability
+authority. Pose may authorize Anchor evidence, bearing may authorize Hint
+evidence, and distance may authorize Terminal evidence. Raw ICP quality or
+confidence must not bypass V1.1. Terminal STOP authority remains deterministic
+until a learned sequential Terminal model demonstrates both safety and useful
+recall.
+
+MAIN TECHNICAL FINDINGS
+=======================
+1. Indoor geometry contains severe perceptual/rotational aliasing. Similar
+   corridors, junctions, doorways, and rooms can produce multiple ICP poses
+   with similarly good geometric scores.
+2. Many return failures are confidently-wrong-driven rather than simple
+   low-confidence failures. Scalar features such as inlier count, residual,
+   score ratio, and localizability do not reliably separate the wrong basin.
+3. A July fusion investigation showed that sequential current/next belief
+   fusion could corrupt an already-correct ICP reading when two poses had a
+   large near-antipodal disagreement. A trust-aware guard reconstructs from the
+   trustworthy side when match_class and near-tie evidence identify exactly
+   one trustworthy side. It improved the ep187 anchor14 offline mean bearing
+   error from 48.30 degrees to 8.91 degrees, but does not solve two mutually
+   consistent, clean-looking wrong estimates.
+4. In a broad hard-11 survey, raw ICP was often better than fused output; the
+   residual problem is a mixture of fusion-induced corruption and genuine raw
+   ICP aliasing. The latter is the harder open problem.
+5. Only a small fraction of wrong ICP attempts have the true answer among the
+   persisted top-four candidates (reported ceiling about 4.8%). Re-ranking
+   top-four candidates alone is therefore insufficient unless the candidate
+   search is widened or changed.
+6. Tested alternatives include scalar reliability classifiers, nearby-view
+   spread, motion-integrated multi-frame submaps, static outbound-heading
+   priors, and multi-anchor consistency. They were rejected or found
+   insufficient for the main symmetric-scene failure. RGB/LoFTR visual
+   disambiguation and wider ICP hypothesis logging/search remain promising
+   research directions.
+
+EVIDENCE AND NUMBERS TO HANDLE CAREFULLY
+========================================
+- The early README reports an end-to-end Episode 0 result of success=1.0 and
+  SPL=0.907, and an early corrected round-trip result of 8/11. These are early
+  snapshots, not the final project result.
+- The July 22 best-result package reports a 63% baseline; consult its README,
+  per_episode_truth.tsv, and the associated reliability reports for exact
+  cohort definitions.
+- A July 23 prospective 100-episode evidence package supports reliability and
+  control-readiness claims. Keep shadow effects separate from navigation
+  effects.
+- The July 30 Unified50 run was an evaluation/shadow collection with no
+  controller effect. Its learned consumers should not be described as active
+  navigation improvements.
+- The earlier August 1 Route 2 V1.1-off collection was canceled/superseded.
+  The corrected Core architecture and its development24/locked-validation20
+  protocol are the authoritative later direction.
+- The August 2 Anchor V2 full-active implementation passed 101/101 local
+  tests. One-step held-out results reported promotion precision of 0.9971 on
+  EU6 validation, 0.9850 on x8 test, and 0.9969 on locked20; locked20 recall
+  was 0.3691. These numbers describe controller-state decisions, not full
+  navigation success.
+- The August 2 ep368 smoke completed outbound, return, and round trip, with
+  348 active directives, 17 promotions, 22 bounded recoveries, and 9
+  same-anchor holds. This is a wiring smoke, not a statistically sufficient
+  deployment result.
+
+CURRENT STATUS AS OF THE LATEST DOCUMENTS
+=========================================
+The project is not finished. Anchor V2 is the current active-development
+stage. Its full-active controller has been implemented and smoke-tested, and a
+larger serial batch is planned/queued behind a predecessor run. Temporal Route
+Belief, Hint reconstruction, and Terminal reconstruction are intentionally not
+being activated together. The approved order is:
+
+  0. infrastructure, supervision, provenance, and rollback
+  1. Anchor V2 full-active
+  2. Temporal Route Belief
+  3. Hint split/retraining
+  4. Terminal sequence model, activated last
+
+Every phase must preserve a baseline/control, use causal replay, keep locked
+cohorts evaluation-only, report per-scene worst cases, and distinguish model
+effects from infrastructure failures. The paper should therefore present the
+work as an evolving reliability and safety architecture with completed
+diagnostic findings plus ongoing validation, not as a finished benchmark
+solution.
+
+IMPORTANT LIMITATIONS
+=====================
+- No online oracle/ground-truth position may be used.
+- Long-horizon accumulated odometry was rejected; bounded short-horizon motion
+  remains an open question.
+- Some episodes fail because the robot physically stops or because VLM/runtime
+  infrastructure fails. These must not be silently merged with localization
+  failures.
+- Time-stamped live-run status files describe historical snapshots. They do not
+  prove that a service is still running on the current host.
+- Do not use locked-validation20 to tune thresholds, select features, or fit
+  models.
+- Do not claim that shadow-only models improved navigation; shadow means their
+  decisions did not control the robot.
+
+SUGGESTED PAPER STRUCTURE
+=========================
+1. Introduction: VLM navigation is capable but closed-loop return is fragile
+   under perceptual aliasing.
+2. Problem formulation and system setup: NaVILA, Isaac Sim, route anchors,
+   return phase, ICP and current/next closure.
+3. Failure analysis: confidently-wrong ICP, fusion corruption, promotion and
+   terminal-stop amplification, and infrastructure confounds.
+4. Reliability architecture: V1.1 authority, evidence gating, shadow/control
+   protocol, provenance, and causal replay.
+5. Route 2 controller design: temporal belief, Anchor V2, Hint split, and
+   Terminal sequence safety boundary.
+6. Experimental protocol: historical replay, development24, locked20,
+   prospective cohorts, shadow versus active, and failure taxonomy.
+7. Results available so far: early baseline, bearing-guard result, reliability
+   evidence, Anchor V2 offline/controller metrics, and ep368 smoke.
+8. Limitations and future work: RGB/LoFTR, wider hypothesis search, unresolved
+   information limits, physical stuck behavior, and unfinished live validation.
+
+For every numerical statement in the paper, cite the exact source file in
+paper_writing_materials/04_key_data_and_reports/ or the corresponding dated
+investigation. Preserve cohort names, controller versions, and whether a run
+was shadow, active, canceled, infrastructure-invalid, or evaluation-only.

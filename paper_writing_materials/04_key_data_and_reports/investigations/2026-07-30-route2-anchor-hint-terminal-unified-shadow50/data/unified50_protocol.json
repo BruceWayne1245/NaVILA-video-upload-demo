@@ -1,0 +1,78 @@
+{
+  "schema": "navila-route2-unified-shadow50-protocol-v1",
+  "control_effect": "none",
+  "cohort": {
+    "fresh_validation_episodes": 49,
+    "ep670_replication_episodes": 1,
+    "selection_seed": "route2-unified-shadow50-20260730-v1",
+    "fresh_exclusions": [
+      "anchor_terminal_training_v1",
+      "three_model_shadow30",
+      "prospective5",
+      "today_ep49_ep953"
+    ],
+    "fresh_geometry_deduplicated": true,
+    "fresh_baseline_distance_strictly_greater_than_m": 3.35
+  },
+  "anchor_v1": {
+    "mode": "shadow",
+    "confidence_threshold": 0.9,
+    "max_counterfactual_deferrals": 2,
+    "primary_metrics": [
+      "harmful_promotion_catch_precision",
+      "safe_promotion_delay_rate",
+      "eligible_promotion_coverage",
+      "per_scene_metrics"
+    ],
+    "ep670_is_replication_only": true,
+    "activation_gate": {
+      "harmful_promotion_catch_precision_min": 0.9,
+      "safe_promotion_delay_rate_max": 0.05,
+      "no_scene_with_repeated_high_confidence_safe_delays": true
+    }
+  },
+  "hint_v3": {
+    "mode": "postepisode_readonly",
+    "max_requests_per_episode": 2,
+    "minimum_same_target_query_gap": 10,
+    "primary_metrics": [
+      "beneficial_weight_precision",
+      "nonbeneficial_weight",
+      "request_rate",
+      "clearance_unavailable_recovery_yield"
+    ],
+    "activation_gate": {
+      "beneficial_weight_precision_min": 0.9,
+      "nonbeneficial_weight_max_fraction": 0.1,
+      "must_show_nonzero_liveness": true
+    }
+  },
+  "terminal": {
+    "mode": "postepisode_readonly",
+    "distance_bands_m": {
+      "arrived_max": 2.65,
+      "boundary_max": 3.35,
+      "direct_far_strictly_greater_than": 3.35
+    },
+    "policies": [
+      "terminal_model_only",
+      "a0_hard_required_with_terminal",
+      "legacy_a0_sufficient_fallback",
+      "strong_a0_sufficient_fallback",
+      "conditional_hierarchical"
+    ],
+    "primary_metrics": [
+      "first_accept_direct_far_count",
+      "arrived_recall",
+      "boundary_accept_count",
+      "terminal_blind_a0_probe_coverage",
+      "missed_arrived_runs"
+    ],
+    "hard_a0_gate": {
+      "eligible_only_if_it_reduces_direct_far_accepts": true,
+      "maximum_arrived_recall_loss_absolute": 0.1
+    }
+  },
+  "ground_truth_use": "postepisode_scoring_only",
+  "not_an_activation_policy": true
+}

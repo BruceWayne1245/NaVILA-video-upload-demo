@@ -1,0 +1,209 @@
+# 2026-07-21 capture — below-pin anchor registrability (real ICP re-match)
+# Generated 2026-07-21T20:52:45Z
+# Answers FINDINGS.md §4 step-2a properly (real clouds, not the pin-confounded live-only 1/13).
+# 12 of 13 pinned episodes (ep669 lost to VLM-startup fail at capture).
+
+## """Reclassify below-pin anchors with an honest 3-way split, parsing the raw
+## per-anchor (closest, berr, derr) already computed by below_pin_registrability.py.
+## No ICP re-run.
+## 
+## Distinguishes the three physically-different situations the single BAD/OK flag
+## conflated:
+##   REG   = robot approached (closest <= APPROACH_M) AND reading accurate
+##           (berr < BEAR_OK and derr < DIST_OK)
+##   DEGEN = robot approached but the reading is wrong  -> genuine ICP degeneracy
+##           ("vision wall": no gating can fix a wrong reading of a cloud the robot
+##           is standing right next to)
+##   FAR   = robot never got within APPROACH_M of the anchor -> NOT a registrability
+##           question; the robot had already drifted past/away (a downstream
+##           consequence of the pin, or an independent navigation failure)
+## """
+## import re, sys
+## 
+## APPROACH_M = 2.0
+## BEAR_OK = 30.0
+## DIST_OK = 0.5
+
+============================================================================================
+BELOW-PIN ANCHOR REGISTRABILITY (real ICP re-match against 2026-07-21 capture)
+registrable = closest approach <1.5m AND bearing_err <30.0° AND dist_err <0.5m (best of 3 closest steps)
+============================================================================================
+
+ep5  pin=a11  below-pin anchors: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    a1   closest=0.05m  [BAD] berr= 76.5° derr=1.43m approach=0.05m mc=partial_pose_degenerate nt=0.0 conf=0.50 b2s=0.79 inl=215
+    a2   closest=0.12m  [BAD] berr= 65.8° derr=0.40m approach=0.12m mc=partial_pose_degenerate nt=0.0 conf=0.55 b2s=0.60 inl=319
+    a3   closest=0.18m  [OK ] berr=  4.0° derr=0.00m approach=0.18m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.38 inl=416
+    a4   closest=0.32m  [OK ] berr=  1.4° derr=0.02m approach=0.32m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.46 inl=437
+    a5   closest=0.65m  [OK ] berr=  3.1° derr=0.00m approach=0.65m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.45 inl=439
+    a6   closest=1.04m  [OK ] berr=  1.2° derr=0.01m approach=1.04m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.48 inl=406
+    a7   closest=1.36m  [OK ] berr=  2.2° derr=0.05m approach=1.36m mc=clean_full_pose nt=0.0 conf=0.99 b2s=0.56 inl=406
+    a8   closest=1.60m  [BAD] berr=  0.9° derr=0.05m approach=1.60m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.71 inl=443
+    a9   closest=1.77m  [BAD] berr=  0.7° derr=0.01m approach=1.77m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.53 inl=467
+    a10  closest=1.48m  [OK ] berr=  0.5° derr=0.02m approach=1.48m mc=ambiguous_high_confidence nt=2.0 conf=0.60 b2s=0.91 inl=289
+    => 6/10 registrable (60%); chain-below-pin=1; longest-run=5; bad anchors=[1, 2, 8, 9]; a1(home)=BAD
+
+ep20  pin=a8  below-pin anchors: [1, 2, 3, 4, 5, 6, 7]
+    a1   closest=0.87m  [BAD] berr=  2.1° derr=3.94m approach=0.87m mc=partial_pose_degenerate nt=1.0 conf=0.86 b2s=0.90 inl=212
+    a2   closest=1.67m  [BAD] berr=  5.6° derr=3.40m approach=1.67m mc=partial_pose_degenerate nt=1.0 conf=0.91 b2s=0.86 inl=240
+    a3   closest=1.99m  [BAD] berr= 53.8° derr=1.47m approach=1.99m mc=ambiguous_high_confidence nt=3.0 conf=0.82 b2s=0.92 inl=277
+    a4   closest=1.66m  [BAD] berr=177.9° derr=0.84m approach=1.66m mc=partial_pose_degenerate nt=1.0 conf=0.68 b2s=0.87 inl=312
+    a5   closest=1.27m  [OK ] berr=  1.1° derr=0.04m approach=1.27m mc=clean_full_pose nt=0.0 conf=0.91 b2s=0.54 inl=387
+    a6   closest=0.42m  [OK ] berr=  3.6° derr=0.05m approach=0.42m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.33 inl=429
+    a7   closest=0.01m  [BAD] berr=119.8° derr=0.02m approach=0.01m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.61 inl=316
+    => 2/7 registrable (29%); chain-below-pin=0; longest-run=2; bad anchors=[1, 2, 3, 4, 7]; a1(home)=BAD
+
+ep319  pin=a4  below-pin anchors: [1, 2, 3]
+    a1   closest=2.28m  [BAD] berr= 47.9° derr=1.85m approach=2.28m mc=ambiguous_high_confidence nt=2.0 conf=0.63 b2s=0.95 inl=253
+    a2   closest=2.21m  [BAD] berr= 97.0° derr=0.90m approach=2.21m mc=clean_full_pose nt=0.0 conf=0.52 b2s=0.80 inl=240
+    a3   closest=1.64m  [BAD] berr= 23.0° derr=0.94m approach=1.64m mc=ambiguous_high_confidence nt=1.0 conf=0.48 b2s=0.89 inl=201
+    => 0/3 registrable (0%); chain-below-pin=0; longest-run=0; bad anchors=[1, 2, 3]; a1(home)=BAD
+
+ep367  pin=a11  below-pin anchors: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    a1   closest=5.39m  [BAD] berr=159.2° derr=2.96m approach=5.39m mc=ambiguous_high_confidence nt=1.0 conf=0.73 b2s=0.94 inl=182
+    a2   closest=4.98m  [BAD] berr=176.7° derr=2.75m approach=4.98m mc=clean_full_pose nt=0.0 conf=0.84 b2s=0.67 inl=208
+    a3   closest=4.69m  [BAD] berr=160.0° derr=3.02m approach=4.69m mc=clean_full_pose nt=0.0 conf=0.81 b2s=0.79 inl=199
+    a4   closest=4.65m  [BAD] berr= 94.5° derr=3.45m approach=4.65m mc=clean_full_pose nt=2.0 conf=0.59 b2s=0.99 inl=192
+    a5   closest=4.22m  [BAD] berr=170.8° derr=3.56m approach=4.22m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.79 inl=136
+    a6   closest=3.38m  [BAD] berr=126.3° derr=0.67m approach=3.38m mc=ambiguous_high_confidence nt=2.0 conf=1.00 b2s=0.93 inl=120
+    a7   closest=2.57m  [BAD] berr=114.3° derr=0.10m approach=2.57m mc=clean_full_pose nt=0.0 conf=0.95 b2s=0.82 inl=125
+    a8   closest=1.76m  [BAD] berr=147.4° derr=0.12m approach=1.76m mc=clean_full_pose nt=3.0 conf=0.84 b2s=0.97 inl=115
+    a9   closest=1.55m  [BAD] berr=163.2° derr=1.48m approach=1.55m mc=clean_full_pose nt=0.0 conf=0.76 b2s=0.67 inl=365
+    a10  closest=0.85m  [BAD] berr=159.7° derr=1.26m approach=0.85m mc=ambiguous_high_confidence nt=2.0 conf=0.79 b2s=0.95 inl=236
+    => 0/10 registrable (0%); chain-below-pin=0; longest-run=0; bad anchors=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; a1(home)=BAD
+
+ep498  pin=a5  below-pin anchors: [1, 2, 3, 4]
+    a1   closest=2.73m  [BAD] berr=  1.6° derr=2.09m approach=2.74m mc=ambiguous_high_confidence nt=2.0 conf=0.87 b2s=0.95 inl=118
+    a2   closest=2.48m  [BAD] berr=113.9° derr=1.34m approach=2.48m mc=clean_full_pose nt=0.0 conf=0.89 b2s=0.73 inl=124
+    a3   closest=1.71m  [BAD] berr=111.7° derr=3.20m approach=1.71m mc=ambiguous_high_confidence nt=1.0 conf=0.62 b2s=0.92 inl=150
+    a4   closest=0.83m  [OK ] berr= 20.9° derr=0.18m approach=0.83m mc=clean_full_pose nt=0.0 conf=0.61 b2s=0.78 inl=211
+    => 1/4 registrable (25%); chain-below-pin=1; longest-run=1; bad anchors=[1, 2, 3]; a1(home)=BAD
+
+ep500  pin=a10  below-pin anchors: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    a1   closest=1.79m  [BAD] berr= 29.0° derr=0.05m approach=1.79m mc=ambiguous_high_confidence nt=2.0 conf=0.61 b2s=1.00 inl=71
+    a2   closest=0.96m  [OK ] berr=  0.2° derr=0.06m approach=0.96m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.28 inl=152
+    a3   closest=0.02m  [BAD] berr=  6.9° derr=0.91m approach=0.02m mc=ambiguous_high_confidence nt=2.0 conf=0.51 b2s=1.00 inl=107
+    a4   closest=0.24m  [OK ] berr=  8.7° derr=0.10m approach=0.24m mc=clean_full_pose nt=0.0 conf=0.94 b2s=0.71 inl=308
+    a5   closest=0.03m  [BAD] berr=  5.5° derr=0.61m approach=0.03m mc=partial_pose_degenerate nt=0.0 conf=0.73 b2s=0.77 inl=314
+    a6   closest=0.08m  [BAD] berr= 34.7° derr=0.02m approach=0.08m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.46 inl=422
+    a7   closest=0.03m  [BAD] berr= 53.2° derr=0.01m approach=0.03m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.43 inl=479
+    a8   closest=0.13m  [OK ] berr=  3.3° derr=0.00m approach=0.13m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.55 inl=474
+    a9   closest=0.11m  [OK ] berr=  6.6° derr=0.01m approach=0.11m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.41 inl=455
+    => 4/9 registrable (44%); chain-below-pin=2; longest-run=2; bad anchors=[1, 3, 5, 6, 7]; a1(home)=BAD
+
+ep653  pin=a10  below-pin anchors: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    a1   closest=8.58m  [BAD] berr= 57.1° derr=6.92m approach=8.58m mc=ambiguous_high_confidence nt=5.0 conf=0.36 b2s=0.96 inl=233
+    a2   closest=7.70m  [BAD] berr= 46.1° derr=7.40m approach=7.70m mc=ambiguous_high_confidence nt=1.0 conf=0.56 b2s=0.89 inl=270
+    a3   closest=7.03m  [BAD] berr=  2.7° derr=6.70m approach=7.03m mc=ambiguous_high_confidence nt=4.0 conf=0.52 b2s=1.00 inl=268
+    a4   closest=6.38m  [BAD] berr= 31.4° derr=5.42m approach=6.38m mc=ambiguous_high_confidence nt=5.0 conf=0.52 b2s=0.96 inl=291
+    a5   closest=5.69m  [BAD] berr= 11.4° derr=3.00m approach=5.69m mc=clean_full_pose nt=2.0 conf=0.56 b2s=0.88 inl=267
+    a6   closest=5.05m  [BAD] berr= 18.9° derr=2.15m approach=5.05m mc=clean_full_pose nt=3.0 conf=0.49 b2s=0.98 inl=273
+    a7   closest=4.39m  [BAD] berr= 35.7° derr=1.46m approach=4.39m mc=clean_full_pose nt=2.0 conf=0.50 b2s=0.90 inl=271
+    a8   closest=3.81m  [BAD] berr= 31.9° derr=2.04m approach=3.81m mc=clean_full_pose nt=1.0 conf=0.55 b2s=0.99 inl=294
+    a9   closest=3.28m  [BAD] berr= 32.8° derr=1.13m approach=3.28m mc=ambiguous_high_confidence nt=1.0 conf=0.48 b2s=0.92 inl=251
+    => 0/9 registrable (0%); chain-below-pin=0; longest-run=0; bad anchors=[1, 2, 3, 4, 5, 6, 7, 8, 9]; a1(home)=BAD
+
+ep680  pin=a6  below-pin anchors: [1, 2, 3, 4, 5]
+    a1   closest=0.09m  [OK ] berr= 11.0° derr=0.01m approach=0.09m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.44 inl=452
+    a2   closest=0.25m  [OK ] berr=  0.3° derr=0.01m approach=0.25m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.40 inl=467
+    a3   closest=0.25m  [OK ] berr=  0.8° derr=0.02m approach=0.25m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.38 inl=438
+    a4   closest=0.14m  [OK ] berr=  0.3° derr=0.02m approach=0.14m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.58 inl=390
+    a5   closest=0.11m  [BAD] berr=  0.7° derr=2.43m approach=0.11m mc=clean_full_pose nt=1.0 conf=0.48 b2s=0.87 inl=256
+    => 4/5 registrable (80%); chain-below-pin=0; longest-run=4; bad anchors=[5]; a1(home)=reg
+
+ep813  pin=a6  below-pin anchors: [1, 2, 3, 4, 5]
+    a1   closest=0.47m  [OK ] berr=  0.0° derr=0.01m approach=0.47m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.60 inl=237
+    a2   closest=0.07m  [OK ] berr=  5.6° derr=0.02m approach=0.07m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.49 inl=308
+    a3   closest=0.01m  [BAD] berr= 45.8° derr=0.31m approach=0.01m mc=clean_full_pose nt=0.0 conf=0.93 b2s=0.57 inl=279
+    a4   closest=0.13m  [OK ] berr= 11.8° derr=0.02m approach=0.13m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.63 inl=282
+    a5   closest=0.07m  [OK ] berr=  1.4° derr=0.01m approach=0.07m mc=clean_full_pose nt=0.0 conf=0.81 b2s=0.57 inl=379
+    => 4/5 registrable (80%); chain-below-pin=2; longest-run=2; bad anchors=[3]; a1(home)=reg
+
+ep889  pin=a9  below-pin anchors: [1, 2, 3, 4, 5, 6, 7, 8]
+    a1   closest=2.45m  [BAD] berr= 36.9° derr=0.14m approach=2.45m mc=clean_full_pose nt=4.0 conf=0.64 b2s=0.93 inl=369
+    a2   closest=2.06m  [BAD] berr= 12.3° derr=0.18m approach=2.06m mc=clean_full_pose nt=0.0 conf=0.76 b2s=0.63 inl=388
+    a3   closest=1.61m  [BAD] berr= 21.3° derr=0.21m approach=1.61m mc=clean_full_pose nt=1.0 conf=0.59 b2s=0.91 inl=291
+    a4   closest=1.07m  [OK ] berr=  2.5° derr=0.00m approach=1.07m mc=clean_full_pose nt=0.0 conf=0.96 b2s=0.53 inl=435
+    a5   closest=0.52m  [OK ] berr=  1.8° derr=0.01m approach=0.52m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.36 inl=498
+    a6   closest=0.05m  [OK ] berr= 15.6° derr=0.01m approach=0.05m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.30 inl=493
+    a7   closest=0.29m  [OK ] berr=  0.0° derr=0.03m approach=0.29m mc=clean_full_pose nt=0.0 conf=0.97 b2s=0.48 inl=417
+    a8   closest=0.10m  [OK ] berr=  2.5° derr=0.01m approach=0.11m mc=clean_full_pose nt=0.0 conf=1.00 b2s=0.35 inl=441
+    => 5/8 registrable (62%); chain-below-pin=5; longest-run=5; bad anchors=[1, 2, 3]; a1(home)=BAD
+
+ep994  pin=a6  below-pin anchors: [1, 2, 3, 4, 5]
+    a1   closest=4.14m  [BAD] berr=  3.6° derr=2.81m approach=4.14m mc=ambiguous_high_confidence nt=2.0 conf=0.37 b2s=0.96 inl=191
+    a2   closest=3.44m  [BAD] berr= 29.4° derr=2.45m approach=3.44m mc=clean_full_pose nt=0.0 conf=0.43 b2s=0.82 inl=239
+    a3   closest=2.72m  [BAD] berr= 60.9° derr=0.66m approach=2.72m mc=partial_pose_degenerate nt=2.0 conf=0.33 b2s=0.92 inl=212
+    a4   closest=2.04m  [BAD] berr=  4.8° derr=0.36m approach=2.04m mc=partial_pose_degenerate nt=2.0 conf=0.29 b2s=0.93 inl=179
+    a5   closest=1.35m  [OK ] berr=  0.1° derr=0.00m approach=1.35m mc=partial_pose_degenerate nt=0.0 conf=0.91 b2s=0.31 inl=386
+    => 1/5 registrable (20%); chain-below-pin=1; longest-run=1; bad anchors=[1, 2, 3, 4]; a1(home)=BAD
+
+ep1038  pin=a4  below-pin anchors: [1, 2, 3]
+    a1   closest=3.19m  [BAD] berr=  6.9° derr=2.50m approach=3.19m mc=clean_full_pose nt=6.0 conf=0.61 b2s=0.95 inl=208
+    a2   closest=2.56m  [BAD] berr=101.9° derr=1.43m approach=2.56m mc=ambiguous_high_confidence nt=5.0 conf=0.38 b2s=0.94 inl=172
+    a3   closest=1.74m  [BAD] berr= 33.5° derr=0.04m approach=1.74m mc=clean_full_pose nt=0.0 conf=0.68 b2s=0.83 inl=222
+    => 0/3 registrable (0%); chain-below-pin=0; longest-run=0; bad anchors=[1, 2, 3]; a1(home)=BAD
+
+============================================================================================
+EPISODE SUMMARY
+============================================================================================
+   ep  pin #below  #reg  frac  chain↓ longest  a1home  verdict
+    5 a11      10     6  60%       1       5     BAD  ⚠️ mixed
+   20 a8        7     2  29%       0       2     BAD  ❌ vision wall: home stretch broadly degenerate
+  319 a4        3     0   0%       0       0     BAD  ❌ vision wall: home stretch broadly degenerate
+  367 a11      10     0   0%       0       0     BAD  ❌ vision wall: home stretch broadly degenerate
+  498 a5        4     1  25%       1       1     BAD  ❌ vision wall: home stretch broadly degenerate
+  500 a10       9     4  44%       2       2     BAD  ⚠️ mixed
+  653 a10       9     0   0%       0       0     BAD  ❌ vision wall: home stretch broadly degenerate
+  680 a6        5     4  80%       0       4     reg  ✅ Route-1: home stretch registrable, blocked by isolated a[5]
+  813 a6        5     4  80%       2       2     reg  ✅ Route-1: home stretch registrable, blocked by isolated a[3]
+  889 a9        8     5  62%       5       5     BAD  ⚠️ mixed
+  994 a6        5     1  20%       1       1     BAD  ❌ vision wall: home stretch broadly degenerate
+ 1038 a4        3     0   0%       0       0     BAD  ❌ vision wall: home stretch broadly degenerate
+
+Route-1 plausible (skip isolated bad anchor → walk home): 2/12
+Vision wall (broadly degenerate home stretch):            7/12
+Mixed:                                                    3/12
+(vs the earlier live-only estimate of 1/13 -- this uses real ICP re-matching of the captured clouds)
+
+
+====================================================================================================
+BELOW-PIN ANCHORS — honest 3-way split (approached<=2.0m; accurate: berr<30.0° & derr<0.5m)
+====================================================================================================
+   ep  pin | REG DEGEN FAR | reg-chain-from-pin | pattern
+    5 a11  |   8     2   0 | down to a3 (break at a2(DEGEN)) | FINAL-APPROACH hard: clean down to ~a3, last ~2m degen [1, 2]
+   20 a8   |   2     5   0 | down to a8 (break at a7(DEGEN)) | VISION WALL: 5/7 degenerate at close range [1, 2, 3, 4, 7]
+  319 a4   |   0     1   2 | down to a4 (break at a3(DEGEN)) | OFF-ROUTE: robot never approached [1, 2] (drifted; navigation/pin-consequence, not registrability)
+  367 a11  |   0     3   7 | down to a11 (break at a10(DEGEN)) | OFF-ROUTE: robot never approached [1, 2, 3, 4, 5, 6, 7] (drifted; navigation/pin-consequence, not registrability)
+  498 a5   |   1     1   2 | down to a4 (break at a3(DEGEN)) | MIXED: reg=[4] degen=[3] far=[1, 2]
+  500 a10  |   5     4   0 | down to a8 (break at a7(DEGEN)) | MIXED: reg=[1, 2, 4, 8, 9] degen=[3, 5, 6, 7] far=[]
+  653 a10  |   0     0   9 | down to a10 (break at a9(FAR)) | OFF-ROUTE: robot never approached [1, 2, 3, 4, 5, 6, 7, 8, 9] (drifted; navigation/pin-consequence, not registrability)
+  680 a6   |   4     1   0 | down to a6 (break at a5(DEGEN)) | ISOLATED DEGEN a[5] blocks an otherwise-clean home stretch → reliability-quarantine (Inj-A) target
+  813 a6   |   4     1   0 | down to a4 (break at a3(DEGEN)) | ISOLATED DEGEN a[3] blocks an otherwise-clean home stretch → reliability-quarantine (Inj-A) target
+  889 a9   |   6     0   2 | down to a3 (break at a2(FAR)) | FINAL-APPROACH hard: clean down to ~a3, last ~2m not-approached [1, 2]
+  994 a6   |   1     0   4 | down to a5 (break at a4(FAR)) | OFF-ROUTE: robot never approached [1, 2, 3, 4] (drifted; navigation/pin-consequence, not registrability)
+ 1038 a4   |   0     1   2 | down to a4 (break at a3(DEGEN)) | OFF-ROUTE: robot never approached [1, 2] (drifted; navigation/pin-consequence, not registrability)
+
+====================================================================================================
+GROUPED VERDICT
+====================================================================================================
+  ① Route-1 fixable — isolated degenerate anchor blocks a clean home stretch (Injection-A skip)
+       episodes: [680, 813]  (n=2)
+  ② Final-approach hard — clean most of the way, last ~2m degenerate or not-reached
+       episodes: [5, 889]  (n=2)
+  ③ Off-route — robot never approached the home stretch (navigation / pin-consequence; NOT a registrability property)
+       episodes: [319, 367, 653, 994, 1038]  (n=5)
+  ④ Vision wall — home stretch genuinely degenerate at point-blank range
+       episodes: [20]  (n=1)
+  ⑤ Mixed — scattered clean/degenerate, no clean chain
+       episodes: [498, 500]  (n=2)
+
+====================================================================================================
+POOLED (anchors the robot physically approached, i.e. registrability is even a question):
+  approached below-pin anchors: 50
+  of those, registrable:        31 (62%)   degenerate: 19 (38%)
+  never-approached (excluded above): 28/78 of all below-pin anchors (36%)
+
+  => Among clouds the robot actually stood near, the home stretch is MOSTLY registrable;
+     the 'vision wall' at close range is the minority. The bulk of below-pin 'badness'
+     is never-approached anchors — a consequence of the pin+drift, which this fix-OFF
+     capture CANNOT counterfactually undo (needs the fix-ON live run to settle).

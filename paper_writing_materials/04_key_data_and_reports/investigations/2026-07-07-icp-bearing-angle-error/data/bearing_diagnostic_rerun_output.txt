@@ -1,0 +1,42 @@
+=== ep680 anchor7: n_reprocessed=32/32 ===
+  match_class distribution: {'partial_pose_degenerate': 21, 'clean_full_pose': 9, 'ambiguous_high_confidence': 2}
+  icp_basin_count: mean=11.44 max=14
+  near_tie_basin_count: mean=0.06 frac>0=6.2%
+  overlap_ratio: mean=0.893 min=0.861 max=0.960
+  confidence: mean=1.000 min=1.000 max=1.000
+
+=== ep368 anchor12: n_reprocessed=20/20 ===
+  match_class distribution: {'clean_full_pose': 15, 'ambiguous_high_confidence': 5}
+  icp_basin_count: mean=16.05 max=18
+  near_tie_basin_count: mean=0.35 frac>0=35.0%
+  overlap_ratio: mean=0.751 min=0.651 max=0.842
+  confidence: mean=0.831 min=0.708 max=0.921
+
+=== ep5 anchor11: n_reprocessed=93/93 ===
+  match_class distribution: {'clean_full_pose': 74, 'ambiguous_high_confidence': 18, 'partial_pose_degenerate': 1}
+  icp_basin_count: mean=19.60 max=23
+  near_tie_basin_count: mean=1.00 frac>0=28.0%
+  overlap_ratio: mean=0.750 min=0.559 max=0.830
+  confidence: mean=0.841 min=0.532 max=1.000
+
+=== ep994 anchor2: n_reprocessed=46/46 ===
+  match_class distribution: {'partial_pose_degenerate': 36, 'clean_full_pose': 5, 'ambiguous_high_confidence': 5}
+  icp_basin_count: mean=19.52 max=22
+  near_tie_basin_count: mean=0.33 frac>0=15.2%
+  overlap_ratio: mean=0.627 min=0.422 max=0.854
+  confidence: mean=0.663 min=0.389 max=1.000
+
+=== ep368 anchor5: n_reprocessed=69/69 ===
+  match_class distribution: {'clean_full_pose': 50, 'ambiguous_high_confidence': 19}
+  icp_basin_count: mean=13.43 max=18
+  near_tie_basin_count: mean=0.61 frac>0=29.0%
+  overlap_ratio: mean=0.957 min=0.598 max=1.330
+  confidence: mean=0.915 min=0.681 max=1.000
+
+=== ep187 anchor14: n_reprocessed=43/43 ===
+  match_class distribution: {'clean_full_pose': 43}
+  icp_basin_count: mean=16.98 max=21
+  near_tie_basin_count: mean=0.00 frac>0=0.0%
+  overlap_ratio: mean=0.854 min=0.738 max=0.893
+  confidence: mean=0.977 min=0.654 max=1.000
+

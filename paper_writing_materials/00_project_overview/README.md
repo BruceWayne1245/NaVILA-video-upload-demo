@@ -1,0 +1,2750 @@
+# NaVILA + Isaac Sim VLN-CE Deployment on RTX 4090
+
+Reproduction of [NaVILA](https://navila-bot.github.io/) (RSS 2025) Isaac Sim benchmark on a local workstation with RTX 4090.
+
+**Status: End-to-end evaluation working ✅ — Episode 0: success=1.0, SPL=0.907**
+
+**Latest update (2026-07-08) — full analysis of the `hard11_live_trust_aware_guard_20260707_accumulated` live batch (the first full-scale live validation of the trust-aware guard fixed 2026-07-07): the fix holds up broadly (bearing mean 42.83°→19.88°, p90 147.02°→57.17° vs. the same-day no-guard baseline, improved on every one of 7 common episodes with zero regressions), but a root-cause dig into the residual bearing-error tail found the trust-aware substitution mechanism is not miscalibrated, it's under-triggered — full writeup in `investigations/2026-07-08-guard-batch-live-validation/FINDINGS.md`.**
+
+**Corrected round-trip outcome: 8/11 (not the `summary.tsv`-apparent lower count).** `ep678`/`ep680`'s measurement JSON hit the same intermittent Isaac Sim write-corruption bug already documented elsewhere, this time on plain measurement output; five distinct corruption patterns were found and regex-repaired rather than discarding the files, confirming both actually succeeded (`ep678` distance_to_start=1.617m, `ep680` 1.125m). vs. the same-day no-guard baseline's 7/11 — the `ep134/187/367` swings between batches trace to pre-existing VLM-server-startup flakiness, unrelated to the fix.
+
+**Anchor-selection accuracy (n=2788 dedup relocalization events, 8 usable episodes):** current-anchor-vs-true-position: 55.9% exact, 13.8% lag-1 (normal `bounded_evidence` confirmation delay), 8.9% lag≥2 (90%+ of it from one episode, `ep5` — see below), 21.2% overshoot (never ≥3 anchors, confirming the "advance at most one anchor per attempt" structural guarantee holds). Recomputing "next anchor" against a position-based reference instead of oracle's lookahead-shifted pointer collapses mathematically to this same distribution — shadow only ever reports one anchor index, so the earlier apparent "79% lag vs. oracle" number was mostly a definitional artifact, not a tracking failure.
+
+**`ep5`: a severe but confirmed-legitimate `alias_aware` promotion stall.** Shadow's `target_anchor_index` got stuck on just 2 anchors for 322/356 events (90% of the episode) — the round trip still succeeded because the VLM navigates off the oracle hint, not the shadow. Diagnostics on the stuck anchors show genuine ambiguity (46% `ambiguous_high_confidence` match_class, mean `near_tie_basin_count` 2.2–2.4), consistent with the already-documented finding that `ep5`'s route is uniformly self-similar on every anchor — neither stall reached the 200-attempt `alias_stall_attempts` relief threshold before the episode ended. 200 may be too conservative for routes this uniformly hard; not yet changed.
+
+**ICP bearing accuracy: pooled mean/p90 (19.88°/57.17°) is dragged up by a small number of bad anchors, not a broad problem.** Breaking the 2788 readings down by (episode, anchor) group: only 15/99 groups (9.8% of readings) have group-mean bearing error >45°; excluding them, the remaining 90.2% has median 4.73°, mean 14.65°, p90 39.49°. Those 15 always represent a minority of each episode's anchors (e.g. `ep678` 5/16, `ep187` 4/15) — never a wholesale-episode failure — and split into two distinct signatures: "confidently wrong" (clean `match_class`, high overlap, `near_tie_basin_count`≈0 — the still-open anchor-15-style rotational self-similarity problem) and "genuinely ambiguous, self-reporting" (elevated `near_tie_basin_count`/`partial_pose_degenerate` — diagnostics correctly flag these, but nothing acts on the flag, see below).
+
+**Root cause of the residual tail: `_sequential_pair_closure_belief_trust_aware_reconstruct` (the match_class-aware pure-substitution mechanism added 2026-07-07) works correctly when it runs, but only runs when disagreement exceeds the "large" threshold (`sequential_pair_closure_belief_large_position_disagreement_m=1.5`m / `..._heading_disagreement_deg=90°`).** Below that (but above the separate, smaller 0.75m/30° threshold that gates entry into the fusion machinery at all — exactly the band where the corruption actually occurs), everything falls through to the old, match_class-blind quality-weighted blend. Direct proof from `ep187 anchor13`'s real attempts: `ambiguous_high_confidence` readings had quality scores (confidence×√inlier_count) nearly identical to their `clean_full_pose` partner's (e.g. 10.32 vs. 10.77 → a 49/51 blend, essentially a coinflip between a good and a bad reading), confirmed via the `belief_fused` (not `belief_trust_aware_reconstructed`) backend tag on those events. This is one bug explaining both bearing-error signatures above, not two.
+
+**Also located and characterized "yesterday's" (2026-07-07) offline validation evidence for the record:** the 8-episode/n=2793 `fusion_corruption_full_survey.py` (raw ICP median=2.50° vs. fused median=6.63°) motivated *building* the guard; the single-anchor `ep187`/anchor14 offline test (48.30°→8.91° mean) motivated *launching* the live batch. There was no full-scale offline validation of the guard turned ON before today's live batch — today is the first time the fix has been checked beyond that one anchor.
+
+**Pending as of this writing:** an offline threshold sweep (6 points from `0.75m/30°` = fully removed to `1.5m/90°` = current default, across 9 replayable hard-11 episodes, reusing the existing offline replay harness with no code changes) is running to determine whether the large-disagreement gate can simply be removed, or what value it should be lowered to. Results will be added once it completes.
+
+---
+
+**Latest update (2026-07-07) — the `investigations/2026-07-07-icp-bearing-angle-error/` bearing investigation's own "Mode 3" poster child turned out to be misdiagnosed: the anchor's raw ICP was fine the whole time, and the real corruption came from `sequential_pair_closure_check`'s belief-mode fusion, not from ICP yaw ambiguity — found, fixed behind a new opt-in flag, unit-tested, offline-validated on real data, and a live hard-11 A/B is now running to confirm it end to end.**
+
+**How the misdiagnosis was found.** `FINDINGS.md` flagged `ep187 anchor14` as "Mode 3: undetected single-basin wrong lock" (mean bearing error 48.3°, every existing diagnostic — `match_class`, `icp_near_tie_basin_count`, `overlap_ratio`, `confidence` — reporting a clean match). Before building the yaw-posterior mechanism `README_bearing_reliability_survey.md` recommended for this case, a cheap sanity check was run first: re-running anchor14's own ICP match in isolation (bypassing `RouteMemoryAgent.update_relocalization()` entirely) gave a mean error of only **4.0°**, accurate essentially the whole episode. A separate check found the same thing from a different angle: among the 24 yaw-seeded ICP candidates already computed live, the seed whose own resulting bearing landed closest to ground truth was already the winning (max-score) candidate 86% of the time, with a 2° mean gap when it wasn't — i.e. there was no real yaw ambiguity in anchor14's own point cloud to detect in the first place. Both a planned localizability-eigen-decomposition refinement (checking whether the yaw component of the weakest constrained direction was already elevated for this anchor, short of the existing "degenerate" threshold) and the yaw-posterior idea itself were therefore abandoned as solving the wrong layer.
+
+**Root cause: `_sequential_pair_closure_belief_fusion`'s continuous quality-weighted blend is numerically unstable for large (near-antipodal) current/next disagreements, and corrupts an already-correct reading rather than averaging out noise.** Instrumenting the belief-fusion call directly (not just its output) on the real `ep187` capture showed that for attempts 46–62, anchor14 (current) held a consistent 56–75% fusion weight while anchor13 (next) itself was bimodal — its own raw dtheta oscillated between ~17° (wrong) and ~164° (matching anchor14's implied truth) attempt to attempt, i.e. anchor13 had its own undiagnosed single-basin-lock problem. `circular_weighted_mean` on two angles ~148° apart is close to the antipodal case where the weighted vector sum nearly cancels, so the *resultant direction* is hypersensitive to the exact weight split each attempt — explaining the wildly swinging, not monotonic, corrupted bearings actually observed (90.6°, 97.6°, 140.5°, -148.7°, ...) despite the "correct" side never losing its majority weight. Belief mode (2026-07-05) replaced "threshold" mode's original design — reject outright when neither side's quality clearly dominates, else substitute the weak side from the strong one via `_reproject_delta_to_anchor` (pure fixed-edge geometry, no accumulating odometry) — with a blend applied uniformly to *every* disagreement, specifically to stop outright rejects from starving `_distance_since_sequence_observation_m`'s reset (2026-07-05's stall regression). That fix over-corrected: it also removed the "one side clearly dominant → pure substitution, no blending" behavior for cases where blending is actively harmful.
+
+**Scope confirmed project-wide, not an ep187-only fluke.** A full hard-11 survey (8 usable episodes, n=2793 accepted readings, re-running each accepted attempt's target anchor in isolation and comparing against the already-recorded fused `reported_bearing_deg`) found: pooled raw-ICP bearing error (median 2.50°, mean 19.86°, p90 78.97°) is substantially better across the board than the already-published fused numbers (median 6.63°, mean 30.28°, p90 122.90° — matching `FINDINGS.md` almost exactly, confirming methodology consistency). **8.7% of all readings (244) are fusion-corrupted** — fused error >45° while the same reading's raw ICP is <15° — spread across at least 12 of 101 (episode, anchor) groups, not just `ep187 anchor14`. Separately, **10.1% (281 readings)** are genuine raw-ICP problems (both fused and raw >45°) — this confirms the original bearing investigation's Mode 1/2 poster children (`ep680 anchor7`: fused 168.3° vs raw 152.5°; `ep368 anchor12`: fused 130.8° vs raw 145.0°; `ep994 anchor2`: fused 99.7° vs raw 95.8°) are real single-anchor ICP problems, not fusion artifacts — the two failure classes coexist and need different fixes.
+
+**Fix implemented: `--sequential_pair_closure_belief_trust_aware_guard`** (opt-in, off by default; `--sequential_pair_closure_belief_large_position_disagreement_m=1.5` / `--sequential_pair_closure_belief_large_heading_disagreement_deg=90` control the new "this is categorical, not noise" thresholds). `AnchorRelocalization` gained `match_class`/`near_tie_basin_count` fields (already computed by `sequential_pair_anchor_relocalization` per attempt, previously discarded once past the strict-mode reject check — now carried through). When a current/next disagreement exceeds the large-disagreement thresholds, the guard checks each side's own `match_class`/`near_tie_basin_count` (not just the `confidence * sqrt(inlier_count)` quality score used elsewhere, which is already known to saturate near 1.0 even for anchors independently flagged degenerate — see `ep680 anchor7` above) to decide which side is trustworthy; if exactly one side is, that side is kept byte-for-byte unchanged and the other is reconstructed from it via the existing `_reproject_delta_to_anchor` primitive (mirrors "threshold" mode's original dominant-side substitution, just with a better trust signal, and zero accumulating drift since the anchor-to-anchor edge is a fixed one-time outbound recording). If both or neither side looks trustworthy, falls through to the unchanged continuous belief blend — there is no principled way to pick a side from this signal in that case. Below the large-disagreement thresholds, behavior is completely unchanged (blending is still meaningful at noise-level disagreement).
+
+**Validated.** 6 new unit tests (`SequentialPairBeliefTrustAwareGuardTest`) covering the reconstruct/fall-through/guard-off paths; full suite re-run in full: 158 tests (152 prior + 6 new), 14 pre-existing skips (unchanged), zero regressions. Offline replay against the real `ep187` capture (`bounded_evidence` + `alias_aware`, post quarantine-bug-fix, same config as validated): anchor14's mean bearing error drops from 48.30° (guard off, matches the original 48.3° exactly) to **8.91°** (guard on) — 95.3% of readings (41/43) land at ≤20.4°, with a clean, tight distribution (median 1.98°, p75 4.89°, p90 18.22°). **The residual 2/43 readings (45.3°, 157.2° — both at consecutive attempts 47/48) are a genuine, still-open Mode 3 case, not a guard defect**: both anchor13 and anchor14 tested `match_class=clean_full_pose` with zero near-tie at those specific attempts despite a true ~148° disagreement between them — the guard's trust signal has no way to disambiguate two sides that both self-report as clean, which is exactly the still-unsolved "confidently wrong, undetectable per-attempt" problem the original investigation's Mode 3 targeted. This is expected, not a bug: the guard was never meant to solve Mode 3, only the fusion-introduced corruption layered on top of it.
+
+**Live batch analysis (the already-running `hard11_live_bounded_evidence_alias_20260707_accumulated`, no guard, 13:37–16:29 same day) surfaced two more findings while checking the guard's live relevance.** 7/11 episodes round-trip-succeeded; of the 4 failures, 3 map to pre-existing unrelated issues (ep134/ep187: outbound-phase VLM-startup-timeout, a known gap; ep408: the already-documented "robot physically stops moving" bug). **ep5's return failure is the same "robot physically stops moving" bug independently confirmed for the first time outside ep408** — true (x,y) position is frozen (sub-2cm jitter) for the last ~90% of the return phase, while the shadow relocalizer's own belief kept advancing (7 spurious promotions, anchor10→3) purely from scene self-similarity despite zero real motion — `bounded_evidence` + `alias_aware` slows this down but does not fully prevent it given enough attempts (1000 in this episode) at a frozen viewpoint. Cross-checking shadow-vs-ground-truth anchor identity (methodology: "current" anchor judged against true position via `target_anchor_for_route_position`'s own rule — largest anchor `distance_from_start_m` still `<=` true position, the same rule the oracle hint path itself uses — not smaller-distance-first, which was tried first and gave a nonsensical ~7% match rate before being corrected; "next" anchor judged against the oracle's own live `target_anchor_index`) found **zero multi-anchor jumps and zero reversals across all 9 usable episodes** — the 2026-07-06 anti-cascade fix holds up live, with 0-2-anchor lag being the dominant remaining disagreement (consistent with `bounded_evidence`'s intentional multi-vote confirmation delay, not a tracking failure). One clear anomaly: **`ep678`'s shadow got stuck reporting `anchor12` as current for 164 of 371 attempts (44% of the episode)** before promoting to `anchor11`, while the accepted (fused) reading swung wildly in that whole window (bearing -32° to +176°, confidence collapsing to 0.2-0.5, 71% of those attempts tagged `+belief_fused`) — strongly suggestive of the same fusion-instability mechanism as `ep187 anchor14` but sustained far longer, though this could not be confirmed directly (this live batch did not capture `--capture_icp_replay_dataset`, so anchor11's own independent raw reading during the stall isn't recoverable after the fact).
+
+**Live A/B launched 2026-07-07T19:04 (detached via `nohup`, survives session end):** `hard11_live_trust_aware_guard_20260707_accumulated` — identical hard-11 set and config to the no-guard baseline above, only difference is the new guard (`--sequential_pair_closure_belief_trust_aware_guard --sequential_pair_closure_belief_large_position_disagreement_m=1.5 --sequential_pair_closure_belief_large_heading_disagreement_deg=90.0`) turned on. Master log `/home/teambruce/hard11_live_trust_aware_guard_20260707_master.log`; ETA ~2.5-3h based on the baseline's runtime. Pending analysis once finished: per-episode round-trip success vs. baseline, anchor-selection accuracy vs. baseline (especially whether `ep678`'s 164-attempt stall shortens or resolves), and — if worth a follow-up capture run — a `--capture_icp_replay_dataset` re-run of `ep678` specifically to confirm the fusion-instability hypothesis directly rather than by inference.
+
+**Pending / next steps:**
+1. Analyze the `hard11_live_trust_aware_guard_20260707_accumulated` batch once it finishes; compare against the no-guard baseline episode-by-episode.
+2. If the guard measurably helps `ep678`-style stalls, that's a second, previously unrecognized benefit of today's fix beyond bearing accuracy — worth calling out explicitly in the next round of validation writeups.
+3. Genuine Mode 1/2 anchors confirmed real this session (`ep680 anchor7`, `ep368 anchor12`, `ep994 anchor2`, plus 8 more from the full survey) still need the diagnostic-to-suppression (`match_class`/`near_tie_basin_count` → don't trust bearing) and/or rotational-self-alias mechanisms `README_bearing_reliability_survey.md` proposed — not addressed by today's fix, which only targets fusion-introduced corruption.
+4. The residual Mode 3 case (both sides self-report clean despite disagreeing) is still open and, per the survey, most likely needs either a yaw-posterior/score-landscape signal or closure-check-as-cross-validation between genuinely independent evidence sources (not just current-vs-next, which this session showed can itself be a source of corruption, not only a validator).
+5. Independently confirm whether the "robot physically stops moving" bug (now seen in both `ep408` and `ep5`) is a shared root cause or coincidence — still not investigated at the navigation/policy level; may be silently affecting round-trip success in ways unrelated to any of this session's relocalization work.
+6. Consider formalizing the offline replay + instrumentation scripts used this session (episode replay with match_class/near_tie visibility, fusion-vs-raw comparison, live-batch ground-truth anchor-accuracy scoring) into the repo proper — currently ad hoc in scratch locations, same status as the 2026-07-06 session's offline replay harness.
+
+---
+
+**Latest update (2026-07-06) — following the network-survey investigation (`investigations/2026-07-06-anchor-selection-and-icp-aliasing/round_trip_lidar_relocalization_network_survey.md`), implemented and validated a bounded-evidence promotion gate plus an anchor-distinctiveness precompute for `sequential_pair`, found and fixed a real pre-existing quarantine bug the new mechanisms exposed, and built a new offline (no-Isaac-Sim) replay harness that reproduced the whole hard-11 set's lead-lock cascade in minutes instead of hours.**
+
+**Root cause re-confirmed directly, not just inferred from the survey.** Pulled the two-anchor-hard-11 A/B live batch's raw `covisibility_records`: at every promotion in the lead-lock cascade, `corridor_degeneracy_ratio` stayed high (0.65–0.97, far above the 0.15 corridor-skip threshold) while `overlap_ratio`/`inlier_count`/`median_residual_m` all looked like a *good* fit — "confidently wrong," not low-confidence noise, exactly as the survey described. Separately ICP-matched ep187's anchor1 against anchors 2–6 (0.9–5m away): overlap stayed flat at 0.44–0.54 instead of decaying with distance, versus a clean anchor pair (anchor2 vs anchor5) dropping to ~0.50 by the same offset and continuing to fall — a real, measured self-similarity signature, not a byproduct of unusually close anchor spacing (checked and confirmed uniform, 0.7–1.2m, in both ep187 and ep408).
+
+**`--sequential_pair_promotion_mode={immediate,bounded_evidence}`** (`route_memory_agent.py`, default `immediate` = exact prior single-attempt-promotes behavior). `bounded_evidence` requires a candidate anchor's per-attempt "looks promotable" test (unchanged: `close_enough`/`trend_ok`/`quality_ok`) to keep passing across `--sequential_pair_promotion_min_votes` (default 3) of the last `--sequential_pair_promotion_window` (default 5) attempts before committing, instead of committing on attempt one — a fixed-size, per-candidate-anchor, forget-on-promotion window, deliberately not an unbounded accumulator like the deleted VIO bridge/arc-length odometer.
+
+**`--sequential_pair_promotion_alias_aware`** adds `RouteMemoryAgent.compute_anchor_alias_scores()` (calls into new `relocalization.py::compute_anchor_alias_scores`): once, right after `finalize_outbound()`, ICP-matches every anchor against every other anchor 2–5 route-positions away (excluding the immediate neighbor, which is expected to overlap by construction) and records the best overlap as `RouteAnchor.alias_score`. A candidate anchor scoring at/above `--sequential_pair_promotion_alias_threshold` (default 0.6) needs the stricter `--sequential_pair_promotion_alias_window`/`--sequential_pair_promotion_alias_min_votes` (default 8/5) instead of the flat requirement. A stall-relief fallback (`--sequential_pair_promotion_alias_stall_attempts`, default 200) reverts a flagged candidate to the flat requirement if it hasn't promoted in that many attempts — found necessary against real data: ep5 of the hard-11 set has *every* anchor flagged (a uniformly self-similar route end to end, 0.61–0.91, not just a couple of hot spots), and without relief the stricter requirement never gets satisfied at all, freezing promotion for the rest of the episode. 200 was chosen above the largest gap between two legitimate alias-aware promotions seen in ep187 (130 attempts, itself part of why ep187 saw its biggest improvement).
+
+**Found and fixed a real, pre-existing bug while debugging why ep5 still froze even with stall-relief in place.** `_select_sequential_pair_relocalization` independently recomputed `next_idx = current_idx - 1`, never consulting the quarantine skip-ahead logic that `sequential_target_anchor_pair()` (the thing that actually offers a candidate to the live ICP call) already applies. Whenever quarantine skipped past more than the immediate neighbor (confirmed on ep5: anchors 10 and 9 quarantined in sequence, live candidate correctly skipping to anchor8), the live call matched fine against anchor8, but `_select_sequential_pair_relocalization` went looking for anchor10's estimate — never computed, since quarantine skipped it at the call site — so `next_est` was always `None` and promotion could never be recorded again for the rest of the episode. This bug predates `bounded_evidence` entirely (quarantine shipped 2026-07-04); it went unnoticed because `immediate` mode promotes within a few attempts, rarely giving quarantine's trend tracker (`quarantine_trend_min_history=6`) enough dwell time to fire mid-promotion in the first place. Fixed by factoring the skip-ahead logic into a shared `_next_candidate_index()` used by both call sites. Confirmed via a temporarily-reverted-fix check that the new regression test (`SequentialPairNextIndexQuarantineSkipTest`) fails without the fix and passes with it.
+
+**New offline replay harness** (not yet committed to the repo — built ad hoc this session in a scratch location; worth formalizing next): replays `relocalization.py::sequential_pair_anchor_relocalization` + `RouteMemoryAgent` directly against an episode's `--capture_icp_replay_dataset` capture (raw anchor + per-return-step point clouds and ground-truth poses), with `sequential_pair_anchor_geometry_source=oracle` substituted for `accumulated` since the outbound accumulator state isn't part of the capture. No Isaac Sim or VLM server needed — only the ICP computation itself, which turned out to still be the dominant cost (~1.1–2.8s per attempt, single-threaded, same as live), so the real speedup came from running many episodes in parallel (32-core box) and skipping Isaac/VLM startup overhead, not from the matching cost itself.
+
+**Result on the hard-11 set (8 usable episodes; ep678 excluded — `anchors.json` itself is corrupted, same corruption class previously documented for `--capture_anchor_match_snapshots`, now confirmed to also hit `--capture_icp_replay_dataset`; ep408 excluded — see below):** pooled true `target_anchor_index`-vs-ground-truth distance error, `immediate` → `bounded_evidence` → `bounded_evidence`+`alias_aware` (post quarantine-bug-fix): median 3.94m → 1.27m → **0.64m**; max error 9.87m → 7.17m → **2.86m**; fraction of readings >1m off: 84.5% → 58.4% → **29.0%**. Every individual episode improved; the quarantine-bug fix changed only ep5 (2 promotions/median 3.30m → 8 promotions/median 1.92m/max 2.86m) and left the other 7 numerically identical, confirming the bug had only actually fired on that one episode. `ep187`/`ep408` were the two episodes where plain `bounded_evidence` alone wasn't enough; `alias_aware` fixed `ep187` dramatically (median 5.22m → 0.57m) but did essentially nothing for `ep408` (3.18m → 3.18m).
+
+**`ep408` is a separate, unrelated bug, not more of the same aliasing problem.** Its stuck anchor's `alias_score` (0.956) is actually the highest of any anchor checked — `alias_aware` correctly flagged it and correctly required more evidence — but the true robot position in the captured trajectory is **completely stationary** (identical to the millimeter) for the last 180+ of that episode's attempts (900+ real env steps). With a frozen viewpoint, every re-observation is a deterministic repeat of the same ICP computation, so no amount of "wait for more independent evidence" can ever change the outcome — there is no new evidence arriving. Root cause of the robot actually stopping is not yet investigated; flagged as a separate, likely navigation/policy-level issue to look into on its own, since it may be silently affecting round-trip success independent of any of this session's relocalization work.
+
+**Separate finding: the ICP-reported distance/bearing numbers themselves (the actual "hint" values, independent of whether the right anchor was even picked) were checked against ground truth for the 7 clean episodes (2412 accepted readings).** Distance is accurate — median error 7.3cm, mean 17.6cm, p90 46cm, in line with this project's previously-documented "clean segment" accuracy. Bearing is not uniformly good: median error only 6.96° but mean 30.1° and p90 118° — a long tail, not noise: 43.2% of readings are within 5°, but 12.6% exceed 90° and 8.2% exceed 135° (essentially rotated backwards). This matches the previously-documented "anchor 15"-style signature (P1's heading gate only ever validated dead-reckoning-derived yaw, which no longer exists on this path) — a distinct rotational-aliasing problem from the anchor-*identity* aliasing this session's work targeted, still open.
+
+22 new unit tests this session (`SequentialPairPromotionModeTest` [6], `SequentialPairPromotionAliasAwareTest` [8], `ComputeAnchorAliasScoresIntegrationTest` [2], `TestComputeAnchorAliasScores` [4], `SequentialPairNextIndexQuarantineSkipTest` [2]) — all hand-verified against constructed scenarios (not just "test passes"), e.g. the quarantine-skip regression test confirmed to fail on a temporarily-reverted pre-fix version and pass on the fix. Full suite (`tests/test_route_memory_agent.py` + `tests/test_geometry_pipeline.py`) re-run in full: 152 tests, 14 pre-existing skips (unchanged from before this session), zero regressions. All new flags off by default; no prior validated batch's behavior changes.
+
+**Pending / next steps:**
+1. This entire combination (`point_to_point` + `bounded_evidence` + `alias_aware`, quarantine bug fixed) has only been validated via offline replay against captured point clouds — never run live in Isaac Sim end to end. A real hard-11 live A/B against the current default config is the natural next step before treating any of this as validated for production use.
+2. Investigate why `ep408`'s robot physically stops moving for 900+ consecutive steps — unrelated to relocalization, but may be silently degrading round-trip success metrics on its own.
+3. The bearing-error long tail (12.6% >90°) is a distinct, still-open problem from anchor-identity aliasing — worth its own investigation (the removed P1 heading gate's dead-reckoning-yaw input no longer exists on this path, so whatever replaces it needs a different reference signal).
+4. Formalize the offline replay harness (currently ad hoc, in a scratch location) into the repo proper if it's going to keep being useful for fast iteration without Isaac Sim.
+5. The survey's descriptor-margin/multi-frame-submap ideas (Tier 2) are still on the table but currently lower priority — the anchor-alias-score precompute already captured most of the achievable gain from the *identity*-aliasing angle at far lower implementation cost than a new descriptor; only worth revisiting if the live A/B shows residual identity errors this offline work didn't catch.
+
+---
+
+**Latest update (2026-07-05, continued 7) — the planned odometry simplification and ICP-stage changes have now been implemented in the live `NaVILA-Bench/scripts` code, and a new hard-11 A/B validation is running detached in `tmux`.** This update supersedes the previous "planned simplification" status below: the current `sequential_pair` path no longer uses return-stage dead reckoning, arc-length particle filtering, `expected_s`/`motion_error`, VIO bridge, large-forward-jump confirmation, or P1/P2 as accept/reject gates. The only remaining non-oracle odometry-derived quantity used by the active dual-anchor path is the outbound anchor-to-anchor relative geometry (`edge_from_previous`) used by `_reproject_delta_to_anchor`; the `--sequential_pair_anchor_geometry_source=oracle` ablation still replaces even that with ground-truth anchor-to-anchor geometry.
+
+**Implemented route-memory changes.** `RouteMemoryAgent.finalize_outbound()` now seeds return with the final anchor as current and clears the old arc-length/PF state. `update_return_motion()` still integrates the return pose for generic progress display, but the active `sequential_pair` accept/promote path no longer predicts route progress from it and no longer propagates the latest relocalization between attempts. `update_relocalization()` now calls `_select_sequential_pair_relocalization()` for the current backend: it considers only the current anchor and the next anchor, applies the existing sequential-pair closure precheck/fusion, picks the best estimate per anchor by `confidence * sqrt(inlier_count)`, and promotes next->current only when the next estimate has sufficient quality and is either close enough or shows a bounded improving-distance trend. The trend/score history is reset on promotion so it cannot recreate the old unbounded-odometer death spiral. Legacy `ArcLengthParticleFilter`/sequence-observation functions remain in the file for old backends/tests, but they are no longer on the current `sequential_pair` main path.
+
+**Implemented ICP-stage changes for the second-class problem (ICP accuracy/ambiguity), with separate switches for the more speculative variants.** `sequential_pair_anchor_relocalization()` now supports configurable local-map preprocessing and ICP objective: `--route_local_map_icp_objective={point_to_point,point_to_line,point_to_line_2p5d,ndt_2d}`, `--route_local_map_voxel_size_m`, `--route_local_map_max_points`, `--route_local_map_profile={default,dense}`, and `--route_local_map_quality_policy={diagnostic,strict}`. Stage 3.1 is `point_to_line`; stage 3.2 is `point_to_line_2p5d` with height-consistency diagnostics; stage 3.3 is currently an experimental `ndt_2d` switch/alias, not a full production NDT implementation. Stage 4A is the default `0.10m` voxel / `512` max points; stage 4B is the separate `dense` profile (`0.05m`, `2048` max points). The relocalizer now records multi-seed ICP basin structure (`icp_basin_count`, near-tie count, ambiguity class, best/second deltas), a localizability summary from correspondences, optional height consistency, and a `match_class` such as `clean_full_pose`, `partial_pose_degenerate`, `ambiguous_high_confidence`, or `height_inconsistent_2p5d`. In `diagnostic` mode these are logged only; in `strict` mode ambiguous/degenerate/height-inconsistent matches are rejected for A/B testing.
+
+**P1/P2 status after implementation.** In the active `sequential_pair` backend, P1's return-dead-reckoning yaw gate has been removed from the call path and `sequential_pair_anchor_relocalization()` no longer accepts `dead_reckoning_yaw_rad`. P2's corridor degeneracy check is diagnostic-only for `sequential_pair` (`corridor_degenerate_anchor_observed`), not a skip gate. Old full-anchor-search backends (`lidar_local_map`, `scan_context`, `fused`) still retain their historical P1/P2 behavior for compatibility and are not the target of this cleanup.
+
+**Bug/hang containment is implemented at the batch-driver level.** `scripts/run_oracle_anchor_hard_fresh_batch_20260629.sh` now wraps every Isaac episode process in `setsid timeout --kill-after="${EPISODE_TIMEOUT_KILL_AFTER_SECONDS}s" "${EPISODE_TIMEOUT_SECONDS}s"` with defaults `7200s` and `300s`. If an episode exits with timeout code `124` or kill code `137`, the driver logs the timeout, kills the episode process group and the per-episode VLM server, waits for the port to close, appends the summary row, and continues to the next episode. This does not prevent the underlying numpy/Isaac corruption bug, but it prevents a single episode from permanently blocking the whole batch.
+
+**Validation before launching the new batch.** `py_compile` passed for `scripts/relocalization.py`, `scripts/route_memory_agent.py`, `scripts/round_trip_eval.py`, `tests/test_route_memory_agent.py`, and `tests/test_geometry_pipeline.py`. The focused unit runs pass: `tests.test_geometry_pipeline` = 63/63 OK; `tests.test_route_memory_agent` plus geometry tests = 130 OK with 14 explicit skips for legacy arc-length/PF/return-odometry behavior that is intentionally removed from the active non-oracle `sequential_pair` path. Full unittest discovery still has the pre-existing environment issue in `test_loftr_matching` because `cv2` is unavailable in this shell.
+
+**New hard-11 A/B validation running now (detached, survives SSH/session disconnect).** The run is attached to `tmux` session `navila_stage31_4A_20260705`, launched by `/home/teambruce/run_stage31_4A_hard11_20260705.sh`; master log is `/home/teambruce/stage31_4A_hard11_20260705_master.log`. It runs the same 11 hard episodes as the 2026-07-05 batch twice, first with `--sequential_pair_anchor_geometry_source=accumulated`, then automatically with `--sequential_pair_anchor_geometry_source=oracle`. Run tags are `stage31_4A_hard11_20260705_accumulated` and `stage31_4A_hard11_20260705_oracle`. All non-new switches match the earlier 2026-07-05 belief/trend batch: `--route_hint_source=oracle`, `--route_relocalization_backend=sequential_pair`, `--oracle_align_return_yaw_to_anchor_segment`, `--route_relocalization_interval_updates=5`, `--stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0`, `--topdown_route_map`, `--hint_action_arbiter`, `--sequential_pair_closure_check --sequential_pair_closure_mode=belief`, and `--sequential_pair_quarantine --sequential_pair_quarantine_mode=trend`. The new ICP settings are stage 3.1 + 4A: `--route_local_map_icp_objective=point_to_line`, `--route_local_map_voxel_size_m=0.10`, `--route_local_map_max_points=512`, `--route_local_map_profile=default`, `--route_local_map_quality_policy=diagnostic`. At launch confirmation, ep4 was running normally in the `accumulated` half with both VLM and Isaac active, and the process command was visibly wrapped by `timeout --kill-after=300s 7200s`.
+
+**Current performance expectation for `relocalization_interval_updates=1`.** With the current dual-anchor `sequential_pair` path, interval=1 should not reproduce the old full-anchor-search "too slow" failure: per attempt it matches only current+next. Relative to today's `interval=5` hard batch, expect about 5x more relocalization attempts. Stage 3.1 (`point_to_line`) adds normal/least-squares work and is expected to be slower than point-to-point but still bounded by the two-anchor candidate set. Stage 3.2/3.3 add modest diagnostic/objective overhead in the current implementation. Stage 4B (`dense`, 2048 points) is the high-risk runtime switch: nearest-neighbor/normals scale poorly with point count, so interval=1 plus 4B should be timed on one episode before a full hard-11 run.
+
+**Latest update (2026-07-05, continued 6) — the `belief_trend_hard11_20260705` A/B's `accumulated` half finished (8/11 usable episodes; ep994 lost to the recurring numpy-internals crash, manually cleared); forensic re-analysis confirms the multi-anchor overshoot problem is genuinely fixed, but the permanent-lock death spiral is NOT fixed — it was traced to its true root cause, a mechanism belief/trend never touched, which predates `sequential_pair` entirely and is shared with (at least) one other previously-documented permanent-lock incident. A full audit of every odometry-dependent module in the non-oracle pipeline was done, including the two per-candidate ICP gates in `relocalization.py` (P1/P2), and a major simplification is now planned: delete essentially all of it, keeping odometry only for the outbound anchor-to-anchor edge geometry.**
+
+**The `accumulated`-half run hit the exact same pre-existing `TypeError: 'NoneType' object is not callable` crash (in `icp_rigid_transform_2d`'s `_nearest_neighbor_2d`, same signature as documented before — genuine process-level memory corruption, not a logic bug) on ep994; Isaac Sim/Kit hung 2+ hours post-crash without exiting (the same "doesn't exit cleanly" gap flagged before).** Manually `kill -9`'d the hung process tree (not the batch driver) — the driver correctly detected the exit and resumed with ep1040. The `accumulated` half has completed, 8/11 episodes usable (ep134 VLM-startup-timeout, ep408 outbound-failure are pre-existing unrelated gaps; ep994 lost this run to the crash); the `oracle`-geometry-source half is still running (see Pending/next steps below).
+
+**Finding 1 (confirmed fixed): multi-anchor overshoot is genuinely gone.** Across all 8 completed episodes, raw accepted-event `target_anchor_index` transitions are 100% single-step — zero skips (>1 anchor at once), zero reversals. (Methodology note: return-phase anchor index legitimately *decreases* over time; an earlier pass of this same analysis mislabeled every normal decrement as "backward" before being corrected — this is not a real finding, just a bug in the analysis script, noted here so it isn't repeated.)
+
+**Finding 2 (the death spiral persists, via a different and older mechanism than closure_check).** 5/8 episodes still show a `no_sequence_candidates`-dominated reject tail consuming 33-85% of the episode with zero recovery; 2/8 (ep678, ep1040) show a related but distinct symptom — high accept rate, but the identity barely advances (ep678: attempts 1→326 only move anchor 16→15; confirmed via ground truth that the robot's true `distance_to_start` was smoothly decreasing the whole time — a real tracking failure, not the robot being stationary).
+
+**Root cause, confirmed by reconstructing ground truth from raw `covisibility_records` ICP output + true trajectory position (explicitly not the smoothed `route_memory_shadow` field — see methodology trap below).** `route_memory_agent.py`'s `_distance_since_sequence_observation_m` (~line 580) is a monotonic, never-decreasing odometer of \|forward motion\| (accumulates every environment step regardless of net progress, reset to 0 *only* by an accepted match). `_sequence_match_observation`'s `expected_s` (~lines 1483-1486) is `last_accepted_observed_s − this_odometer`, gating every subsequent candidate via `motion_error > sequence_forward_tolerance_m=0.4m` (one-directional, ~line 1497). Reconstructed directly for ep367: after the last accept, `expected_s` ran away from a sane ~2m to **−5.9m** by episode end while the true/ICP-observed position stayed sanely in 1.2-2.9m throughout — a mathematically self-reinforcing, unrecoverable deadlock (once any reject happens for *any* reason, the odometer keeps growing, `expected_s` keeps diverging, so every subsequent candidate's motion_error only grows). This is structurally identical to the **already-documented 2026-07-02 VIO-bridge permanent lock** (predates `sequential_pair`; the code comment at route_memory_agent.py:400-406 says so directly) — same failure class, a different gate, and **completely untouched by this session's belief/trend redesign**, which only ever changed `closure_check`/`quarantine` behavior, not this older, shared, odometer-gated core. ep678/ep1040's "barely advances" symptom is the same mechanism in slow motion (the "current" candidate gets filtered by `sequence_max_anchor_distance_m` once the robot is genuinely far away, but "next" can't get accepted either once the same odometer/`expected_s` reference has also drifted) — the VIO-bridge's threshold-relaxation-over-time is why it eventually (laggily) catches up instead of freezing solid like ep367/ep5/ep368/ep680's worst tails.
+
+**Methodology trap found and corrected: the `sequence_observation` field logged inside a `no_sequence_candidates` reject event (`route_memory_agent.py:712-714`) is not the actual attempt's candidate.** It's `asdict(self._sequence_observation)` — the *persisted last-accepted* observation, echoed unchanged into every reject event until the next real accept. Confirmed directly: ep367's 272 rejects contain only 4 distinct value-tuples total. Do not use this field to diagnose a reject streak — use `route_relocalization_diagnostics.covisibility_records` instead (a real per-attempt `attempt` counter, ICP output for every candidate regardless of accept/reject), cross-referenced with true position from the trajectory JSONL via `row_index = 0 if attempt==1 else (attempt-1)*relocalization_interval_updates - 1` (derived from the `_force_next_relocalization`/`_return_update_count` code logic, not guessed — the error-vs-offset landscape is empirically flat within a few rows either way, so exact alignment isn't critical, but this base formula is code-verified correct). Also found: `relocalization_events` list order can silently skip attempts entirely (an early return at ~line 702, `if not estimates: return None`, happens *before* any event gets appended when ICP fails for both current and next), so its index is not always 1:1 with the true attempt counter — cross-check against `covisibility_records`' own `attempt` field when precision matters. Separately confirmed (again) that `route_memory_shadow`'s per-step fields in the trajectory JSONL never exactly match `relocalization_events` at any row, anywhere in an episode — it is a genuinely different, lagging, smoothed signal, not a convenience alias.
+
+**Finding 3 (clean-segment accuracy attribution — confirms this project's earlier "when neither known problem occurs, accuracy is fine" pattern held again this batch).** Split every accepted raw-ICP point (ground-truth-checked against the true position of the *anchor the shadow itself picked*, never a mismatched oracle-anchor comparison) into three buckets by `overlap_ratio`/point-count: `corridor_or_sparse` (overlap<0.65 or point count<400 — "map itself is weak"), `aliasing_candidate` (overlap≥0.85, point count≥450, dense/confident, *yet* error still large — the anchor-15-style "confidently wrong" signature), `clean` (neither). Across all 8 episodes (n=1406 points, buckets cover 99.9% — essentially no unexplained third failure mode): **`clean` = 44.0% of data, median dist err 3.8cm / median bearing err 1.95°** (genuinely precise); `corridor_or_sparse` = 53.8% (median errors in the 1-4m / 45-150° range — the dominant remaining error source by volume); `aliasing_candidate` = only 2.1% but a clean, distinct signature (dist err often <5cm, bearing err 20-130°+ — position converges fine, rotation confidently wrong). ep1040 is a saturated aliasing-adjacent case: 100% of its points show huge bearing error (median 132°) — traced specifically to the P1 heading-consistency gate's *reference* (dead-reckoning yaw) being unreliable in this default (non-`--measured_odometry`) batch, not a new ICP problem. `corridor_degeneracy_ratio`/`heading_consistency_error_rad` (the two existing quality signals) are much *weaker*/noisier predictors of true bearing error than raw `overlap_ratio`.
+
+**P1/P2 (the two per-candidate ICP gates in `relocalization.py`'s `sequential_pair_anchor_relocalization`) investigated directly against this batch's real data — P2 confirmed dead weight, P1 confirmed dependent on the same odometry already slated for removal.** P2 (corridor-degeneracy skip, ~line 1244-1252, skips ICP if a per-anchor `corridor_degeneracy_ratio` < `corridor_degeneracy_skip_threshold=0.15`) **fired zero times across all 4894 covisibility records this batch — the minimum ratio ever observed anywhere is 0.403**, far above the 0.15 threshold; it provides no real protection currently despite corridor/sparse-map error being the single largest error source. P1 (heading-consistency gate, walks the 24 yaw-seeded ICP candidates best-score-first, takes the first whose implied absolute yaw agrees with a caller-supplied `dead_reckoning_yaw_rad` within 90°) is doing real partial work — full rejection (all 24 fail) never happened (0/4894), but it discarded ≥1 flip candidate before landing on an acceptable one in 1803/4894 = 36.8% of attempts (median 2, max 13 discarded) — but its only input, `dead_reckoning_yaw_rad`, comes from the same return-phase dead-reckoning integration already slated for deletion; once that's gone, P1 degrades to a complete no-op via its own already-existing `dead_reckoning_yaw_rad is None` branch (which just takes the top-scored candidate unconditionally), losing even this partial protection unless something else takes over its job.
+
+**Full odometry-dependency audit completed across the whole non-oracle pipeline (`route_memory_agent.py` + `relocalization.py`), organized into 4 layers, to support a major planned simplification (agreed, not yet implemented — deferred until other open analysis questions are finished, per explicit user instruction):**
+1. Raw per-step dead-reckoning integration during return (`_return_pose_from_return_start`/`_outbound_pose_from_start` `compose_pose` chains), the runaway `_distance_since_sequence_observation_m` odometer itself, `ArcLengthParticleFilter.predict()`, and `_propagate_latest_relocalization` (between-attempt display interpolation).
+2. Gates keyed off that state: the `motion_error`/`expected_s` gate (the confirmed death-spiral root cause), the large-forward-jump-confirm gate (`sequence_large_forward_jump_m`, 2026-07-02, predates `sequential_pair`), the VIO bridge (2026-07-02, predates `sequential_pair`, its own code comment already blames it for an earlier identical permanent-lock incident).
+3. The entire pre-`sequential_pair`-era `ArcLengthParticleFilter`/`SequenceArcObservation` candidate-disambiguation framework — built to disambiguate identity among *many* searched candidates (LoFTR/local_map_icp/Scan Context/fused era), now structurally unnecessary since `sequential_pair` only ever offers `{current, next}` — plus 3 already-confirmed-dead functions (`_apply_monotonic_anchor_policy`, `_project_to_next_anchor_if_passed`, `_maybe_advance_passed_anchor`), safe to delete regardless of anything else.
+4. `_reproject_delta_to_anchor`'s use of `accumulated` (odometry-derived, vs. `oracle`) anchor-to-anchor geometry — shared by closure-check, quarantine, ema-smoothing, and candidate fusion; only this layer is being *kept*.
+5. (Found this pass, in `relocalization.py`, outside the original 4-layer scope) P1 and P2 above — both now added to the deletion list.
+
+Confirmed by commit-era cross-reference: **only closure-check (`threshold`+`belief` modes) and quarantine (`window`+`trend` modes) were written *after*/*for* `sequential_pair` (2026-07-04/05); every odometry-dependent piece found predates it** (VIO bridge and large-jump-confirm: 2026-07-02; the particle filter/sequence-observation framework: the original design, oldest of all; P1/P2: shared with even-older full-candidate-search backends).
+
+**User's decided plan**: delete every odometry-dependent piece in layers 1-3 above, plus P1 and P2 — keep odometry *only* for the outbound anchor-to-anchor edge geometry (accumulate from the previous anchor, snapshot the relative pose on reaching the next anchor, reset, repeat — i.e. layer 4 stays, everything else goes). Two concrete open design decisions agreed but not yet built:
+1. **Anchor-promotion replacement rule** (deleting the odometer/`expected_s` gate removes the only thing currently deciding "time to promote next→current"): combine (a) single-shot ICP quality (confidence×√inliers, already computed), (b) a short, bounded, reset-each-promotion window requiring "next"'s estimated distance to be consistently shrinking across the last few attempts (mirrors quarantine-trend's own "improving/not-improving" check — deliberately bounded so it can never become a new unbounded-accumulator trap), and (c) the existing closure-check cross-validation (already catches translation+rotation disagreement between current/next). The open hypothesis (not yet verified) is that closure-check (belief mode) may already substitute for most of what P1 was trying to catch, since a wrong-oriented anchor should show a disagreement against its neighbor in that same check — to be verified empirically once implemented.
+2. **Re-test `relocalization_interval_updates` toward 1** instead of any odometry-based between-attempts interpolation for smooth per-step display. Important context: interval=1 was tried once before (2026-07-03 era) and abandoned as too slow (~35 min GPU compute, no result, single episode) — but that test predates `sequential_pair` and used a full-anchor-search backend; `sequential_pair` only ever ICP-matches exactly 2 anchors per attempt regardless of route length, a much cheaper per-attempt cost, so the old "too slow" conclusion may no longer hold and is worth re-testing directly with the current backend.
+
+**A literature-review pass (deep multi-agent web research, aimed at finding degeneracy-recovery and odometry-free rotational-disambiguation methods that work at our low point-cloud density, ~500 pts/scan) was attempted but did not complete cleanly** — hit an API session/rate limit partway through verification and synthesis (most adversarial-verification votes and the final synthesis step errored out), so only a handful of unverified candidate leads surfaced (e.g. LP-ICP's localizability-based soft constraints, SA-LIVO's per-eigendirection soft gate as a richer alternative to binary detect-and-skip) — **none of this should be treated as validated yet**; the research needs to be re-run cleanly before acting on anything from it.
+
+**Pending / next steps:**
+1. Finish whatever other open analysis questions remain before starting the odometry-elimination implementation (explicit user instruction — implementation deferred, not cancelled).
+2. When implementing: this is a genuinely large deletion/refactor touching `route_memory_agent.py`'s `ArcLengthParticleFilter` class, `_sequence_match_observation`, `_estimate_arc_observation`, the VIO bridge block, the large-forward-jump block, `_propagate_latest_relocalization`, the 3 already-dead functions, and `relocalization.py`'s `sequential_pair_anchor_relocalization` (remove the P2 corridor-skip block and the P1 yaw-seed-walk/heading-check loop, likely collapsing to "take the top-scored candidate from the 24-seed sweep"). Re-run the full unit test suite (`tests/test_route_memory_agent.py`, `tests/test_geometry_pipeline.py`) since large parts of it likely test the code being deleted.
+3. After deletion, specifically verify whether closure-check (belief mode) alone is sufficient to catch anchor-15-style rotational aliasing without P1 — flagged as an open, unverified hypothesis above.
+4. Re-run the literature-review deep-research pass once the API session limit resets — the goal (degeneracy recovery beyond detect-and-skip, and odometry-free rotational disambiguation, at ~500-point density) is unchanged and still worth answering, ideally *before* over-investing in a from-scratch promotion-rule design if an established method already solves it.
+5. `oracle`-geometry-source half of this same A/B batch is still running (ep4 done, ep5 in progress as of this writing) — once it finishes, forensically analyze it with the same raw-record methodology as the `accumulated` half above, to isolate whether anchor-geometry source matters independently of the odometry-elimination work above.
+
+**Latest update (2026-07-05) — the 2026-07-04 closure_check/quarantine A/B batch's raw per-attempt records were forensically re-analyzed (not just the smoothed shadow-progress fields used previously); this found closure_check causes an accept-rate collapse and quarantine causes uncontrolled multi-anchor overshoot, traced both to a root mechanism ("new-old gate interaction" starving a pre-existing drift-reset), and a redesign (continuous belief-curve fusion + trend-aware quarantine) was implemented, unit-tested, and is now running as a second A/B batch (accumulated vs oracle anchor geometry, both with the new mechanisms on).**
+
+**Root-cause correction: `route_memory_shadow.target_anchor_index` in the trajectory JSONL is a smoothed, arc-length-particle-filter-derived projection (`_arc_length_progress` → `_target_anchor_for_remaining_distance`), not the raw sequential_pair identity-lock state (`self._target_anchor_index`) — the two can diverge (the smoothed layer can even show spurious "backward" jumps that never happen in the raw state).** The real per-attempt accept/reject record, with reject reasons and the winning accept's own `target_anchor_index`, lives in `measurements/*.json` → `round_trip.route_memory.relocalization_events` — populated unconditionally by `update_relocalization` (route_memory_agent.py:704/743ish), independent of `--capture_anchor_match_snapshots`, so it was available all along for this A/B batch despite snapshots being off. Anchors' ground-truth world positions (`metadata.world_pose`, set during outbound via `isaac_oracle_for_relocalization_eval`) let every accepted event's reported `distance_to_anchor_m` be checked directly against true position — all findings below use this raw data, not the smoothed shadow fields used in the 2026-07-04 write-up.
+
+**Finding 1 — closure_check causes a large, previously invisible accept-rate collapse, driven almost entirely by its own new reject reason.** Re-tabulating accept rate from `relocalization_events` (not round-trip success, which is meaningless here since `--route_hint_source=oracle` means the VLM never sees the shadow's output): ep367 baseline/off 98-100% → **on 11.5%**; ep994 99% → **34%**; ep678 83% → **11%**; ep1040 56-87% → **31%**; ep4 7-35% → **2%**. The dominant driver is `sequential_pair_closure_mismatch` — a reject reason that appears *only* when closure_check is on (never once in baseline/off) — firing on 20-53% of *all* attempts depending on episode (ep680: 199/376 = 53%). The 1.5x quality-ratio threshold that decides reconstruct-vs-reject is cleared far less often than the design's validation (4 known overshoot cases) anticipated; most real disagreements land in "neither side clearly dominates" and get discarded outright. Checked via accept-event `backend` tags: the reconstruct path (`+closure_reconstructed`) fires on only ~0-3% of accepts in most episodes (one outlier at 46%), vs. ~100x more outright rejects — reconstruction is essentially unused in practice.
+
+**Finding 2 — quarantine causes uncontrolled multi-anchor overshoot, and is mostly false-positive.** Rebuilt the *raw* (never-smoothed) `_target_anchor_index` sequence from accepted events only: it is genuinely monotonic with **zero backward transitions in any of the 33 episode×config combinations checked** (the earlier write-up's "backward jump" observations were smoothed-layer artifacts, corrected here). Multi-anchor skips (gap > 1) occur *only* when quarantine is on — confirming they are quarantine, not noise — but they are large and land the identity ahead of true (oracle) position: ep680 12→8 (skipping 11,10,9), then 8→3 (skipping 7,6,5,4); ep994 15→12, then 11→6 (skipping 10,9,8,7); ep678 11→9, then 7→4. Cross-checked each skipped anchor against *independent* baseline/off data (same anchor index, different run): **only ep680's two skips have real supporting evidence** — anchor 9 is where baseline itself permanently locked (328/396 attempts, 10% accept, err 3.75m) and anchor 5 is where off independently struggled (147 attempts, 66% accept, err 5.12m). The other 6 skip cases (ep994 both skips, ep678 both skips, ep368) skipped anchors that independent baseline/off runs show were **perfectly fine** — 100% accept, 0.05-0.15m error, no instability at all. Quarantine's 3-6-sample raw-spread window is confirmed structurally vulnerable to a single bad reading (the spread check is max-min across the window, so one outlier among otherwise-clean samples is sufficient to trip it), consistent with these being false positives rather than genuine anchor problems, though the exact triggering samples for the false-positive cases can't be recovered from the sparse reject-event log (no per-candidate detail on rejects) without added instrumentation.
+
+**Finding 3 — root mechanism connecting both findings: closure_check's rejects interact with a pre-existing (unrelated, unchanged) motion-consistency gate to create a permanent, unrecoverable stall.** Traced the exact accept/reject run-length sequence inside each regressed episode's final stalled segment (ep367 anchor9, ep1040 anchor6, ep678 anchor4, and others): all show the same signature — a healthy run of accepts, then intermittent `sequential_pair_closure_mismatch` rejects, then (in the 5 regressed episodes) a long **unbroken tail of `no_sequence_candidates`** running to the end of the episode with zero recovery (ep367: 166/229 consecutive; ep1040: 68/126; ep678: 158/201). `no_sequence_candidates` is a pre-existing gate (`_sequence_match_observation`'s `sequence_forward_tolerance_m`/`sequence_max_anchor_distance_m` checks, unmodified by this session's work) whose tolerance is implicitly calibrated around `_distance_since_sequence_observation_m` staying near zero — which it does in baseline/off because near-100% accept rates reset it almost every attempt. closure_check's occasional rejects break that reset; once dead-reckoning drift compounds past the gate's own tolerance, *every* subsequent candidate (regardless of source anchor or ICP quality) fails it, and there is no recovery path — quarantine cannot help because it explicitly never tracks the "current" role (`_record_next_anchor_stability`'s docstring), and this failure is a "current" problem, not a "next" problem. In short: neither mechanism is individually broken; a new mechanism (closure_check) violated an old mechanism's implicit assumption (near-zero drift between corrections), and the combination is worse than either alone in episodes where the underlying ICP was already reliable.
+
+**Redesign implemented (not yet validated), directly targeting both findings, per explicit user design:**
+1. **`--sequential_pair_closure_mode=belief`** (new, alongside existing `--sequential_pair_closure_check`; default remains `threshold` = exact prior behavior): replaces the 1.5x quality-ratio + fixed-threshold reject/reconstruct decision with a continuous fusion (`RouteMemoryAgent._sequential_pair_closure_belief_fusion`) — current and next are always blended, weighted by `confidence * sqrt(inlier_count)`, and disagreement (scaled by the same distance-dependent sigma `_estimate_arc_observation` already uses, not a new magic number) smoothly discounts the fused confidence rather than ever rejecting outright. This directly targets Finding 3: every attempt now always yields a usable observation, so `_distance_since_sequence_observation_m` always has a chance to reset, and the death-spiral trigger condition can no longer occur.
+2. **`--sequential_pair_quarantine_mode=trend`** (new, alongside existing `--sequential_pair_quarantine`; default remains `window` = exact prior behavior): replaces the 3-6-sample raw-spread check with a whole-dwell-time criterion (`RouteMemoryAgent._record_next_anchor_trend`) — each reading is judged against the simultaneously-read "current" anchor (same triangle cross-check as belief mode), tracked across the *entire* time the anchor spends as "next" (not a small window), and only quarantined if a majority of that whole history disagrees *and* the disagreement is not shrinking as the robot's own ICP-measured distance to the anchor shrinks (the one invariant assumed never to change: the robot only ever draws closer to "next"). Directly targets Finding 2's false-positive rate.
+3. **`--sequential_pair_anchor_geometry_source=oracle`** — confirmed already implemented (2026-07-04, never run); no new code needed. Also directly relevant here: `_estimate_arc_observation`'s `observed_s = anchor.distance_from_start_m (fixed per-anchor accumulated-geometry bias) + ICP-measured offset (noisy)` means a fixed anchor-geometry bias does *not* get mistaken for ICP instability by the new trend-aware quarantine (it doesn't increase sample-to-sample spread) — but it does directly bias absolute accuracy and closure_check's cross-anchor comparison, and this bias is confirmed (prior session) to grow with anchor index (+0.11m at anchor 1 → +1.58m at anchor 10 in one episode), i.e. is not uniformly small — plausibly a real, previously-uncredited contributor to the disagreement rate at anchors deeper into the route.
+
+21 new unit tests added (13 this session: `tests/test_route_memory_agent.py::SequentialPairBeliefClosureTest` [5] and `SequentialPairQuarantineTrendTest` [5], plus 3 default-mode/end-to-end checks) — all passing, verified against hand-computed expected values (not just "test passes"), e.g. the belief-fusion weight ratio and the quarantine trend's bad-fraction/improving-split arithmetic. Full suite (`tests/test_route_memory_agent.py`, 67 tests) and `tests/test_geometry_pipeline.py` (63 tests) re-run in full: only the 4 pre-existing, already-documented failures (unrelated dead-code paths — `_apply_monotonic_anchor_policy`, hint-text wording) remain, confirmed via `git stash` to predate this session.
+
+**A/B validation running now** (`belief_trend_hard11_20260705_{accumulated,oracle}`, launched fully detached via new `scripts/run_belief_trend_geometry_ab_hard11_20260705.sh`, which calls the existing, unmodified `run_oracle_anchor_hard_fresh_batch_20260629.sh` twice): both halves run with the *new* belief+trend mechanisms on (`--sequential_pair_closure_mode=belief --sequential_pair_quarantine_mode=trend`); the only difference is `--sequential_pair_anchor_geometry_source` (accumulated vs oracle), isolating whether anchor-geometry error still matters once the belief/trend redesign is in place. `--capture_anchor_match_snapshots` deliberately off for both halves (same unresolved corruption/crash risk as prior batches). Started 2026-07-05T15:35:15+01:00; logs under `NaVILA-Bench/batch_logs/belief_trend_hard11_20260705_accumulated/` then `..._oracle/`. Result pending as of this writing.
+
+**Pending / next steps:**
+1. Once the new A/B batch finishes: re-run the same raw-`relocalization_events` forensic methodology (accept rate, reject-reason histogram, raw identity-lock transition trace cross-checked against oracle ground truth, per-accept true-distance error) across both halves, and compare against the 2026-07-04 baseline/on/off three-way data already on hand.
+2. Specifically check whether belief mode's death-spiral fix eliminates the 5 regressed episodes' permanent `no_sequence_candidates` tails, whether trend-mode quarantine's skips now have independent supporting evidence in all cases (not just ep680-style), and whether oracle anchor geometry provides a further, separate improvement on top of the belief/trend redesign.
+3. The sparse reject-event log still cannot recover per-candidate raw ICP dx/dy for anchors that were quarantined without ever being accepted — if further false-positive/true-positive attribution is needed beyond what the trend redesign already fixes, this would need either added lightweight logging (the quarantine trend history itself, or per-attempt per-candidate dx/dy regardless of accept/reject) or a `--capture_anchor_match_snapshots` run on specific episodes, weighed against its known corruption/crash risk.
+
+
+---
+
+**Latest update (2026-07-04, continued 5) — the 11-episode `sequential_pair` validation batch's permanent-lock failures were fully forensically characterized (mixed overshoot/noisy-stall mechanisms, one prior-day characterization corrected), corridor degeneracy was directly ruled out as their cause, default odometry was confirmed locally accurate (ICP is the culprit in most cases), a real ground-truth-vs-accumulated anchor-position bug was found, and two user-designed fixes (a cross-anchor closure check and a bad-anchor quarantine) were implemented, unit-tested, and are now running as a paired A/B batch against the same hard-11 set.**
+
+**Permanent lock is a mix of two distinct mechanisms, not one — 6 of 8 traced cases are "overshoot to a wrong anchor," only 2 are "noisy stall at the correct anchor," and one prior day's characterization of this was wrong.** Per-episode raw-record tracing (`relocalization_events`/`covisibility_records`, true position from ground-truth `metadata.world_pose`) across the 7 permanently-locked episodes plus ep994 as a recovered contrast case:
+
+| Episode | Mechanism | True distance to locked anchor during stall |
+|---|---|---|
+| 4, 5, 187, 368, 680 | **(a) overshoot** — shadow locks onto an anchor pair ahead of the robot's true position | stays large (3–6 m), never shrinks |
+| 678, 1040 | **(b) noisy stall** — locked anchor pair is genuinely correct, but the ICP reading never cleanly clears the acceptance gate | shrinks correctly (1040: 1.95 m → 0.05 m) yet the observation is still never accepted |
+| 994 | (a)-type blip, recovers | large & flat briefly, but target advances before it can freeze |
+
+**Correction to the 2026-07-03 record: ep680 was documented then as "distance estimate smoothly converging (0.49→0.27 m), only turning noisy once stuck" — checked against true ground-truth position this session, that convergence was smooth toward a *wrong* value the entire time (true distance stayed 3.3–4.7 m throughout).** The original characterization trusted the estimate's own smoothness as a correctness proxy without checking it against ground truth. Under this project's own "confirmed via raw records" standard, ep680 is overshoot-type, not the noisy-stall archetype it had been cited as.
+
+**Root mechanism of overshoot, caught directly in raw accept/reject history (ep4, ep5, ep368, ep678):** the corrupting accept in all four cases was a **single-shot accept, not a two-observation deferred-then-confirmed sequence** — despite `_sequence_match_observation`'s existing `sequence_large_forward_jump_m=2.0m` gate being designed to require exactly that kind of second corroborating observation before trusting a large forward jump. Three of the four corrupting jumps (−1.30 m, −1.505 m, −1.556 m) were simply under the 2.0 m threshold and never triggered the safeguard at all; the fourth (ep678, −3.19 m) *did* exceed 2.0 m but the `large_forward_jump_pending_confirmation` flag that fired at that moment was misattached to an unrelated, much-smaller candidate (a different anchor, motion_error −0.046 m) rather than the actual large jump — so the real jump skipped the safeguard entirely. This is a distinct, second bug in the deferral-gate bookkeeping, separate from the overshoot mechanism itself.
+
+**A local (not full-episode) odometry accuracy check found the default dead-reckoning (no `--measured_odometry`, this batch's actual config) is NOT the culprit in most overshoot cases.** `expected_s_m` (the odometry-only prediction, rebased at every accepted correction) vs. true arc-length position at the exact moment of each corrupting accept: ep4 odometry error only −0.89 m (ICP error −2.20 m), ep5 −0.36 m (ICP −1.86 m), ep368 −0.09 m/near-perfect (ICP −1.65 m), ep678 −0.50 m (ICP −4.4 to −4.9 m) — ICP is the clear culprit in all four. Only ep680 shows odometry itself drifting comparably to ICP (both reach −4.4 m by k=90), making it a mixed case. In clean (non-corrupted) stretches, this default odometry's local per-correction-interval accuracy is 2–81 cm across episodes — perfectly adequate at the short reset-window timescale the gate actually operates at, even though the *same* method's full-episode, never-reset drift is the previously-documented 4.43 m / 54.1° (a timescale, not an accuracy, distinction).
+
+**Corridor degeneracy was directly checked and ruled out as the cause of the (non-overshoot) "anchor-7-style" registration-struggle anchors.** `corridor_degeneracy_ratio` in `covisibility_records` turned out to be a *static, per-anchor* property (computed once from the anchor's own stored map at `relocalization.py:1035` — confirmed identical to full float precision across every attempt against the same anchor), not a live per-attempt signal, so it cannot by construction distinguish "this specific match is corridor-degenerate." Comparing its distribution directly: struggle anchors (n=472, median 0.866) vs. healthy anchors (n=823, median 0.784) — no separation at all, ranges almost fully overlapping. The struggle anchors are real (confirmed via live `overlap_ratio` 0.4–0.7 and elevated `heading_consistency_error_rad`), but their mechanism remains unexplained; "corridor degeneracy" specifically does not explain them in this batch.
+
+**Found and confirmed a real ground-truth-vs-accumulated bug in anchor position data, prompted by a direct user question about whether inter-anchor geometry itself could be a hidden error source.** `RouteAnchor.distance_from_start_m`/`pose_from_start` are NOT ground truth — they're set directly from `RouteMemoryAgent`'s own outbound accumulator (`_append_anchor`, `distance_from_start_m=float(self._outbound_distance_m)`), which for this batch (no `--measured_odometry`/`--leg_odometry`) is the same naive commanded-velocity integration known to drift. `metadata["world_pose"]` (`isaac_oracle_for_relocalization_eval`), captured separately at anchor-creation time from the live simulator pose, is genuine ground truth. Measured drift between the two, per episode: ep4 +0.11 m at anchor 1 → +1.58 m at anchor 10 (~18% of route length); ep680 +0.16 m → +2.48 m (~17%); ep187 oscillates, net +0.46 m by anchor 16 (~3%) — a real, anchor-index-growing bias, exactly the outbound-accumulation signature expected. All of this session's "true distance to anchor" forensic work used `metadata.world_pose` directly and is unaffected; the one exception is the odometry-attribution numbers reported above for ep4 and ep680 specifically (where the bias reaches 1.5–2.5 m), which used a hybrid `oracle_route_current_s_m` quantity that interpolates through the contaminated `distance_from_start_m` for its scalar value — those two episodes' odometry-error figures should be read as order-of-magnitude, not exact; ep187/368 (bias ≤0.5 m) are unaffected.
+
+**Two fixes, both user-designed this session and verified against real data before implementation, are now live behind off-by-default flags:**
+
+1. **`--sequential_pair_closure_check`** (`RouteMemoryAgent._sequential_pair_closure_precheck`, `relocalization.py` unchanged): `sequential_pair_anchor_relocalization` already returns an independent ICP fit against *both* the current and next anchor every attempt; their two implied robot-to-anchor vectors, reprojected into a common frame, should reproduce the true current-to-next anchor displacement. Verified directly against this session's 4 known overshoot triggers before being wired in: catches 3 of 4 (ep4, ep5, ep678 — mismatches of 2.01 m, 2.66 m, 0.89 m against segment lengths of 0.57–0.84 m, unmissable), reconstructing the weaker side's `(dx, dy, dtheta)` from the stronger side's reading plus the known anchor-to-anchor geometry rather than discarding it outright — this is what lets a persistently noisy anchor's *distance* estimate be corrected without it having to independently pass its own gate, directly addressing noisy-stall too, not just overshoot. Confirmed to *not* catch ep368 (correlated dual-anchor error — both anchors' own fits were independently poor, `heading_consistency_error_rad`≈1.5 rad on both sides, preserving closure while both are wrong); when neither side's quality (confidence×√inliers) clearly dominates the other, this returns a dedicated `sequential_pair_closure_mismatch` rejection rather than guessing, mirroring the project's existing ambiguous-candidate policy for `fused`/`scan_context`.
+2. **`--sequential_pair_quarantine`** (`RouteMemoryAgent._record_next_anchor_stability`, `sequential_target_anchor_pair`): tracks a rolling window of ICP readings for any anchor still in the "next" (unpromoted) role and permanently flags it if its implied distance/heading bounces beyond tolerance across consecutive attempts; a flagged anchor is skipped by `sequential_target_anchor_pair()` forever after (hopping to the nearest un-flagged anchor, however many bad ones in a row) and can therefore never be promoted to "current." Verified against real data before implementation: correctly flags anchors that are unstable *before* promotion (ep368 anchor 2, ep187 anchor 1 — both visibly noisy for many attempts pre-promotion) but confirmed **blind** to an anchor whose fit only degrades at the instant of promotion itself (ep368 anchor 3 — stable and good for 20 straight attempts as "next," then a sudden step-change failure exactly at promotion) — an explicitly accepted, out-of-scope gap per the user, not something this mechanism claims to solve.
+
+**A third, orthogonal ablation switch — `--sequential_pair_anchor_geometry_source={accumulated,oracle}`** — controls which anchor-to-anchor reference geometry both fixes above (and the pre-existing candidate-fusion/temporal-smoothing code, unchanged in behavior by default) use: `accumulated` (default, preserves all prior behavior) chains the non-privileged `edge_from_previous` deltas; `oracle` substitutes ground-truth `world_pose` differences, to isolate whether anchor-geometry error itself (as opposed to ICP/odometry error) explains a given failure. Not yet run — this session's live validation batch (below) uses the default `accumulated` source only.
+
+21 new unit tests added (`tests/test_route_memory_agent.py`: `SequentialPairGeometrySourceTest`, `SequentialPairClosureCheckTest`, `SequentialPairQuarantineTest`) covering the geometry-source dispatch, all three closure-check outcomes (pass-through, reconstruct, reject), and both single- and multi-anchor quarantine skip-ahead — all passing; the pre-existing 4 failures in this test file (confirmed via `git stash`-isolated reruns to predate this session's changes entirely) are unaffected. All new mechanisms are off by default, so no prior validated batch's behavior changes unless explicitly enabled.
+
+**A/B validation running now** (`sequential_pair_fix_hard11_20260704_{on,off}`, launched fully detached — survives session/connection end — via new `scripts/run_sequential_pair_fix_ab_hard11_20260704.sh`, which calls the existing, unmodified `run_oracle_anchor_hard_fresh_batch_20260629.sh` twice back-to-back): the `_on` half runs the same hard-11 set with both new fixes enabled; immediately after, the `_off` half reruns the identical 11 episodes with them disabled, as the baseline. `--capture_anchor_match_snapshots` is deliberately **off** for both halves — a first attempt at this A/B run turned it on for both (to keep raw point clouds around for post-hoc reanalysis without a second rerun), but the user correctly flagged that this is the same still-unresolved data surface tied to the 2026-07-03 ep187 JSON corruption and (suspected, not confirmed) ep994 crash, so that run was killed mid-episode-4 and restarted without it. Started 2026-07-04T23:12:56+01:00; logs under `NaVILA-Bench/batch_logs/sequential_pair_fix_hard11_20260704_on/` then `..._off/`. Result pending as of this writing.
+
+**Pending / next steps:**
+1. Once the A/B batch finishes: compare permanent-lock frequency/mechanism and per-anchor true-distance/bearing error between the `_on` and `_off` halves directly.
+2. The `_off` half is itself a second, independent data point on this project's own permanent-lock/noisy-stall/overshoot characterization (same episodes, same odometry, no snapshot capture) — worth a sanity cross-check against this update's findings before trusting the `_on` vs `_off` delta.
+3. The deferral-gate misattachment bug found in ep678 (a `large_forward_jump_pending_confirmation` flag attached to the wrong candidate) is a distinct, not-yet-fixed issue from the two mechanisms above — worth its own look if it recurs.
+4. The `oracle` geometry-source ablation has not been run yet; worth doing once the `accumulated`-source A/B above has a result to compare against.
+5. `overlap_ratio` exceeding 1.0 (up to 1.28, ep367/368/678/1040 in the original hard11 batch) remains unresolved; confirmed this session that `corridor_degeneracy_ratio` does not share the bug (all 5,573 sampled values stayed within its expected [0,1] range).
+
+---
+
+**Latest update (2026-07-04, continued 2) — a new deterministic "sequential-pair" relocalization backend was designed and implemented (matches only the current+next anchor, never searches candidates); it beats every prior pure-LiDAR backend by an order of magnitude on exact-anchor accuracy, but forensic analysis on real data found two distinct failure modes — one a genuine ICP-translation aliasing bug, the other a severe "permanent lock, no recovery" structural gap — plus a real, still-unexplained data-corruption bug tied to the anchor-match-snapshot feature. An 11-episode validation batch is running now, launched fully detached so it survives this session ending.**
+
+**Design, motivated by a direct user proposal: since return always starts standing exactly on the last outbound anchor (`finalize_outbound()` guarantees this), anchor *identity* is known by construction the whole way back — there is never a "which anchor is this" question, only "how far/what bearing to the next one."** New `relocalization.py::sequential_pair_anchor_relocalization` matches only the caller-specified current and next `RouteAnchor` (same 24-seed ICP + P1 heading gate + P2 corridor-skip + acceptance thresholds as `local_map_anchor_relocalization`, just restricted to these two instead of searching every candidate) plus new `RouteMemoryAgent.sequential_target_anchor_pair()` (reads `_target_anchor_index`, defaulting to the last two anchors before any match is accepted) and `--route_relocalization_backend=sequential_pair`. No new state machine needed for monotonic advancement: since the candidate set offered each attempt is always exactly `{current, next}`, `_sequence_match_observation`'s existing scoring can only ever land `_target_anchor_index` on one of those two, so the pair slides forward as a side effect. (Found, and deliberately left alone: `_apply_monotonic_anchor_policy`/`_project_to_next_anchor_if_passed` in `route_memory_agent.py` already implement a similar-in-spirit "track and advance past anchor" mechanism — confirmed via grep to have zero call sites and zero test coverage anywhere in the codebase, i.e. dead code from an earlier design iteration.)
+
+**Also extended the 2026-07-03 diagnostic-frame plotting tool (`plot_route_memory_diagnostic_frames.py`)**: the occupancy overview now uses `route_maps/output_*_routes.png` (reference path, outbound/return trajectories, start/goal/final markers already drawn by `render_route_overlay`) instead of the bare occupancy image, with duplicate anchor markers removed and a translucent legend backing added (this project's occupancy images are often only ~250×300 px, so real scene content routinely lands right under the legend text). Added a real Scan Context match visualization — the tool previously only ever ran a from-scratch ICP sweep and never actually exercised `scan_context.py` despite the name — via new `scan_context.py::largest_connected_agreement_mask` (exposes the connected-region *mask*, not just its size, refactored from the existing flood-fill core with no behavior change for production callers).
+
+**Solo validation (`diagnostic_frames_test_ep187_20260704`, ep187, oracle+`sequential_pair`, interval=5): the identity lock is genuinely monotonic and complete** — visited all 17 anchors in strict descending order, zero reversals, confirmed directly from `relocalization_events`. Correct-anchor accuracy (shadow's own picked anchor vs. oracle's, per-step): **56.9% exact match, 83.4% within ±1 anchor** — beats every pure-LiDAR backend this project has built (Scan Context alone: 5.4–6.4%; `local_map_icp`+P1+P2: 7.8–9.6%) by roughly an order of magnitude on the strict exact-match metric.
+
+**Per-anchor forensic analysis (comparing the shadow's own ICP-estimated distance/bearing to whichever anchor it locked onto — never the oracle's target — against the true distance/bearing to that same anchor) found the ~43% error is concentrated in exactly 2 of 17 anchors, not spread evenly:**
+- **Anchor 15 — a stable, repeatable ICP *translation* aliasing bug.** All 15 real matches: ~36° bearing error and ~50%-relative distance error, in a narrow, consistent range (not noise) — yet overlap 85–96%, inlier counts 430–491/512, and the P1 heading-consistency gate passes cleanly every time (`rejected_flip_candidates=0`, heading error 0.2–4.6°). Root cause: P1 only validates the ICP result's *rotational* (dtheta) component against dead-reckoning yaw; nothing validates the *translational* (dx, dy — which is what bearing/distance are computed from) component. The point cloud apparently has enough structural self-similarity that an alternate (wrong) pose produces an equally excellent overlap score, and ICP converges to it confidently every single time.
+- **Anchor 7 — the classic corridor/degeneracy signature.** Wide-swinging error (bearing 41–130° across just 3 real matches), lower overlap (58–61%, vs. anchor 15's 85–96%), several P1-rejected seeds before accepting a marginal one. Confirmed via independent, non-identical per-attempt overlap values for the current/next anchor pair (e.g. 0.574 vs. 0.584) that this is a genuine registration failure against anchor 7's own real data, not a mislabeling bug.
+- Also corrected an earlier same-session misdiagnosis: an apparent "260-step-long freeze reporting anchor 7" was not a gap in matching — `relocalization_events` shows clean, monotonic, zero-gap acceptance every single attempt in that window. The appearance of a freeze came from `route_memory_shadow`'s separate `_arc_length_progress` lookahead-projection layer, which reports its own continuously-computed "nearest anchor by remaining dead-reckoning distance," independent of (and lagging/smoothing over) the real identity lock.
+
+**3-episode hard batch (`sequential_pair_test_hard3_20260704`, ep187/680/994) surfaced a second, more severe structural failure mode, plus two data-integrity problems in the same batch:**
+- **ep680 — permanent lock, confirmed via raw records, not hypothetical.** The identity lock reached anchor 9 cleanly (distance estimate smoothly 0.49→0.27 m) then got stuck: 291 of 391 total attempts (74% of the whole return trip) rejected with `no_sequence_candidates`, and the *very last* attempt of the entire episode was still matching the identical (anchor 9, anchor 8) pair as the first stuck one. Root cause: immediately after reaching anchor 9, ICP registration against that same pair became persistently noisy attempt-to-attempt (estimated distance bouncing 0.3 m ↔ 2.2 m every ~5 steps, a likely real local ambiguity) — and because this design's candidate set is always exactly `{current, next}` by construction (the whole point of the design, per above), once nothing clears the continuity gate there is no other anchor to fall back to. The lock never recovers for the rest of the episode even as the robot keeps physically moving toward the goal. This is the "no recovery path" structural risk from a monotonic-only design, now observed directly rather than just reasoned about.
+- **ep187 (this batch's run) — corrupted measurement JSON.** 3 occurrences of a spliced/missing-structure defect, all inside `match_snapshot.current_points_body` specifically. Ruled out: a Python exception (clean `exit_code=0`, no traceback in the log), disk space (23% used), and a generic large-file/`json.dump` bug (reproduced the identical data volume and structure — 701 records, 500-point arrays — in an isolated script outside Isaac Sim with zero corruption). The defect is specific to the live Isaac Sim runtime and intermittent (ep680, same batch, same ~125 MB scale, was clean). Directly traced to `--capture_anchor_match_snapshots`'s `build_local_map_match_snapshot` output (a 2026-07-03 feature, not the diagnostic-frame plotting work above) — exact mechanism (likely an environment/threading-level issue, not a logic bug in shared, long-standing code) still unresolved.
+- **ep994 — crashed outright.** `TypeError: 'NoneType' object is not callable` inside numpy's own `ufunc.reduce`, raised from `icp_rigid_transform_2d`'s `_nearest_neighbor_2d` (pre-existing, shared code used by every LiDAR backend, not new). GPU confirmed stuck at 0% / P8 afterward — the same "Kit doesn't exit cleanly after an uncaught exception" gap flagged in the entry above. Root cause of the numpy-internals failure itself not yet found; likely the same class of environment-level instability as the JSON corruption above, given both occurred in the same higher-frequency (`interval=5`, 5× default) + large-capture-volume (~125–132 MB) run, while the third episode (ep680) at identical settings was clean.
+
+**11-episode validation batch running now (`sequential_pair_test_hard11_20260704`), launched fully detached so it survives this session/connection ending** (`setsid` + `nohup` + `disown`, no controlling terminal — confirmed via `ps`). Full hard-11 set (4, 5, 134, 187, 367, 368, 408, 678, 680, 994, 1040), same oracle + `sequential_pair` + `interval=5` + `stop_gate` + `hint_arbiter` + `topdown_route_map` config as above, `--capture_anchor_match_snapshots` deliberately **off** this time (removes the specific data surface the corruption/crash above were tied to, without yet knowing whether it removes the underlying instability). Started 2026-07-04T17:45:57+01:00; logs in `NaVILA-Bench/batch_logs/sequential_pair_test_hard11_20260704/`. Result pending as of this writing.
+
+**Pending / next steps:**
+1. Once the 11-episode batch finishes: re-run the same per-anchor forensic methodology (shadow's own ICP estimate vs. true position for whichever anchor it locked onto, never cross-referenced against oracle's own target) across all 11 to see how often the anchor-15-style translation-aliasing and anchor-7-style corridor-ambiguity patterns recur, and — the most important open question — how often the ep680-style permanent lock happens.
+2. **The permanent-lock failure mode is the most urgent open design question**: whether to add any fallback (e.g. widen the candidate window by one more anchor after N consecutive rejections) without reintroducing the identity-search complexity this design was specifically built to avoid. Not decided yet.
+3. Corridor-detector improvement (`corridor_degeneracy_ratio` computed on the whole local-map cloud dilutes/misses local degeneracy — confirmed this session via a radius-restricted re-test that dropped one anchor's ratio from 0.915 to 0.093) and a vision-led corridor fallback are both still deliberately deferred per the user's explicit call, pending the `sequential_pair` backend's own accuracy ceiling being established first across more episodes.
+4. The JSON-corruption/ep994-crash root cause is still open. If it recurs in the 11-episode batch, next step is a live-instrumented re-run (checksums/memory diagnostics bracketing the final `json.dump` and the ICP calls) rather than further static analysis.
+
+---
+
+
+**Latest update (2026-07-04, continued) — a frame-comparison bug in the drift-analysis script itself reversed an earlier "no improvement" conclusion about `--measured_odometry`; a genuinely non-privileged leg-odometry implementation was started, hit a dead sensor, and was redesigned around a different one.**
+
+**The drift numbers reported earlier the same day were wrong — not because of a code bug in `--measured_odometry`, but because the analysis script comparing them was broken.** `route_memory`'s (oracle) `current_pose_from_start` yaw is the robot's **absolute world-frame** yaw (`direct_oracle_route_anchor_progress` → `_body_frame_vector_to_world_point`, which passes `yaw` straight through with no zero-referencing); `route_memory_shadow`'s own `current_pose_from_start` yaw is **zero-referenced to outbound start** (`_action_integrated_progress`, built from `_outbound_pose_from_start` which starts at `[0,0,0]` by construction). Diffing these two directly — which every drift comparison earlier today did — bakes in a constant offset equal to that episode's initial world yaw (89.29° for ep187, confirmed by decoding anchor 0's stored quaternion), on top of whatever the return-start oracle-yaw-snap contributes. This is why the "89.29° residual we couldn't explain" after the `correct_return_start_yaw` fix was actually the fix working *exactly* as intended — that residual **is** the frame artifact, not leftover drift.
+
+**Redone with both sides properly zero-referenced to return-start** (oracle side: `relative_delta(pose_at_return_start, pose_now)`; shadow side: its own already-relative `return_pose_from_return_start` field, no recomputation needed) — the real picture, ep187, return phase only:
+
+| Version | median pos err | median yaw err |
+|---|---:|---:|
+| (a) baseline (default `vlm_vel_commands` accumulation) | 4.43 m | 54.1° |
+| (b) `--measured_odometry` v1 (root_vel_w instantaneous sample) | 0.01 m | 2.51° |
+| (c) `--measured_odometry` v2 (`pose_delta_body` position-difference fix) | 0.01 m | 0.08° |
+| (d) `--measured_odometry` v3 (+ `correct_return_start_yaw` reference-sync fix) | 0.09 m | 0.83° |
+
+**`--measured_odometry` was a large, real win from the start** (~20x better than the baseline even in its first, "worse" root_vel_w-sampling form) — the earlier same-day conclusion that it showed no improvement, and that v2's `pose_delta_body` fix made no difference, should be discarded; both were artifacts of the broken comparison, not the odometry code. (d) vs (c) shows no further improvement on *this* metric because zero-referencing to return-start cancels the exact discontinuity `correct_return_start_yaw` targets — that fix still matters for anything that needs the shadow's *absolute* belief to stay synced with the robot's true state (e.g. relocalization anchor selection), just not visible in this particular return-start-relative metric.
+
+**New direction: `--leg_odometry`, a genuinely non-privileged estimator (not reading Isaac's exact root_vel_w/root_state_w at all) built from Go2's own sensors** — motivated by a direct question about whether the anchor-to-anchor `edge_from_previous`/`_compose_edges_between` machinery (confirmed non-oracle since 2026-07-02, unaffected by any of the above) could be paired with a linear-velocity estimate actually derived from onboard sensing, the way a real quadruped's state estimator (Cheetah-3, ANYmal, etc.) works: stance-leg Jacobian (`root_physx_view.get_jacobians()`, PhysX's own geometric Jacobian from the loaded URDF — no hand-derived Go2 kinematics needed) applied to noisy joint velocities, assuming a planted foot is stationary in the world ("zero-slip stance"), fused with noisy IMU gyro for yaw rate. `base_lin_vel` is deliberately never observed by the locomotion policy at all (commented out in `go2_matterport_vision_cfg.py`) — matching real hardware, which has no direct body-linear-velocity sensor — so this is the only way to get a non-privileged linear-velocity signal at all.
+
+**First version (contact-force-based stance detection) validated *worse* than the naive baseline — median position error 6.41 m vs. baseline's 4.43 m — traced to the contact sensor reporting exactly 0 N, for every body, for the entire episode, not just the feet.** A live diagnostic (`ROUTE_MEMORY_LEG_ODOMETRY_DEBUG=1`) dumping every tracked body's `net_forces_w` showed all-zero across `base` (used elsewhere for fall-detection termination), every hip/thigh/calf/foot, for the full trajectory — ruling out a feet-specific index or threshold problem (index mapping was independently verified correct against `robot.body_names`/`contact_sensor.body_names`/`robot.joint_names`). Root cause, found by reading `matterport_importer.py`: the Matterport terrain gets `define_collision_properties` (collision *response* — why the robot doesn't fall through the floor) at load time but never `activate_contact_sensors`/`PhysxContactReportAPI` (collision *reporting*) — and that IsaacLab helper only patches prims that already carry `UsdPhysics.RigidBodyAPI`, which static terrain collision geometry normally doesn't have, so granting it isn't a one-line terrain-side fix either. Contact force is a dead signal in this environment end to end, not a tuning problem — two follow-up attempts (raising, then lowering, the stance-time threshold) were symptoms of chasing a signal that was never there.
+
+**Redesigned around `height_scanner` instead — implemented, not yet validated.** Each foot's world position comes from `robot.data.body_pos_w` (deterministic forward kinematics from the articulation's actual joint angles — a fixed geometric function, not a privileged *dynamics* shortcut the way `root_vel_w` is, so this is the same thing a real onboard computer would get from its own known leg geometry plus measured joint angles). Local ground height at that (x, y) comes from `height_scanner`'s `ray_hits_w` (a downward-facing rangefinder grid already in this scene, 10 cm resolution / 1.6×1.0 m footprint, already used elsewhere for the locomotion policy's own height-map observation — exactly the sensor class a real legged robot would use here) via nearest-neighbor match; a foot within `ground_clearance_threshold_m` (5 cm, provisional) of that estimated ground height counts as stance. Validation blocked mid-session by GPU contention with an unrelated parallel `sequential_pair`-backend test run in a different session — pending.
+
+**The hang was never an Isaac Sim/OS resource issue — it was a silent crash, hidden by output buffering.** Two independent, compounding problems, found by re-running the exact same blocked config with live output streaming instead of guessing from GPU state:
+
+1. **`round_trip_eval.py`'s `main()` had an unconditional `UnboundLocalError`.** The same-day diagnostic-frame-visualization work (`--capture_route_memory_diagnostic_frames`, see 2026-07-03 continued 3 below) added `diagnostic_frames_dir = os.path.join(result_dir, "route_memory_diagnostic_frames")` at line 1515 — 21 lines *before* `result_dir` is actually assigned (line 1536). This runs on every call to `main()` regardless of any CLI flag, so from the moment this code was merged, **every single run crashed within the first ~6-10 seconds**, no exceptions. Fixed by moving the assignment to right after `result_dir` is computed.
+2. **The batch runner scripts invoke `conda run` without `--no-capture-output`.** By default `conda run` fully captures the wrapped subprocess's stdout/stderr and does not stream it live — it's only released if/when the subprocess exits normally. A killed process's captured-but-unreleased output is lost entirely, so `eval_log` reads as 0 bytes whether the underlying process is genuinely stuck *or* running completely normally and simply killed early. Confirmed directly: 2026-07-03's `interval1_timing_test_ep994` run (documented then as "not hung, just far more expensive," with live 71% GPU utilization observed) shows the identical 0-byte `eval_log` as the confirmed-hung diagnostic-frame runs — proving log emptiness was never a valid live signal for this project's runs, full stop. Fixed by adding `--no-capture-output` to the `conda run` invocation in `scripts/run_oracle_anchor_hard_fresh_batch_20260629.sh`; `eval_log` now fills with real content within seconds of launch, matching historical successful-run timelines, so future hangs/crashes are diagnosable in seconds instead of via GPU-state polling and speculative kills.
+
+**2026-07-03's "confirmed hang" conclusion (GPU stuck at P8/idle/~17W, unresponsive to SIGTERM, needed manual SIGKILL) is superseded — it was this same bug 1, not accumulated Isaac Sim launch/resource state.** It's fully consistent: bug 1 is unconditional, so the "clean control" re-run of "the exact baseline config, no new flags" documented that day *also* crashed identically, which was (incorrectly, at the time) read as proof the issue was environment-side rather than code-side. One genuine open question remains, now isolated rather than conflated with a resource-state theory: Isaac Sim/Kit's own `SimulationApp` teardown appears to hang (GPU idle, unresponsive) after an uncaught Python exception in `main()`, instead of exiting promptly — a real but narrower robustness gap, not yet investigated further since avoiding the crash in the first place sidesteps it.
+
+**`--measured_odometry` validated for the first time** (implemented 2026-07-03, never run — this bug is exactly what blocked it). Smoke-tested on ep187 with both fixes applied, same oracle+`fused`+stop_gate+hint_arbiter config as the 2026-07-03 `fused_sensorfix_connectedregion` baseline: round-trip succeeded, `distance_to_start=1.37m`, 5812 trajectory records, ~10 min, GPU at a normal 81% utilization / P2 throughout (vs. the confirmed-hung runs' sustained 0%/P8/~17W). Full 3-episode batch (`measured_odometry_fused_187_680_994_20260704`, same config on ep187/680/994) launched to compare against the no-`measured_odometry` 2026-07-03 baseline; result pending as of this writing.
+
+Re-validating the `route_memory_lidar` dedicated-sensor line (the other half of 2026-07-03's work) was skipped — it was already validated same-day (`fused_sensorfix_connectedregion_187_680_994_20260703`, 3/3 round-trip) before the diagnostic-frame bug was introduced later that session.
+
+---
+
+**Latest update (2026-07-03, continued 3) — a concrete ICP-matching weakness found via the new plots, a from-scratch odometry-consumer audit, a literature-grounded verdict on "drop odometry for map-overlap-only positioning," two new code paths (measured-odometry, per-fraction diagnostic frames) implemented but not yet validated, and an unrelated environment issue that stopped validation mid-session.**
+
+**ICP pose refinement has no spatial-coherence check, unlike anchor selection.** Looking closely at one of the new match plots (`anchor 16`, ep187): the current and anchor point clouds visually look offset by roughly a rotation, but the accepted match only explained **238 of 512** anchor points (46% overlap) — more points were left unexplained (274) than were matched. Root cause: `icp_rigid_transform_2d`'s inlier/outlier split is a pure post-hoc nearest-neighbor-distance check after a locally-converged fit — it has no requirement that inliers be spatially spread out (the same "connected region" concept `scan_context.py::largest_connected_agreement_region` already applies to anchor *selection*), and the acceptance threshold (`overlap_ratio >= 0.12`) is low enough that a fit explaining well under half the point cloud still gets accepted as `pose_candidate`. Not yet fixed — a concrete, scoped next step: extend a connected-region-style spatial-coherence check to the ICP refinement stage itself, not just Scan Context's anchor-selection stage.
+
+**New diagnostic visualization framework designed and implemented (validation blocked by an environment issue, not code — see below).** The existing match plots only showed whichever one anchor Scan Context happened to select, and gave no sense of where anything was in the actual room. Per the user's explicit design (confirmed via 2 direct questions): `--capture_route_memory_diagnostic_frames` samples ~4 times per episode at fixed *fractions of route-journey progress remaining* (75%/50%/25%/5%, via new `route_memory_agent.diagnostic_frame_thresholds_to_fire` — a pure, unit-tested function, 5 new tests) rather than by step count, so the number of frames stays constant regardless of episode length or `relocalization_interval_updates`. At each sample, `round_trip_eval.py::capture_route_memory_diagnostic_frame` dumps the robot's world pose, current local-map points, and **every** recorded anchor's world pose + local-map points (not just whichever one the live backend picked) to a small JSON file — no ICP/rendering happens live. A new offline script, `code/plot_route_memory_diagnostic_frames.py`, renders all 4 deliverables the user asked for: (1) an occupancy-map overview with the robot's position+heading, every anchor's position, and both the current and every anchor's local-map point cloud projected into world coordinates; (2) a clean scatter of the current local map alone; (3) a clean scatter of each anchor's own local map alone (cached once per anchor); (4) a current-vs-*every*-anchor ICP match plot (fresh 24-seed ICP computed per anchor, reusing `plot_anchor_match_diagnostics.py`'s rendering code). `RouteMemoryAgent.total_route_length_m` is a new public property backing the fraction calculation.
+
+**Odometry-consumer audit, done from scratch by reading the code (not from memory of earlier findings):** six real consumers of the dead-reckoning data, only two of which are pure accept/reject gates (`_sequence_match_observation`'s 0.4 m/2.0 m asymmetric motion-error gate, and the `dead_reckoning_yaw_rad` heading-consistency gate); the rest (`_arc_length_progress`'s dx/dy/bearing computation, `_propagate_latest_relocalization`'s every-step dead-reckoning update — identified as the literal drift-accumulation mechanism itself, not just something that reads its output — and cross-anchor reprojection) are directly part of producing the hint's actual distance/bearing numbers, not just checking them. `_arc_length_progress` also already throttles `relocalization_confidence` by `exp(-time_since_last_correction / 5.0)` — an existing, previously-undocumented odometry-distrust mechanism.
+
+**User's proposal to derive the hint's distance/bearing purely from current-vs-anchor local-map overlap (no odometry at all) was checked against the literature (a dedicated research pass, cited).** Verdict: this is architecturally the same technique as multi-robot SLAM **map merging** (a named, established subfield — Sensors 2020 review), not a materially different/better approach than the ICP this project already runs; overlap-based alignment's known failure mode (ambiguous/repetitive geometry) is exactly the corridor-degeneracy problem already found here. Pure scan-matching-only localization (no motion model at all) is a real, validated technique (Biber & Straßer's NDT, IROS 2003) but essentially no deployed system drops the motion-model/odometry fusion layer entirely — the standard architecture (odometry as predict-prior, scan-matching as observation, e.g. AMCL) is what this project's `ArcLengthParticleFilter` already implements. The literature-grounded, concrete recommendation: don't remove odometry — shrink `relocalization_interval_updates` toward 1 instead, since this project's point-cloud sizes (currently ~250-2800 points/scan) are well within the real-time budget the NDT paper itself validated, so the "blind propagation" window between corrections can shrink toward zero without an architecture change.
+
+**Two follow-up implementations, neither validated yet:**
+- `--measured_odometry` (`round_trip_eval.py::get_measured_action_delta`): integrates route-memory's dead-reckoning from the robot's own instantaneous body velocity (`root_vel_w`, analogous to what a real robot's onboard IMU + leg-odometry state estimator would report — still an integrated, still-drifting quantity, *not* privileged world position) instead of assuming the commanded `vlm_vel_commands` were achieved exactly every step. Off by default; not yet run.
+- `relocalization_interval_updates=1` (all the way from the default 25): tested once on ep994, alone. After 35 minutes of active GPU compute (71% utilization, 113% CPU — not hung, just far more expensive than anticipated) with zero log output, killed without a result. Interval=1 specifically is likely impractical; a smaller step down (5-10) was not yet tried.
+
+**Session-ending environment issue, confirmed unrelated to any code change today:** validating the new diagnostic-frame framework hit a reproducible Isaac Sim hang (0 lines of log output after 4-16 minutes, vs. the normal ~1-3 minute startup). Isolated with a clean control: re-ran the *exact* baseline config (no new flags at all, identical to earlier-successful-today runs) and it hung identically — GPU showed memory allocated but 0% utilization and P8 (idle) power state, meaning the process was blocked on something outside GPU compute, not computing slowly. Likely resource/cache state accumulated from ~20+ consecutive Isaac Sim launches earlier in the same session. Not investigated further this session (paused per user's request); worth checking `~/.nvidia-omniverse/logs/` for a stuck point, or simply retrying after a pause, before resuming either of the two validations above.
+
+**Latest update (2026-07-03, continued 2) — the shared `lidar_sensor` was quietly also the locomotion policy's balance input; fixed with a second, dedicated sensor, which measurably improved Scan Context's real contribution to the `fused` backend.** Root-caused why the LiDAR point clouds in the new match-visualization plots looked so sparse: `vertical_fov_range=(0,90)` on `lidar_sensor` put 24 of 32 channels (75%) pointing almost straight down at the floor a few tens of cm below the sensor (a live per-channel diagnostic on ep4 showed 0 obstacle-band hits for channels 8-31). Tried narrowing it to `(0,15)` plus `horizontal_res` 4.0→1.0 -- round-trip success collapsed on all 3 test episodes (ep187/994 fell over within ~10 steps, ep680 within 3-4, confirmed via raw trajectory height data against a same-day baseline where all three held a normal ~0.3 m standing height). Root cause: `ObservationsCfg.PolicyCfg.height_map` also reads `lidar_sensor` as the trained locomotion policy's terrain observation -- narrowing its geometry fed the policy out-of-distribution height-map values. Fix: added a second, independent `route_memory_lidar` RayCasterCfg (identity offset rotation, symmetric `vertical_fov_range=(-15,15)`, `horizontal_res=1.0`, `max_distance=20`) used only for route-memory matching; `lidar_sensor` reverted untouched for the policy. `local_map_descriptor_from_env` now prefers `route_memory_lidar` when present.
+
+Re-ran the `fused`-backend 3-episode batch (`route_memory_lidar_validated_187_680_994_20260703`) with the new sensor: all 3 round trips still succeed (no falls), and genuine two-way LoFTR+Scan-Context agreement (`fused_agreement`) jumped roughly an order of magnitude -- 1.1%→18.2% (ep187), 1.3%→6.3% (ep680), 0%→19.5% (ep994) -- meaning Scan Context is now actually corroborating LoFTR instead of mostly staying silent or disagreeing. Anchor-selection accuracy improved on 2 of 3 episodes (ep187 56.8%→69.2%, ep680 45.4%→78.3%) but regressed on ep994 (65.9%→52.6%, not yet root-caused). New anchor-match snapshots for this batch are included under each episode's `measurements/anchor_match_plots/`.
+
+---
+
+**Latest update (2026-07-03) — anchor-match point-cloud visualization tool, a real diagnostics-accumulation bug fix, three fresh batches (3-episode fused re-test, two 11-episode hard-batch runs), and a from-scratch per-step forensic analysis of *how* LoFTR/fused anchor matching actually fails (not just aggregate correct/incorrect counts).**
+
+**New tool: `code/plot_anchor_match_diagnostics.py` + `build_local_map_match_snapshot()`.** Every scalar diagnostic this project has recorded so far (overlap ratio, median residual, bearing/vector error) says a match was bad but never shows what the two point clouds actually looked like. `relocalization.py::build_local_map_match_snapshot` now packages the anchor/current local-map point clouds, the ICP alignment, and the inlier mask into a small JSON-serializable snapshot; `local_map_anchor_relocalization`, `scan_context_anchor_relocalization`, and `fused_anchor_relocalization` all accept a new `capture_match_snapshots` flag (off by default — this measurably grows the measurement JSON) that attaches one to every accepted match. A new CLI flag, `--capture_anchor_match_snapshots`, threads this through `round_trip_eval.py`. `code/plot_anchor_match_diagnostics.py` is a standalone (no Isaac Sim dependency) script that loads a `measurements/*.json`, samples 10-20 matches evenly across the episode, and renders each as a scatter plot: current local map (blue), anchor points transformed into the current frame and split into matched/inlier (red) vs. unmatched (gray), robot origin (green triangle), titled with the backend, overlap, residual, confidence, and corridor-degeneracy ratio. 6 new unit tests cover the snapshot function and the opt-in/default-off behavior for both backends; all pass, no regressions in the existing 55-test suite.
+
+**Bug found and fixed: `fused_anchor_relocalization`'s nested diagnostics were silently discarded every call except the last.** `rgbd_diag`/`lidar_diag` were built as a fresh `{}` on every single call and then wholesale-overwrote `diagnostics["fused_rgbd_diagnostics"]`/`["fused_lidar_diagnostics"]` — across a whole episode's ~50-90 relocalization attempts, only the *final* call's per-anchor `covisibility_records` (and, once added, `match_snapshot`) ever survived into the saved measurement JSON. Confirmed empirically on the first capture-enabled 11-episode batch (`fused_capture_snapshots_hard11_20260703`): only 3 of 11 episodes (ep4/367/408) had even a single Scan Context match snapshot, and none had more than 1. Fixed by using `diagnostics.setdefault(...)` so the same nested dict is reused call-over-call instead of replaced. Re-ran the identical 11-episode batch afterward (`fused_capture_snapshots_fixed_hard11_20260703`): episodes with a return phase now carry 11-50 match snapshots each, covering the full trajectory. A new regression test (`TestFusedDiagnosticsAccumulateAcrossCalls`) calls `fused_anchor_relocalization` twice against a shared diagnostics dict and asserts both calls' snapshots survive — it fails against the pre-fix code.
+
+**Batch: 3-episode `fused` re-test after the sensor-selection fix (`fused_sensorfix_connectedregion_187_680_994_20260703`), oracle-primary round trips all succeeded (ep187 1.98 m, ep680 2.21 m, ep994 1.10 m), but the fusion's real LiDAR contribution is still negligible.** Per-episode fused-attempt breakdown: genuine two-way LoFTR+Scan-Context agreement occurred in 0-1.3% of attempts (1/94 ep187, 1/77 ep680, 0/74 ep994); LoFTR-alone (`fused_rgbd_only`) accounted for 32-60%; the rest (39-68%) were cases where Scan Context *did* produce a candidate (no longer silent, unlike before the sensor fix) but disagreed with LoFTR on anchor identity or pose and got vetoed. Conclusion: the sensor fix made the LiDAR side more *active*, not more *correct* — this matches the 2026-07-02 conclusion ("basically the same result as LoFTR alone") and is consistent with the still-unfixed `dead_reckoning_yaw_rad` orientation-drift bug (see below) continuing to cap Scan Context's own flip-disambiguation gate regardless of point-cloud quality.
+
+**Two 11-episode hard-batch runs on the same code, same config, back to back — round-trip success flipped on 5 of 11 episodes between runs, with no route-memory-relevant code change in between.** Run 1 (`fused_capture_snapshots_hard11_20260703`): 8/11 round-trip (ep5/134/187 failed). Run 2 (`fused_capture_snapshots_fixed_hard11_20260703`, only the diagnostics-accumulation fix above changed): 7/11 (ep5/408/678/1040 failed). ep134 and ep187 flipped from fail→success; ep408/678/1040 flipped from success→fail despite having *always* succeeded in every prior batch documented in this README. Since these episodes fail at the *outbound* stage (before route-memory relocalization ever runs), this is very unlikely to be a route-memory regression — most likely VLM sampling/inference stochasticity — but it has not been root-caused and is flagged here rather than assumed.
+
+**Per-step forensic analysis of the 3-episode fused re-test (ep187/680/994), using the full `route_memory`/`route_memory_shadow`/`route_memory_alignment` per-step trajectory fields plus `relocalization_events` and the (now-fixed) per-anchor covisibility records — going past aggregate correct/incorrect counts to *how* matches actually fail:**
+
+- **Anchor-selection errors are small (±1-2 anchors, ~1-2 m), never the "wildly distant anchor" framing might suggest.** `anchor_index_error` (shadow target − oracle target) distribution: ep187 56.8% exactly correct (range −1..+1), ep680 45.4% correct (−2..+1), ep994 65.9% correct (−1..+1). Skewed toward *overshoot* (shadow believes it's closer to the start than truth) over *lag* in 2 of 3 episodes.
+- **The overshoot skew is explained by an asymmetric acceptance gate, not by overshooting candidates being preferred.** `_sequence_match_observation` (`route_memory_agent.py`) rejects any candidate implying more than `sequence_forward_tolerance_m=0.4 m` of backward/lag motion *outright, no second chance*; a candidate implying more than `sequence_large_forward_jump_m=2.0 m` of sudden forward progress is only *deferred pending a second corroborating observation*, not rejected. Net effect: the filter is architected to distrust "you fell behind" far more than "you're on track or slightly ahead," so residual drift skews optimistic. Confirmed directly against `relocalization_events`: rejected attempts are dominated by `no_sequence_candidates` (candidates that *did* exist but failed this asymmetric gate), and all *accepted* `motion_error_m` values across all 3 episodes stayed within roughly ±0.8 m — individual corrections are always modest.
+- **Concrete mechanism for why a nearer anchor can lose to a farther one, found in `feature_depth_anchor_relocalization`'s own scoring formula:** `score = confidence * sqrt(inlier_count)` (relocalization.py:1816+). `confidence` saturates at 1.0 once residual is low and `inlier_count` clears ~30, but the `sqrt(inlier_count)` term does not — so among several adjacent anchors that all reach confidence=1.0 (common, since anchors are only ~1 m apart and share heavy visual overlap), whichever one's rear-view image happens to yield more raw RANSAC-consistent feature matches wins, regardless of whether that reflects better localization. Directly observed in ep187's final LoFTR attempt: anchor 2 (2.00 m from start, 2519 inliers, score 50.2) beat anchor 1 (1.00 m from start, 1263 inliers, score 35.5) — both had confidence=1.0 and sub-centimeter RANSAC residual. Same pattern (2-3 adjacent anchors all at confidence=1.0, ranked purely by raw inlier count) reproduced in ep680 and ep994's final attempts.
+- **The largest errors (up to 12.4 m target-vector spikes) are a separate and larger effect than anchor-selection error: pure dead-reckoning pose drift between accepted corrections, even when the anchor identity is correct the whole time.** Traced directly in ep994: `anchor_index_error=0` throughout a stretch where `distance_to_anchor_error_m` grew smoothly 2.89→2.93→2.97→3.02→3.07→3.11 m over one ~25-step relocalization interval with no accepted correction, then snapped to 0.15 m the instant the next candidate was accepted (backend label also switched from the EMA-smoothed `+ema` suffix to a fresh, un-smoothed estimate, per `_temporally_smooth_relocalization`'s "trust a sharply disagreeing fresh estimate outright" rule). The `expected_s` continuity reference used by the acceptance gate is itself a rolling dead-reckoning accumulation *since the last accepted observation* (not since outbound start — that part was already fixed by the 2026-07-02 relative-edge pose graph work) — but with only 34-53% of relocalization attempts getting accepted in this batch, that local accumulation window is often ~25 steps long, long enough to drift several meters.
+- **Visual confirmation of the "sticky wide-basin" corridor-degeneracy hypothesis (first raised 2026-07-01 from ep994) using the new match-snapshot tool:** of 15 sampled Scan-Context matches for ep994, anchor 7 was independently re-selected 6 times across a wide span of attempts (11, 17, 26, 34, 51, 54). Plotting attempt 26 shows the current local map contains a wall/corridor edge that anchor 7's own stored map also shares (matched, red) *plus* a long straight structure extending ~18 m further that has no counterpart in anchor 7's map at all (unmatched, blue) — i.e. the robot is standing in a corridor much longer than any single anchor's recorded slice of it, so many anchors along that same corridor can plausibly "match" almost as well as the true one.
+- **Orientation drift (`dead_reckoning_yaw_rad`) is confirmed still fully active in the current code path and architecturally separate from the above:** it is the same accumulated-since-outbound-start absolute yaw described in the 2026-07-02 entries below (never corrected by any accepted relocalization), and it still gates `scan_context_anchor_relocalization`'s 180°-flip disambiguation inside `fused`. It affects the *accepted pose's* plausibility check, not which anchor gets selected in the first place (identity is chosen by Scan-Context global similarity, or by the raw LoFTR score above, before this gate ever runs) — so its main effect in this batch was on why Scan Context so often produced *no* candidate at all (heading-consistency-rejected) rather than on which wrong anchor got picked.
+
+**Known gap acknowledged, not yet fixed:** the same per-call-overwrite pattern this update fixed for `fused_rgbd_diagnostics`/`fused_lidar_diagnostics` may exist elsewhere; and the orientation-drift fix identified as the 2026-07-02 (continued) entry's top priority (replacing the global accumulated `dead_reckoning_yaw_rad` reference with a short local-window relative-yaw check) is still unimplemented.
+
+---
+
+**Latest update (2026-07-02, continued) — found and fixed a sensor-selection bug that had every LiDAR-based backend this project ever built (`local_map_icp`, `scan_context`, everything layered on top) running on a ~2 m-radius foot/gait-terrain sensor instead of the room-scale 32-channel LiDAR that was sitting right there in the scene the whole time; also implemented paper-faithful Scan Context height encoding, spatial-connectivity match scoring, and an RGB-D+LiDAR fusion backend.** Continuation of the same day's earlier P1/P2/Direction1/2/P3 work (original entry preserved below). Anchor-*selection* accuracy is the metric of record throughout this update — bearing/position error given a *correctly selected* anchor is a secondary number that stayed misleadingly bad for reasons unpacked below.
+
+**P3 flip-fix, attempt 2 — still broken on real data, and why:** the first flip-fix (dual-hypothesis seeding, described below) still showed `same_anchor_bearing_median` of 169.9°/174.2° on a revalidation batch (`scan_context_p3_flipfix_187_680_994_20260702`) — essentially unchanged. Widened the ICP refinement from the narrow ±20°-around-two-hypotheses search to the same full 24-seed/360° sweep `local_map_icp`'s P1 already uses (against just the one Scan-Context-selected anchor, so still far cheaper than searching every candidate) — still no improvement (`scan_context_p3_wideseed_187_680_994_20260702`: 168–178°). While constructing a large-rotation (110°) synthetic regression test to probe this, found that this project's own heading-consistency *tests* (`TestLocalMapHeadingConsistencyGate`/`TestScanContextHeadingConsistencyGate`) had a latent sign error in their own ground-truth reference construction (`anchor_theta + dtheta` instead of the correct `anchor_theta - dtheta`, re-derived from the ICP source/target convention) — masked at the small test angle (0.2 rad) originally used, since the resulting ~23° reference error stayed inside the 90° gate tolerance by coincidence. Fixed the test (the production gate code itself was already correct — all tests, old and new, pass with the corrected reference). This was a real bug, but not *the* bug: it explained nothing about the real-batch failure.
+
+**The actual root cause — `dead_reckoning_yaw_rad` (the flip-disambiguation reference used by both P1 and Scan Context's flip-fix) drifts by up to ~160° during outbound.** Measured directly: comparing the shadow's pure action-integrated yaw against the oracle's true yaw at the exact instant return starts (before any return-phase rotation has accumulated, i.e. purely outbound drift) showed a 160.4° gap on one ep994 run. This is the heading-dimension counterpart of the position drift already characterized as "Type C" earlier the same day (up to 4.4 m) — never previously measured directly, and it invalidates the *reference*, not the matching logic: comparing a candidate's implied orientation against a reference that is itself off by up to 160° will as often steer toward the wrong answer as the right one, independent of how good the underlying seed search is. **Not yet fixed** — the fix under discussion is switching from this long, outbound-to-now accumulated absolute reference to a short, local relative-yaw check against only the odometry accumulated since the *last* accepted relocalization (a `relocalization_interval_updates`-sized window, i.e. tens of steps instead of thousands) — the same "trust local chains, not global accumulated ones" principle already validated by the Type-C position-drift fix, just not yet applied to this second, independent use of the same fragile accumulated-yaw quantity.
+
+**Sobering check: correct_anchor% itself never moved.** Prompted by a direct question ("we keep debugging bearing error, but is the thing Scan Context was actually built to fix — anchor *selection* — even better than before?"), compared `correct_anchor%` across all three Scan Context batches to date: 5.4% (strict thresholds) → 3.9% (flip-fix, loosened thresholds) → 6.4% (wide-seed) — no upward trend, and still at or below `local_map_icp`+P1+P2's already-established 7.8–9.6%. Confirmed this metric is architecturally independent of the still-broken heading gate (anchor identity is decided by Scan Context's own similarity/margin check, before the heading gate ever runs), so this was a clean, unconfounded negative result.
+
+**User-approved three-part plan, implemented in full:**
+
+1. **Scan Context closer to the original paper (max-height-per-cell, not binary occupancy).** New `relocalization.py::descriptor_local_map_points_xyz` retains the height column that `descriptor_local_map_points` (used by the 2-D-only ICP path) has always dropped. `scan_context.py::build_scan_context` now bins the *maximum* point height per (ring, sector) cell (normalized over the existing `[-0.20, 1.80]` obstacle band), restoring real discriminative power the binary simplification had thrown away — verified via a synthetic test (two point clouds with the *same* xy occupancy footprint but reversed near/far height profiles: similarity 1.0 → 0.31 once height encoding is restored, vs. indistinguishable at 1.0 either way under binary occupancy).
+2. **Spatially-connected match-region scoring**, the item explicitly deferred earlier this session. New `scan_context.py::largest_connected_agreement_region` finds the largest 4-connected patch of agreeing cells (circular on the sector axis) instead of scoring on whole-grid average similarity alone — directly targeting the "diffuse vs. concentrated match" failure mode (ROVER/PointDSC framing, referenced below) that whole-grid averaging can't distinguish. **Found and fixed a real architectural gap while wiring this in**: average column cosine similarity is provably blind to height for any column with only one occupied ring (a single-nonzero-entry vector's cosine similarity is 1.0 against any other positive single-entry vector at the same index, regardless of value) — this produces near-ties across many candidate shifts for sparse point clouds, and picking the best shift by raw similarity *first* and only checking connectivity *afterward* could land on a shift with zero actual spatial coherence. Fixed by making the shift search itself jointly optimize `similarity * connected_region_fraction` (`column_shift_search_with_region`), not sequentially. `min_similarity` lowered 0.3→0.2 accordingly (the joint search legitimately trades some raw similarity for spatial coherence).
+3. **RGB-D + LiDAR fusion.** Every anchor's descriptor already carries RGB, depth, and LiDAR/local-map data together (confirmed via code read — `route_memory_descriptor_from_infos` packages all of them per anchor unconditionally), so no data-plumbing changes were needed. New `relocalization.py::fused_anchor_relocalization` runs LoFTR (`feature_depth_anchor_relocalization`) and Scan Context independently each relocalization attempt and cross-validates: same anchor + pose within tolerance (30°/0.75 m) → confidence-weighted fusion; different anchor or same-anchor-different-pose → genuinely ambiguous, no candidate (same "don't guess when independent signals disagree" policy as Scan Context's own margin check and the ep680 jump-confirmation gate); only one backend produces a candidate → used at a reduced (×0.8) confidence. New `--route_relocalization_backend=fused` option. Literature grounding (checked before implementing): RGB-D+LiDAR SLAM fusion papers report "in corridor environments where structural repetition causes geometric ambiguity, visual features can provide crucial distinguishing information" and the converse for textureless/illumination-poor LiDAR blind spots — directly matching this project's own complementary failure modes (LoFTR's covisibility=0% when facing the wrong way during return vs. Scan Context's corridor-symmetry ambiguity).
+
+12 new unit tests added covering height-encoding discrimination, connected-region accept/reject (including a same-similarity-different-connectivity pair proving the gate discriminates on connectivity specifically), and all three fusion-agreement scenarios (agree/disagree-anchor/disagree-pose/single-source/both-silent) — all passing (131 total, same 4 pre-existing unrelated failures as before).
+
+**First combined validation (`fused_scancontext_paper_connectedregion_rgbd_187_680_994_20260702`): correct_anchor% jumped to 43.7–50.5%, bearing to 16.5–20.5°, target-vector to 0.42–0.54 m — a dramatic result, but a direct diagnostic check showed it was ~100% attributable to LoFTR alone.** Backend-distribution breakdown showed `feature_depth_loftr_3d3d_rear+fused_single` (LoFTR succeeding with no LiDAR corroboration at all) accounting for the overwhelming majority of accepted candidates in all three episodes; genuine two-way agreement (`fused_loftr_scan_context`) occurred only 75 times total, only in ep680, out of ~6,181 combined records; **zero** steps across all three episodes were a case of Scan Context single-handedly rescuing a step LoFTR failed. The user's own read of this — "so after all this effort, we basically got the same result as using LoFTR alone" — was confirmed by the data, not just a fair guess.
+
+**User question: why do LiDAR papers (Scan Context, PointDSC, ROVER) report strong results when this project's LiDAR side has stayed weak throughout?** Answered with three factors, illustrated by a live diagnostic (a genuinely strong Scan Context candidate — 0.88 similarity, 227-cell/19%-of-grid connected region — still correctly vetoed by the ambiguity-margin check because the runner-up scored nearly as well): (1) these papers are validated on outdoor driving-scale scenes with high inter-location geometric diversity, the opposite of a repetitive indoor home at 1 m anchor spacing; (2) indoor environments invert which modality carries more distinguishing information — visual texture (decor, doors, lighting) is richer than geometry indoors, the reverse of typical outdoor driving conditions, which is *why* the original papers leaned on LiDAR rather than vision in the first place; (3) the original Scan Context paper assumes dense, real automotive spinning-LiDAR point clouds, far denser than anything this project's sensor pipeline had been producing. Factor (3) turned out to be worth checking directly rather than assuming — see below.
+
+**Major finding: `local_map_descriptor_from_env`'s sensor-name lookup never matched the scene's actual LiDAR, silently substituting a foot-terrain sensor instead — confirmed live, not just from a code read.** The scene registers exactly two RayCaster sensors: `lidar_sensor` (32 channels, 360° horizontal FOV, 4° horizontal resolution, ~2,880 rays/scan, purpose-built for room-scale mapping — see `go2_matterport_vision_cfg.py`) and `height_scanner` (a 1.6×1.0 m downward-facing grid, ~160 rays, mounted 20 m above the robot and cast straight down, intended for locomotion/gait terrain sensing, not obstacle mapping). `round_trip_eval.py::local_map_descriptor_from_env`'s sensor lookup loop checked for `("lidar", "local_lidar", "height_scanner", "ray_caster")` — none of the first two ever matched the scene's actual `"lidar_sensor"` key (exact dict-key lookup, not substring), so it fell through to `"height_scanner"` every time. Added temporary diagnostic prints and ran a live episode to confirm directly (not just infer from code): `available scene.sensors keys = [..., 'lidar_sensor', ...]` confirmed present, but `using sensor name='height_scanner'`, `points_body count=564`, `radius_max=1.97` m — a small foot-terrain patch, not room geometry. **Every LiDAR-based anchor-matching backend built this entire project — `local_map_icp`, P1, P2, Scan Context, height encoding, connected-region scoring — has been running on this ~2 m-radius, ~560-point sensor instead of the intended room-scale LiDAR.** Fixed by reordering the lookup to `("lidar_sensor", "lidar", "local_lidar", "ray_caster", "height_scanner")`; re-confirmed live: `points_body count=2848`, `radius_max` 8.67–16.23 m across the three test episodes — a genuinely room-scale point cloud for the first time this project has had one.
+
+**Sensor-fix validation (`scancontext_lidarsensor_fix_187_680_994_20260702`, Scan Context alone, *not* fused with LoFTR): real but non-uniform improvement.** ep994 — the original "sticky wide-basin" episode that motivated Scan Context's whole design — jumped from 6.4% to **32.0%** correct-anchor accuracy, with target-vector error dropping from 7–10 m to 1.74 m: the single largest one-change improvement of the entire session, and direct evidence the sensor fix is real and impactful, at least for this episode. ep680 stayed roughly flat (3.3%) and ep187 got worse (1.0%); same-anchor bearing error for both remained catastrophically bad (144.9°/178.4°, essentially unchanged from before the sensor fix) — consistent with the still-unfixed `dead_reckoning_yaw_rad` drift bug independently capping results regardless of point-cloud quality: better geometry lets more candidates clear the acceptance gates (coverage jumped to 100% across all three), but the still-broken flip-disambiguation reference can still steer the *accepted* ones toward the wrong orientation. This combined backend (fusion + fixed sensor + connected region + height encoding all together) has **not yet been re-tested** — the previous fusion validation ran before the sensor fix existed, so it says nothing about what fusion looks like now that the LiDAR side has real data to contribute. **Explicitly flagged by the user as tomorrow's first priority.**
+
+**Literature grounding referenced this update:** RGB-D+LiDAR SLAM fusion literature (corridor-repetition/textureless-blind-spot complementarity, cross-modal loop-closure cross-validation) motivated the fusion design; ROVER/PointDSC/STV-SC (already cited below) directly motivated the connected-region implementation as the deferred item from earlier the same day.
+
+**Updated pending list (supersedes the priority order below where it overlaps):**
+
+1. **Orientation-drift reference fix (new top priority):** replace `dead_reckoning_yaw_rad`'s long outbound-to-now accumulated absolute reference with a short, local relative-yaw check against odometry since the last accepted relocalization, for both P1 (`local_map_icp`) and Scan Context's flip-fix. Directly motivated by the ~160° drift measurement above.
+2. **Re-test the full combined backend (fusion + fixed sensor + connected region + height encoding) end to end** — tomorrow's first task per the user's explicit instruction. The previous fusion result (43.7–50.5%, ~100% LoFTR-attributable) predates the sensor fix entirely.
+3. Everything in the original "not yet implemented" list below that this update didn't touch: Direction 3 (point-to-plane ICP), the expected-progress candidate window (`reversed(anchors)` ordering, present in both LiDAR backends), LoFTR/`feature_depth`'s own "+1 anchor bias" (still completely untouched), and validating Scan Context's thresholds (`min_similarity`, `min_connected_region_cells`, `min_combined_score_margin_ratio`) against real similarity/region-size distributions rather than reasoned guesses.
+
+---
+
+**Latest update (2026-07-02) — P1/P2/Direction1/Direction2/relative-edge-pose-graph/ep680-lock-fix/P3-Scan-Context all implemented on the non-oracle `local_map_icp` shadow path, with two real bugs found and fixed via oracle-shadow batches; anchor-*selection* accuracy still not solved.** This was a long session working through the 2026-07-01 P1/P2/P3 roadmap end to end, plus two mid-roadmap fixes (temporal smoothing/candidate fusion, then an outbound-drift + permanent-lock fix) that weren't on the original roadmap but were forced by what oracle-shadow batches on episodes 187/680/994 kept showing. Every change below only touches the LiDAR/local-map shadow path (`local_map_icp` and the new `scan_context` backend) — the LoFTR/`feature_depth` backend and its own documented "+1 anchor bias" were not touched this session.
+
+*P1 — heading-consistency gate (`relocalization.py::local_map_anchor_relocalization`):* the existing 24-yaw-seed ICP search picked whichever seed scored highest with no check that the result was physically plausible, so a 180°-flipped alignment could win outright in symmetric corridor geometry. Now all 24 seed results are ranked, and the first one whose *implied absolute orientation* (composed through the matched anchor's own recorded pose) agrees with the caller's own non-oracle dead-reckoning yaw (`RouteMemoryAgent.current_absolute_pose_from_start()[2]`, action-integrated only, no privileged Isaac pose) is kept.
+
+*P2 — corridor-degeneracy gate (`relocalization.py::corridor_degeneracy_ratio`):* per-point k-NN local-PCA surface-normal estimate, accumulated into a sign-invariant `n·nᵀ` scatter matrix; its eigenvalue ratio is ~0 for a parallel-wall corridor (ICP translation along the corridor axis is unconstrained) and higher at corners/doorways. Anchors below `corridor_degeneracy_inflate_threshold`-adjacent thresholds are skipped before ICP runs at all, or (if accepted anyway near the margin) get the arc-length filter's process noise inflated so the estimate isn't trusted as tightly.
+
+*Direction 1 — temporal orientation smoothing (`RouteMemoryAgent._temporally_smooth_relocalization`):* blends each newly accepted estimate with the previous filtered belief (reprojected onto the new estimate's anchor) via a confidence-weighted circular mean with a decaying carry-over weight, instead of a hard overwrite — damps single-observation jitter. Falls back to trusting the fresh estimate outright if the two disagree by more than 60° (a stale belief shouldn't be allowed to drag down a genuine correction).
+
+*Direction 2 — same-query candidate fusion (`RouteMemoryAgent._fuse_candidate_cluster`):* previously only the single top-scored relocalization candidate from a query was kept; now other candidates from the *same* query that agree with the top pick (reprojected onto its anchor, within 30°/0.75 m) are folded in via a confidence-weighted average instead of discarded. Candidates that disagree (e.g. a competing anchor-index hypothesis) are still excluded, not averaged in.
+
+Combined effect of P1+P2 alone (clean batch, no Direction1/2 yet) vs the 2026-07-01 baseline, and P1+P2+Direction1+2 on top:
+
+| Metric | 07-01 baseline | P1+P2 (ep187/680) | P1+P2+D1+D2 (ep187/680/994) |
+|---|---:|---:|---:|
+| Correct-anchor % | 3–13% | 7.8–9.6% | 5.7–7.3% |
+| Same-anchor bearing error (median) | 18–107° | 19.5–29.4° | 9.1–25.5° |
+| Same-anchor target-vector error (median) | 2.8–3.5 m | 0.87–1.00 m | 0.25–0.58 m |
+
+Anchor-*selection* accuracy (which anchor gets targeted) never moved off the ~6–10% baseline range through any of this — P1/P2/Direction1/2 all improve the *pose estimate given a correctly-identified anchor*, not the identification itself.
+
+**Type C — outbound dead-reckoning drift, and the relative-edge pose graph fix (partial):** comparing the oracle's true distance-from-start against the shadow's pure action-integrated distance-from-start at the instant return starts (before any return-phase motion has accumulated) showed up to **4.4 m of drift accumulated during outbound alone** in one ep187 run — `anchor.pose_from_start` is a `compose_pose` chain accumulated across the *entire* outbound trajectory, so early heading error compounds nonlinearly into every later anchor's stored pose. Fix: added `RouteAnchor.edge_from_previous` (local delta from the immediately preceding anchor only) and `RouteMemoryAgent._compose_edges_between()`, which composes only the short chain of edges between two *queried* anchors instead of differencing their two full outbound-accumulated poses. **Important correction found while implementing:** this specific refactor turned out to be numerically identical (to floating-point precision, verified empirically) to the old long-chain-differencing approach for P1/Direction1/Direction2's cross-anchor reprojection — SE(2) composition is associative, so a shared prefix of edges cancels out exactly either way. It is an architectural cleanup, not an accuracy fix, for those three. The part that *is* a real, verified fix is `_estimate_arc_observation`'s route-position (`observed_s`) computation, which used to convert into global start-frame coordinates and search the whole route polyline (touching every other anchor's `pose_from_start`); it's now `observed_s = matched_anchor.distance_from_start_m + current_pose_from_anchor[0]`, using only the matched anchor's own robust scalar distance and the local ICP offset — a test that corrupts an unrelated anchor's stored pose confirms `observed_s` from a different anchor's match is completely unaffected.
+
+**ep680 permanent-lock bug, found and fixed:** `_sequence_match_observation`'s existing `sequence_forward_tolerance_m` gate only guarded `motion_error > 0` (looks like the tracked position moved backward); there was no symmetric guard against a large *negative* motion_error (an implausible sudden "you've arrived" claim). On ep680, one ICP match with unremarkable confidence (0.736) falsely matched anchor 0 at step 3824; `_sequence_current_s_m` was pinned to ~0 instantly, and the VIO bridge's flat `vio_bridge_std_threshold_m=2.5` then suppressed literally every subsequent correction for the rest of the episode (~900 steps, 23% of the trajectory) because `filter_std_m` immediately exceeded the threshold with no time-based recovery path. Fix, two parts: (1) a new large-forward-jump confirmation gate (`sequence_large_forward_jump_m = 2×anchor_spacing_m`) that holds a suspiciously large jump pending and only commits it once a second, independent observation lands within 0.5 m of the same value (exempted for the very first post-return-start observation, which is expected to look like a huge jump relative to the seeded placeholder prior); (2) the VIO bridge's effective threshold now widens with blackout duration (`vio_bridge_relaxation_grace_m=3.0`, `+0.3 m per additional meter of blackout`) so a filter that does get stuck can still eventually accept a re-acquisition candidate. **Validated**: re-running ep680 with both fixes active showed **zero** occurrences of the "stuck at anchor 0 while oracle is still several anchors away" signature (previously ~41% of the episode), with 47 independent anchor-index transitions logged across the episode instead of one long stuck segment.
+
+**ep994 deep-dive — a second, different failure mode ("sticky wide-basin" matching), not yet fixed:** a persistent, reproducible (same magnitude across two independent runs) ~7-anchor lag was traced by plotting the shadow's tracked route-position against the oracle's true route-position over time: the shadow's estimate (`shadow_s`) sat essentially flat at ~13.11 m for ~780 steps / 31 *independent* relocalization attempts, while the true position (`true_s`) dropped by 3+ meters in that same span. This is not a single bad lock (ep680's mechanism) — every independent attempt during that stretch matched the *same* anchor with a small ICP offset, meaning that anchor's local map produces a plausible-looking ICP registration across a wide span of genuinely different true positions (hypothesized cause: proximity to a large/dominant structural feature — an open area or long wall — that stays visible/matchable from meters away). None of P1 (orientation was fine), P2 (the geometry wasn't corridor-degenerate), or the SeqSLAM continuity check (which only compares a new observation against its own possibly-already-wrong recent history, not any external truth) catch this pattern.
+
+**P3 — Scan Context descriptor (new file `code/scan_context.py`), motivated directly by the ep994 finding:** a 2-D adaptation of Kim & Kim (IROS 2018) Scan Context — a polar occupancy grid (20 rings × 60 sectors; *binary* occupancy per cell rather than the original's max-height, since local maps are already height-filtered before this point and retain no per-point height) compared via column-shift search for a rotation-invariant global similarity score plus an implied relative yaw. New `relocalization.py::scan_context_anchor_relocalization`: Scan Context first picks *which* anchor via global-pattern similarity across *all* candidates at once, and requires the winner to beat the runner-up by `min_similarity_margin` or it reports no candidate at all — directly targeting the ep994 failure mode, since a global-pattern comparison should discriminate a "sticky" wide-open-area anchor from the true match far better than ICP's per-candidate local residual/overlap score, which has no way to express "these two candidates are equally plausible, I don't actually know which." A narrow (±20°, 5 seeds) local ICP refinement against just the one selected anchor then supplies the metric (dx, dy, dtheta), since Scan Context alone only gives identity + approximate yaw, not a translation. New `--route_relocalization_backend=scan_context` CLI option, parallel to `lidar_local_map`.
+
+**P3 bug found and fixed from the first real oracle-shadow batch (`scan_context_p3_187_680_994_20260702`):** two problems, not caught by synthetic testing. (1) ep187 and ep680 produced **zero** accepted observations for the entire episode — `min_similarity=0.5`/`min_similarity_margin=0.1` were tuned against clean synthetic point clouds and are apparently too strict for real, noisier LiDAR-derived local maps; loosened to `0.3`/`0.05` (provisional — not yet validated against a real similarity-score distribution). (2) ep994 showed a *stable* ~177–178° bearing error across many consecutive steps — not noise, a clean systematic 180° flip. Root cause: Scan Context's own column-shift search spans the full 360°, so it is exactly as vulnerable to 180°-symmetric ambiguity as `local_map_icp`'s un-gated yaw search was before P1 existed, and the narrow post-selection ICP refinement (±20° around Scan Context's single yaw estimate) had no way to escape a bad seed. Fix mirrors P1 exactly: the local ICP refinement now seeds from *both* Scan Context's best shift and its diametric opposite (10 seeds total), ranks all results, and keeps the first one whose implied absolute orientation agrees with `dead_reckoning_yaw_rad` — wired into `round_trip_eval.py` the same way as `lidar_local_map`'s P1 gate. A revalidation batch (`scan_context_p3_flipfix_187_680_994_20260702`) was in progress as of this writing; results not yet available for this entry.
+
+**Literature grounding referenced this session:** X-ICP ([arXiv 2211.16335](https://arxiv.org/abs/2211.16335), TRO 2023), SuperLoc ([arXiv 2412.02901](https://arxiv.org/abs/2412.02901), ICRA 2025), GenZ-ICP ([arXiv 2411.06766](https://arxiv.org/abs/2411.06766), RA-L 2025), and Area Graph ([arXiv 2308.05593](https://arxiv.org/abs/2308.05593), RA-L 2023) informed P2's degeneracy-detection approach; Scan Context (Kim & Kim, IROS 2018) was implemented directly as P3; VT&R3 (UTIAS/Barfoot — relative pose graph, no global coordinate frame) informed the relative-edge design; the kidnapped-robot-problem / Monte Carlo localization recovery literature informed the ep680 fix's "widen acceptance over time" mechanism; ROVER ([arXiv 2508.13488](https://arxiv.org/abs/2508.13488), 2025 — explicitly distinguishes "concentrated" vs "diffuse" matches in repetitive environments), PointDSC/maximum-clique spatial-consistency registration methods (CVPR 2021), and STV-SC (a Scan-Context-specific open-area false-positive fix) motivate a **not-yet-implemented** "spatially-contiguous match region" refinement discussed below.
+
+**Testing:** every change above is covered by new unit tests in `code/tests/test_geometry_pipeline.py` and `code/tests/test_route_memory_agent.py` (pure Python, no Isaac Sim dependency, matching this codebase's existing convention). 121 tests passing as of this session's end; 4 pre-existing failures in `test_route_memory_agent.py` predate this session (confirmed identical against a pre-session backup) and are an unrelated test/code sync issue, not a regression from anything above.
+
+**Not yet implemented / pending, roughly in priority order:**
+
+1. **Direction 3 — single-frame registration precision at the source:** point-to-plane ICP (would improve both `local_map_icp` and `scan_context`'s refinement stage, since both call the same `icp_rigid_transform_2d`) and/or spatially-weighted Kabsch for the LoFTR backend. Motivated by data (anchor spacing is only ~1 m, so even the ~0.5–1 m per-observation noise already measured is enough to frequently cross an anchor boundary) but deprioritized behind getting P3 implemented.
+2. **Expected-progress candidate window:** both `local_map_anchor_relocalization` and `scan_context_anchor_relocalization` still search/tie-break candidates in a fixed `reversed(anchors)` (outbound-end-first) order. Documented as a LoFTR-specific late-return anchor-lag cause since 2026-07-01; structurally present in the LiDAR backends too (identical code pattern); never fixed in any backend.
+3. **LoFTR/`feature_depth` backend parallel track:** its own well-documented systematic "+1 anchor bias" (monotonic/hysteresis anchor-selection constraints proposed as the fix) was not touched at all this session — everything above targets the LiDAR (`local_map_icp`/`scan_context`) backends exclusively.
+4. ~~**Spatially-contiguous match-region scoring**~~ — **done, later the same day; see the 2026-07-02 (continued) entry above** (`largest_connected_agreement_region`/`column_shift_search_with_region`).
+5. **Scan Context threshold validation:** `min_similarity=0.3`/`min_similarity_margin=0.05` are a reasoned guess from the flip-fix batch's symptoms, not fit to a real similarity-score distribution — needs inspection of actual per-step diagnostics once a clean batch is available. **Partially superseded** — thresholds were revised again in the 2026-07-02 (continued) entry (`min_similarity=0.2`, new `min_connected_region_cells`/`min_combined_score_margin_ratio`), still unvalidated against real distributions.
+
+---
+
+**Latest update (2026-07-01) — three-batch shadow evaluation on ep187/680/994 shows all round trips succeed; `local_map_icp` shadow accuracy significantly worse than LoFTR despite round-trip oracle success:** three batches were run today on the three previously hard episodes (187, 680, 994), each with a different shadow backend: `oracle_shadow_loftr_aliasfix` (LoFTR rear-view with alias fix), `oracle_shadow_loftr_aliasgate_tangent` (LoFTR with alias gate and tangent projection), and `oracle_shadow_lidar_localmap` (2D ICP on local occupancy map). The VLM received oracle next-anchor hints in all three batches; only the shadow (non-oracle diagnostic) path differs. All nine runs achieved round-trip success. This confirms that ep187 — previously a near-miss at 3.016 m in the 2026-06-30 `stop_gate_r3_hint_arbiter` batch — now consistently passes (1.76–1.90 m) and ep680 — previously a VLM startup timeout — completes successfully for the first time.
+
+Round-trip results across all three batches:
+
+| Batch | Backend | ep187 dist | ep680 dist | ep994 dist |
+|---|---|---:|---:|---:|
+| `aliasfix` | LoFTR rear-view | ✅ 1.899 m | ✅ 1.457 m | ✅ 1.063 m |
+| `aliasgate_tangent` | LoFTR rear-view | ✅ 1.837 m | ✅ 1.258 m | ✅ 1.161 m |
+| `lidar_localmap` | local\_map\_icp | ✅ 1.761 m | ✅ 1.377 m | ✅ 1.148 m |
+
+Shadow alignment quality across all three batches (shadow path only; oracle hint unchanged):
+
+| Batch | Backend | Correct anchor % (err=0) | Dominant anchor error | Bearing err median | target\_vec err median | Shadow conf mean |
+|---|---|---:|---|---:|---:|---:|
+| `aliasfix` | LoFTR rear | 16–36% | **+1** (53–62%) | 3.6–15.8° | 0.44–0.55 m | 0.62–0.64 |
+| `aliasgate_tangent` | LoFTR rear | 22–32% | **+1** (52–65%) | 35–68° ⚠️ | 1.3–1.9 m ⚠️ | 0.63–0.67 |
+| `lidar_localmap` | local\_map\_icp | **3–13%** ❌ | **−2 to −7** (14–24%) | 18–107° ❌ | 2.8–3.5 m ❌ | 0.50–0.55 |
+
+Key findings: (1) `aliasfix` achieves the best shadow accuracy of the three — ep187 bearing error median just 3.6°, target-vector error 0.55 m, correct anchor 36% — and retains the consistent +1 anchor bias identified in the previous ep4 shadow log. (2) `aliasgate_tangent` worsens bearing errors substantially (ep680: 14° → 68°, ep187: 3.6° → 40°) suggesting the alias-gate or tangent-projection change introduced a new bias; this change should be reverted and re-examined independently. (3) `local_map_icp` accuracy is 5–10× worse than `aliasfix` on every metric despite using geometric (LiDAR) rather than visual data; root cause analysis and the associated literature survey are covered in the next update entry. (4) High-confidence relocalisations (confidence ≥ 0.8) fell from 7–11% for LoFTR to 0.2–4.8% for ICP, confirming the ICP confidence score is not meaningful in corridor-dominated scenes. For the path toward removing oracle hints, `aliasfix` remains the best foundation; the next steps are to add monotonic/hysteresis anchor-selection constraints (fixing the +1 bias) rather than continuing to develop the ICP or aliasgate\_tangent branches.
+
+
+**Latest update (2026-07-01) — literature survey on LiDAR relocalization in corridor environments and future roadmap for replacing oracle hints:** a targeted literature survey was conducted to identify why `local_map_icp` underperforms LoFTR and what algorithmic directions should replace it. Nine directly relevant papers were reviewed, spanning degeneracy-aware ICP registration, descriptor-based place recognition, and teach-and-repeat navigation. The survey identifies two principal fix directions and a three-priority improvement roadmap.
+
+**Root cause analysis of `local_map_icp` degradation:** per-step trajectory analysis of the three `oracle_shadow_lidar_localmap` episodes confirms three independent failure mechanisms that compound. (1) **Corridor geometric degeneracy**: the Matterport floor-slice occupancy map is dominated by parallel planar walls; ICP's cost function becomes rank-deficient along the corridor axis (one eigenvalue of the correspondence covariance is near zero), so the optimizer converges to an arbitrary position anywhere along the corridor with similarly low residual. Anchor-index errors of −2 to −10 result from ICP sliding to whichever point along the corridor happens to minimise the current initialisation rather than the true position. (2) **180° orientation ambiguity**: the current `icp_rigid_transform_2d` tries 24 initial yaw seeds at 15° spacing, so both 0° and 180° are tried against every anchor. In a symmetric corridor, the 180°-rotated scan achieves nearly the same overlap ratio and median residual as the correct orientation, so the highest-scoring initialisation is sometimes the flipped solution — this explains the sudden switch from bearing\_error = −1.3° to −162.1° at step 2399 in ep680 while the robot had moved less than 0.1 m. (3) **Corrupted particle filter after bad observation**: once a flipped or wrong-anchor ICP pose enters the arc-length particle filter, filter\_std grows from ~1.3 m to ~4.6 m over ~2 000 steps, and all subsequent ICP calls are initialised against an increasingly wrong prior, creating a positive-feedback degradation loop. In contrast, the LoFTR shadow backend produces a systematic +1 anchor bias (ICP score selects the anchor one step ahead) that, while inaccurate, is at least consistent and does not corrupt the filter catastrophically. Quantitatively across the three episodes: `aliasfix` (LoFTR rear-view) achieved 16–36% correct anchor index with bearing errors of 3.6–15.8° median; `lidar_localmap` (ICP) achieved 3–13% correct with bearing errors of 18–107° median and target-vector errors 5–7× larger.
+
+**Literature survey — degeneracy-detection direction:** four recent works address ICP failure in degenerate environments. **X-ICP** (ETH Zürich, IEEE TRO Dec 2023, arXiv 2211.16335) computes the Hessian of the ICP cost projected onto principal alignment directions before running optimisation; eigendecomposition identifies which degrees of freedom are observable (cross-corridor) and which are degenerate (along-corridor), and the solver is constrained to update only the observable axes, falling back to a prior (odometry) for the degenerate ones. **SuperLoc** (CMU, ICRA 2025, arXiv 2412.02901) evaluates Fisher information from scan–map correspondences to predict alignment quality before any optimisation, reporting 54% accuracy improvement over unconstrained ICP in corridor/tunnel environments. **GenZ-ICP** (POSTECH, IEEE RA-L 2025, arXiv 2411.06766) adaptively blends point-to-point and point-to-plane ICP losses with a weight derived from the local degeneracy level; the adaptive weight also serves as an implicit degeneracy signal usable as a particle-filter gate. **Robust Lifelong Indoor LiDAR Localization using the Area Graph** (TU Munich, IEEE RA-L / IROS 2023, arXiv 2308.05593) introduces a *corridorness score* — the ratio of the two eigenvalues of the scan's normal-direction covariance — to adaptively downsample points to retain only corner and doorframe geometry before ICP, and weights ICP residuals by point-to-line distance; this is the most directly applicable approach because Matterport scenes have explicit room-junction and doorframe geometry surviving downsampling. All four converge on the same principle: detect degeneracy from the scan geometry before committing to the ICP result, and suppress or constrain the update accordingly.
+
+**Literature survey — descriptor-based place recognition direction:** five additional works replace ICP pose estimation with global scan descriptors that are inherently robust to corridor degeneracy. **Scan Context / Scan Context++** (KAIST, IROS 2018 / IEEE TRO 2021) encodes a 2D LiDAR scan as a polar matrix (angular bins × radial rings, each cell storing max occupancy height), compared via column-shifted cosine similarity; the approach is rotation-invariant, naturally assigns low similarity to all corridor anchors when the scene is degenerate (correctly flagging uncertainty), and high similarity at junctions and room openings — compatible with the existing arc-length particle filter as a drop-in observation likelihood. **BEVPlace** (ICCV 2023, arXiv 2302.14325) converts occupancy grids to bird's-eye-view images and extracts rotation-invariant global descriptors via group convolution and NetVLAD, achieving 99.3% recall@1 on KITTI. **OverlapTransformer** (IEEE RA-L 2022, arXiv 2203.03397) projects 2D scans to yaw-rotation-invariant range images and runs a lightweight transformer to produce a global descriptor in under 4 ms, directly applicable to the 2D floor-slice format. **Reliable-loc** (arXiv 2411.07815) applies SeqSLAM-style sequence consistency to descriptor-based LiDAR place recognition, exactly mirroring the existing `seqpf_sfix` particle filter but with LiDAR descriptors as the observation model rather than LoFTR pose estimates. **Degeneracy-Resilient Teach and Repeat using FMCW LiDAR** (UTIAS Toronto, IEEE TRO submitted 2026, arXiv 2603.10248) addresses the exact outbound–return round-trip structure used here; its key finding is that motion estimation and place recognition should be decoupled, with odometry used as the particle-filter motion model and the place recogniser providing observations only when the local geometry is non-degenerate.
+
+**Three-priority improvement roadmap:**
+
+*Priority 1 — immediate patch (orientation consistency gate, ≤1 day):* add a heading-consistency check on every ICP result before it is accepted as a particle-filter observation. The robot's dead-reckoning yaw from the previous step is available in the trajectory record; reject any ICP result whose inferred orientation differs from this by more than 90°. This directly eliminates the 180°-flip failure mode (bearing errors of ±150–165°) at near-zero implementation cost and is backward-compatible with the existing `icp_rigid_transform_2d` and confidence gating. The fix belongs in `local_map_anchor_relocalization` in `scripts/relocalization.py` immediately after `best_icp` is selected.
+
+*Priority 2 — corridorness-gated ICP (1–2 days):* before running ICP against each anchor, compute the PCA eigenvalue ratio of the anchor point cloud's 2D normal distribution: `degeneracy = λ_min / (λ_max + 1e-6)`. If `degeneracy < 0.15` (corridor detected), skip the ICP call entirely for that anchor rather than returning a degenerate candidate. Additionally, inflate the particle-filter process noise whenever the best accepted ICP candidate has degeneracy below threshold, so the filter correctly widens rather than collapsing on a false estimate. Corridor segments will produce zero candidates, junction and doorframe segments will produce well-conditioned candidates — this matches the geometry of the Matterport scenes.
+
+*Priority 3 — replace ICP observation with Scan Context descriptor similarity (1 week):* implement a Scan Context descriptor (`scripts/scan_context.py`) operating directly on the 2D occupancy grid already produced by `code/local_map.py`. For each step, compute the descriptor from the current floor-slice and compare against all stored outbound-anchor descriptors using column-shifted cosine similarity. Feed the similarity scores as observation likelihoods into the existing `ArcLengthParticleFilter` instead of ICP-derived pose estimates. This is a surgical swap at the `_sequence_match_observation` interface in `route_memory_agent.py` and requires no changes to the particle-filter logic, the oracle stack, or the hint-generation pipeline. In degenerate corridor segments, all anchor similarities will be uniformly low (correctly widening the filter); at junctions and room transitions, a clear similarity peak will tighten the estimate. The LoFTR shadow path's +1 anchor bias (the remaining problem identified in the previous update) can then serve as cross-validation against the Scan Context estimate.
+
+
+**Latest update (2026-07-01) — oracle-shadow LoFTR route-memory instrumentation now records per-step non-oracle alignment while VLM still receives oracle hints:** the non-oracle route-memory path was aligned with the proven oracle stack and then run in shadow mode on episode 4 (`RUN_TAG=oracle_shadow_loftr_ep4_shadowlog_20260701`). Runtime still uses `--route_hint_source=oracle`, so the VLM receives oracle next-anchor hints; in parallel, the LoFTR/depth non-oracle route memory runs every return step and writes `route_memory_shadow` plus `route_memory_alignment` into the trajectory JSONL. Code changes include rear-view LoFTR candidate support and optional candidate return in [`code/relocalization.py`](code/relocalization.py), next-anchor vector/route-progress lookahead cleanup in [`code/route_memory_agent.py`](code/route_memory_agent.py), oracle-vs-shadow progress logging plus local-map descriptor extraction in [`code/round_trip_eval.py`](code/round_trip_eval.py), local LiDAR/scan corridor checking in [`code/local_map.py`](code/local_map.py), and local-map-aware clear-path arbitration in [`code/hint_action_arbiter.py`](code/hint_action_arbiter.py). Episode 4 succeeded end-to-end: outbound success true, return success true, round-trip success true, final distance to start `0.691 m`, outbound stop distance to goal `1.630 m`, `2702` trajectory records. The non-oracle shadow path produced `1127` shadow/alignment records; latest relocalization was `feature_depth_loftr_3d3d_rear` at anchor 3 with confidence `1.0` and `265` inliers. Alignment diagnostics show the main remaining problem is route-progress/anchor selection rather than total visual relocalization failure: target-vector error median `0.385 m`, bearing error median `9.08 deg`, distance error median `0.218 m`, but anchor-index error is dominated by a one-anchor offset (`-1:34`, `0:257`, `1:677`, `2:135`). Next fix direction: add hysteresis/monotonic constraints around target-anchor selection, clamp near-start progress more aggressively, and evaluate a small anchor-index/lookahead bias before rerunning the hard batch. Artifacts are uploaded under [`artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/`](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/), including [`summary.tsv`](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/summary.tsv), [`analysis_summary.json`](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/analysis_summary.json), [`measurement_7.json`](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/ep4/measurement_7.json), [`output_7.jsonl`](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/ep4/output_7.jsonl), route maps, and logs.
+
+[![ep4 oracle-shadow route map](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/ep4/output_7_routes.png)](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/ep4/output_7_routes.png)
+
+| Episode | Hint to VLM | Shadow backend | Outbound | Return | Round Trip | Final dist | Shadow/alignment records | Dominant anchor error | Artifacts |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---|---|
+| 4 | oracle next-anchor | LoFTR+depth rear-view route memory | True | True | True | 0.691 m | 1127 / 1127 | `+1` anchor (`677/1103`) | [`trajectory`](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/ep4/output_7.jsonl), [`analysis`](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/analysis_summary.json), [`routes`](artifacts/oracle_shadow_loftr_ep4_shadowlog_20260701/ep4/output_7_routes.png) |
+
+**Latest update (2026-06-30) — hard-11 rerun with hint-action arbiter reaches 7/9 executed round trips, 7/7 return after outbound success:** the full hard-11 list was rerun with the current oracle+yaw+stop-gate r3 stack plus `--topdown_route_map --hint_action_arbiter` (`RUN_TAG=stop_gate_r3_hint_arbiter_hard11_20260630`). Two episodes (134, 680) did not enter evaluation because the fresh VLM server timed out during startup; of the 9 episodes that did execute, round-trip success was `7/9`, and every outbound-success episode returned successfully (`7/7`). The remaining two evaluated failures (408, 678) failed outbound, so they are not return-hint failures. Compared with the previous stop-gate r3 batch (`4/11` round-trip, ep187/367/994 return failures), the new mechanism converts ep187, ep367, and ep994 into official successes. Query-level arbiter logs show `348` return-phase decisions across the 7 outbound-success episodes: `180` VLM actions were already consistent with the hint, `153` conflicting cases were not overridden because the local occupancy check marked the hinted path occupied, and `15` VLM outputs were corrected by replacing them with a valid NaVILA action string. All generated per-step trajectories, measurement JSONs, route maps, occupancy maps, logs, [`summary.tsv`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/summary.tsv), and [`manifest.tsv`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/manifest.tsv) are uploaded under [`artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/).
+
+[![hard-11 hint-action arbiter route map grid](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/hard11_hint_action_arbiter_route_grid.png)](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/hard11_hint_action_arbiter_route_grid.png)
+
+| Episode | Exit | Outbound | Return | Round Trip | Final dist | Arbiter corrections | Route / trajectory |
+|---:|---:|:---:|:---:|:---:|---:|---:|---|
+| 4 | 0 | True | True | True | 0.809 m | 1 / 22 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep4/output_7_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep4/output_7.jsonl) |
+| 5 | 0 | True | True | True | 2.052 m | 0 / 31 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep5/output_8_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep5/output_8.jsonl) |
+| 134 | 98 | — | — | — | — | — | VLM startup timeout |
+| 187 | 0 | True | True | True | 2.739 m | 4 / 50 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep187/output_280_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep187/output_280.jsonl) |
+| 367 | 0 | True | True | True | 1.921 m | 0 / 32 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep367/output_601_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep367/output_601.jsonl) |
+| 368 | 0 | True | True | True | 1.854 m | 2 / 43 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep368/output_602_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep368/output_602.jsonl) |
+| 408 | 0 | False | False | False | 2.125 m | 0 / 0 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep408/output_681_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep408/output_681.jsonl) |
+| 678 | 0 | False | False | False | 6.065 m | 0 / 0 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep678/output_1164_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep678/output_1164.jsonl) |
+| 680 | 98 | — | — | — | — | — | VLM startup timeout |
+| 994 | 0 | True | True | True | 1.167 m | 8 / 35 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep994/output_1699_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep994/output_1699.jsonl) |
+| 1040 | 0 | True | True | True | 2.475 m | 0 / 135 | [`routes`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep1040/output_1760_routes.png) / [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_hard11_20260630/ep1040/output_1760.jsonl) |
+
+**Latest update (2026-06-30) — hint-action arbiter rerun brings ep187 to near-threshold round-trip success:** a return-phase `HintActionArbiter` was added in [`code/hint_action_arbiter.py`](code/hint_action_arbiter.py) and wired into [`code/round_trip_eval.py`](code/round_trip_eval.py). It compares the VLM action against the oracle next-anchor hint, checks the hinted local path against the USD floor-slice occupancy map, and, when the VLM clearly conflicts with a clear route-hint direction, replaces the VLM output with a valid NaVILA action string. Episode 187 was rerun on top of the oracle+yaw+stop-gate r3 stack with `--route_hint_source=oracle --oracle_align_return_yaw_to_anchor_segment --stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0 --topdown_route_map --hint_action_arbiter`. Official measurement is still just outside the strict `<3.0 m` return threshold (`3.016 m`), but the stop-gate authority had already accepted at `2.979 m`, so this run is practically a full-route success modulo centimeter-level measurement/sensor tolerance. Compared with the previous r3 ep187 result (`8.095 m`), the return route now follows the anchor chain back to the start region instead of drifting into the lower-left dead corner. The arbiter logged `45` return decisions and overrode the VLM `8` times (`vlm_conflicts_with_clear_hint`), while leaving `24` hint-consistent actions untouched and declining `13` cases where the local occupancy check marked the hinted path occupied. Per-step trajectory, measurement, route map, occupancy map, and metadata are uploaded under [`artifacts/stop_gate_r3_hint_arbiter_ep187_20260630/ep187/`](artifacts/stop_gate_r3_hint_arbiter_ep187_20260630/ep187/).
+
+[![ep187 hint-action arbiter route map](artifacts/stop_gate_r3_hint_arbiter_ep187_20260630/ep187/output_280_routes.png)](artifacts/stop_gate_r3_hint_arbiter_ep187_20260630/ep187/output_280_routes.png)
+
+| Episode | Outbound | Official return | Practical round trip | Final dist | Stop-gate authority | Arbiter overrides | Artifacts |
+|---:|:---:|:---:|:---:|---:|---:|---:|---|
+| 187 | True | False (`3.016 m`, strict `<3.0 m` miss) | True / near-threshold | 3.016 m | accepted at 2.979 m | 8 / 45 | [`trajectory`](artifacts/stop_gate_r3_hint_arbiter_ep187_20260630/ep187/output_280.jsonl), [`routes`](artifacts/stop_gate_r3_hint_arbiter_ep187_20260630/ep187/output_280_routes.png), [`occupancy`](artifacts/stop_gate_r3_hint_arbiter_ep187_20260630/ep187/output_280_occupancy.png), [`measurement`](artifacts/stop_gate_r3_hint_arbiter_ep187_20260630/ep187/measurement_280.json) |
+
+**Latest update (2026-06-30) — stop-gate r_in fixed to 3.0 m, hard-11 batch rerun with USD occupancy route maps:** the stop-gate inner radius was corrected from `r_in=2.5 m` to `r_in=3.0 m` (matching the official 3.0 m return-success radius). The previous `r_in=2.5 m` left a 0.5 m dead zone where neither VETO, ACCEPT, nor FORCE could activate even when the robot was inside the success radius — both `scripts/stop_gate.py` and the `--stop_gate_r_in` argparse default were updated. The 11 hard episodes were rerun with `--route_hint_source=oracle --oracle_align_return_yaw_to_anchor_segment --stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0 --topdown_route_map` via `scripts/run_stop_gate_r3_oracle_hard_batch_20260630.sh`. Result: outbound `8/11`, return `4/8` (outbound-success), round-trip `4/11`. Key improvement: ep5 recovered from the r_in=2.5 regression (`9.559 m` → `2.253 m ✅`). ep368 remains a success (`1.423 m`). ep678 and ep1040 outbound failures are VLM non-determinism, not gate-related. All 11 episodes have USD floor-slice occupancy route maps; a combined grid is at [`artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_20260630_grid.png`](artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_20260630_grid.png). Batch logs: `batch_logs/stop_gate_r3_oracle_hard_20260630/`. Unit tests: 31/31 stop_gate tests pass with r_in=r_out=3.0.
+
+[![hard-11 stop-gate r3 route map grid](artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_20260630_grid.png)](artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_20260630_grid.png)
+
+| Episode | Outbound | Return | Round Trip | Final dist | Gate events |
+|---:|:---:|:---:|:---:|---:|---|
+| 4 | True | True | True | 1.125 m | — |
+| 5 | True | True | True | 2.253 m | — |
+| 134 | True | False | False | 13.722 m | — |
+| 187 | True | False | False | 8.095 m | — |
+| 367 | True | False | False | 7.554 m | — |
+| 368 | True | True | True | 1.423 m | — |
+| 408 | False | False | False | 2.125 m | — (outbound fail) |
+| 678 | False | False | False | 3.576 m | — (outbound fail) |
+| 680 | True | True | True | 0.978 m | — |
+| 994 | True | False | False | 11.440 m | — |
+| 1040 | False | — | False | 2.688 m | — (outbound fail) |
+
+
+**Latest update (2026-06-30) — hard-11 no-oracle vs oracle+yaw+stop-gate trajectory comparison maps generated:** the full 11 hard episodes from the 2026-06-29 batch were rendered as side-by-side trajectory comparison maps without rerunning Isaac/VLM. Each figure uses the saved per-step JSONL trajectories and measurements: left panel = pure no-oracle/no-hint baseline, right panel = oracle route hint + confirm yaw alignment + return stop-gate. Outbound and return paths are drawn as thin dashed lines; magenta numbered dots mark return-phase temporal order; oracle anchors are shown when available. These are trajectory-space comparison plots on a shared grid, not USD occupancy maps, because the original 11 batch runs did not save `--topdown_route_map` floor-slice artifacts. All 11 PNGs plus manifest are uploaded under [`artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/), and the offline renderer is saved as [`code/plot_hard_batch_comparison_maps.py`](code/plot_hard_batch_comparison_maps.py).
+
+| Episode | Comparison map |
+|---:|---|
+| 4 | [`ep4_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep4_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 5 | [`ep5_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep5_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 134 | [`ep134_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep134_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 187 | [`ep187_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep187_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 367 | [`ep367_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep367_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 368 | [`ep368_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep368_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 408 | [`ep408_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep408_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 678 | [`ep678_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep678_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 680 | [`ep680_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep680_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 994 | [`ep994_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep994_no_oracle_vs_oracle_yaw_stop_gate.png) |
+| 1040 | [`ep1040_no_oracle_vs_oracle_yaw_stop_gate.png`](artifacts/hard11_no_hint_vs_stop_gate_maps_20260630/ep1040_no_oracle_vs_oracle_yaw_stop_gate.png) |
+
+**Latest update (2026-06-30) — USD floor-slice occupancy route maps added and episode 4 visual diagnostic rerun:** a top-down route-map diagnostic was implemented using a USD mesh floor-slice projection rather than an overhead Isaac camera, avoiding ceiling views and producing a true occupancy-style map of nearby room obstacles. The module slices scene geometry from `floor_z + 0.08 m` to `floor_z + 2.2 m`, rasterizes occupied mesh triangles into a 2-D grid, and overlays outbound trajectory, return trajectory, start/goal/final markers, and route-memory anchors when available. Episode 4 was rerun twice with `--topdown_route_map`: (1) pure no-oracle/no-hint baseline and (2) direct oracle hint (`--route_memory --route_hint_source=oracle --route_relocalization_backend=none`). Both runs completed successfully at the process level and produced occupancy/route overlays. In this fresh pair, both runs achieved outbound success but failed return: no-oracle baseline ended `9.449 m` from start; direct oracle ended `8.876 m` from start. The map artifacts are uploaded under [`artifacts/topdown_route_maps_ep4_20260630/`](artifacts/topdown_route_maps_ep4_20260630/): no-oracle overlay [`no_oracle/output_7_routes.png`](artifacts/topdown_route_maps_ep4_20260630/no_oracle/output_7_routes.png), direct-oracle overlay [`direct_oracle/output_7_routes.png`](artifacts/topdown_route_maps_ep4_20260630/direct_oracle/output_7_routes.png), with matching occupancy-only PNGs and map metadata JSONs in each subdirectory.
+
+| Episode 4 run | Outbound | Return | Round Trip | Final distance to start | Route map |
+|---|:---:|:---:|:---:|---:|---|
+| no-oracle baseline | True | False | False | 9.449 m | [`routes`](artifacts/topdown_route_maps_ep4_20260630/no_oracle/output_7_routes.png) / [`occupancy`](artifacts/topdown_route_maps_ep4_20260630/no_oracle/output_7_occupancy.png) |
+| direct oracle hint | True | False | False | 8.876 m | [`routes`](artifacts/topdown_route_maps_ep4_20260630/direct_oracle/output_7_routes.png) / [`occupancy`](artifacts/topdown_route_maps_ep4_20260630/direct_oracle/output_7_occupancy.png) |
+
+**Latest update (2026-06-29) — pure VLM baseline (no hint, no stop gate, no yaw alignment) evaluated on 11-episode hard batch:** the same 11 hard episodes were run with no route-memory hint, no stop-gate arbiter, and no confirm-phase yaw alignment — VLM navigates purely on visual input. This establishes the unassisted baseline for comparison against oracle hint and stop-gate variants. Result: outbound `9/11` (ep134 outbound fail; ep678 outbound failed this run — VLM non-determinism), return `4/9` (valid outbound-success samples), round-trip `4/11`. Successful round trips: ep5 (2.809 m), ep680 (1.001 m), ep994 (1.201 m), ep1040 (2.266 m). ep367 had a transient VLM server crash (transformers import race) on first attempt and was rerun immediately; second attempt succeeded (outbound ✅, return ❌ 5.397 m). Batch logs: `batch_logs/no_hint_hard_fresh_20260629/`. Per-step JSONL trajectories uploaded to `artifacts/no_hint_hard_batch_20260629/trajectories/`.
+
+Three-way comparison across all 11 episodes (round-trip success / distance):
+
+| Episode | no-hint | oracle+yaw | oracle+yaw+stop-gate(r_in=2.5) | oracle+yaw+stop-gate(r_in=3.0) |
+|---:|:---:|:---:|:---:|:---:|
+| 4 | ❌ 12.9 m | ✅ 0.378 m | ✅ 0.496 m | ✅ 1.125 m |
+| 5 | ✅ 2.809 m | ✅ 2.253 m | ❌ 9.559 m | ✅ 2.253 m |
+| 134 | ❌ outbound | ❌ outbound | ❌ outbound | ❌ 13.722 m |
+| 187 | ❌ 11.9 m | ❌ 7.649 m | ❌ 7.567 m | ❌ 8.095 m |
+| 367 | ❌ 5.397 m | ❌ 0.000 m† | ❌ 0.000 m† | ❌ 7.554 m |
+| 368 | ❌ 6.949 m | ❌ 4.447 m | ✅ 1.625 m | ✅ 1.423 m |
+| 408 | ❌ 3.947 m | ❌ 5.996 m | ❌ 8.483 m | ❌ outbound |
+| 678 | ❌ outbound | ✅ 2.824 m | ✅ 1.292 m | ❌ outbound |
+| 680 | ✅ 1.001 m | ✅ 1.253 m | ✅ 2.553 m | ✅ 0.978 m |
+| 994 | ✅ 1.201 m | ❌ 4.410 m | ❌ 4.329 m | ❌ 11.440 m |
+| 1040 | ✅ 2.266 m | ✅ 1.264 m | ✅ 1.916 m | ❌ outbound |
+| **round-trip** | **4/11** | **5/11** | **5/11** | **4/11** |
+
+†ep367: oracle distance reports 9.6 m throughout return while physical distance is 0.000 m — bookkeeping anomaly, not a genuine success. Key observations: (1) oracle hint improves outbound reliability (9→10/11); (2) for return, oracle hint and no-hint both achieve 5 and 4 successes respectively on their valid outbound-success sets — the gain is marginal and non-monotone (ep5/994/680 succeed without hint but fail or regress with hint, while ep4/678 require the hint to complete outbound); (3) stop-gate converts ep368 from failure to success and rescues ep1040 via FORCED terminal, but regressions on ep5 offset the gain.
+
+**Latest update (2026-06-29) — return-phase stop-gate arbiter implemented and evaluated on 11-episode oracle hard batch:** a dedicated stop-arbitration layer (`scripts/stop_gate.py`, `ReturnStopGate`) was added between the VLM output and the terminal-condition check in `round_trip_eval.py`. It does not modify hint generation, anchor selection, or particle filtering; it only reads the authoritative oracle distance and decides each step: VETO a premature stop (high conf, d > r_out=3.0 m) and inject a forward command toward `bearing_to_start`; ACCEPT a stop (high conf, d ≤ r_in=2.5 m); DEFER to the VLM (low conf or hysteresis zone); FORCE terminal if the robot stays within r_in for ≥ 3 consecutive VLM-query steps without issuing a stop; PASS on teleport frames (single-step jump > 3 m). The gate was tested with `--route_hint_source=oracle --route_relocalization_backend=none --oracle_align_return_yaw_to_anchor_segment --stop_gate --stop_gate_r_in=2.5 --stop_gate_r_out=3.0 --stop_gate_confirm_steps=3 --stop_gate_min_confidence=0.5` on the 11 hard episodes. Aggregate: outbound `10/11`, return `5/10` (outbound-success episodes), round-trip `5/11` — equal to the oracle baseline. Gate net contribution: ep368 converted from failure (4.447 m) to success (1.625 m, 1× ACCEPTED); ep1040 saved by FORCED stop (VLM never issued stop, gate triggered terminal at d=2.01 m → 1.916 m success); ep5 regressed to failure (9.559 m vs baseline 2.253 m — VLM non-determinism, 0 gate events); ep187 and ep994 vetoed 33× and 79× respectively but robot still stalled (navigation capacity bottleneck, not a stop-decision problem). ep367 anomaly unchanged: Isaac distance reports 9.6 m throughout return while physical distance is 0.000 m — oracle d is invalid (likely start_pos/teleport-reset misalignment), stop never triggered. 31 unit tests for stop_gate all pass. Batch logs: `batch_logs/stop_gate_oracle_hard_fresh_20260629/`.
+
+| Episode | Outbound | Return | Round Trip | Final dist | Gate events |
+|---:|:---:|:---:|:---:|---:|---|
+| 4 | True | True | True | 0.496 m | 1× accepted |
+| 5 | True | False | False | 9.559 m | none (VLM non-det.) |
+| 134 | False | False | False | 7.494 m | — (outbound fail) |
+| 187 | True | False | False | 7.567 m | 33× vetoed |
+| 367 | True | False | False | 0.000 m | none (oracle d invalid) |
+| 368 | True | True | True | 1.625 m | 1× accepted |
+| 408 | True | False | False | 8.483 m | none (timeout/no stop) |
+| 678 | True | True | True | 1.292 m | 1× accepted |
+| 680 | True | True | True | 2.553 m | 70× vetoed |
+| 994 | True | False | False | 4.329 m | 79× vetoed |
+| 1040 | True | True | True | 1.916 m | 1× forced |
+
+**Latest update (2026-06-29) — direct oracle route-anchor + confirm yaw alignment hard batch completed:** the pure oracle path has now been rerun on all 11 hard episodes (`4, 5, 134, 187, 367, 368, 408, 678, 680, 994, 1040`) with fresh VLM and Isaac processes per episode. This version bypasses particle filtering/gating for the return hint, selects the next reversed-route anchor from Isaac/global route progress, and uses `--oracle_align_return_yaw_to_anchor_segment` at the confirm-to-return transition so the robot starts return facing the nearest reverse anchor segment. Aggregate result: outbound success `10/11`, return success on outbound-success episodes `5/10`, round-trip success `5/11`. Successful round trips were ep4 (`0.378 m`), ep5 (`2.253 m`), ep678 (`2.824 m`), ep680 (`1.253 m`), and ep1040 (`1.264 m`). Failures after outbound success were ep187 (`7.649 m`), ep367 (`0.000 m` but no return terminal event, likely bookkeeping/termination issue), ep368 (`4.447 m`), ep408 (`5.996 m`), and ep994 (`4.410 m`). Ep134 failed outbound and is not a valid return-oracle sample. Main diagnosis: direct oracle bearing clearly steers VLM behavior, but a perfect global anchor bearing is still not equivalent to a locally feasible corridor-following command in narrow indoor layouts; confirm-stage yaw alignment helps but does not remove wall/contact and anchor-alignment failure modes. Full logs are in [`batch_logs/direct_oracle_align_yaw_hard_20260629/`](batch_logs/direct_oracle_align_yaw_hard_20260629/), and all per-step JSONL trajectories plus measurement JSONs are uploaded under the matching `eval_results/...direct_oracle_align_yaw_hard_20260629_ep*/` directories. Single-episode ep4/ep5 diagnostic trajectories before and after yaw alignment are also uploaded: `direct_oracle_route_anchor_ep4_20260629`, `direct_oracle_global_lookahead_ep4_20260629`, `direct_oracle_global_lookahead_ep5_20260629`, and `direct_oracle_align_yaw_ep5_20260629`.
+
+| Episode | Outbound | Return | Round Trip | Final distance to start |
+|---:|:---:|:---:|:---:|---:|
+| 4 | True | True | True | 0.378 m |
+| 5 | True | True | True | 2.253 m |
+| 134 | False | False | False | 7.886 m |
+| 187 | True | False | False | 7.649 m |
+| 367 | True | False | False | 0.000 m |
+| 368 | True | False | False | 4.447 m |
+| 408 | True | False | False | 5.996 m |
+| 678 | True | True | True | 2.824 m |
+| 680 | True | True | True | 1.253 m |
+| 994 | True | False | False | 4.410 m |
+| 1040 | True | True | True | 1.264 m |
+
+**Latest update (2026-06-29) — pure oracle route hint path implemented for retesting PF-corrupted failures:** post-run inspection of the oracle-anchor hard batch showed every return-stage route-memory record still had `source="arc_length_particle_filter"` rather than a pure oracle source. This means the previous `oracle_anchor` backend only supplied perfect relative anchor poses into the route-memory particle filter; the VLM still saw the filter estimate, not the oracle truth. In the 5 return failures among outbound-success episodes (`5`, `187`, `367`, `408`, `994`), the particle filter corrupted that estimate, so this is not yet a clean test of oracle distance+bearing guidance. A new explicit `--route_hint_source=oracle` path has been added in `scripts/round_trip_eval.py`: during the return phase it computes the exact simulator start vector from the current Isaac pose and injects it directly as `source="direct_oracle_start"`, `relocalization_backend="oracle_direct"`, `relocalization_confidence=1.0`, and `filter_std_m=null`. This bypasses `RouteMemoryAgent.progress()`, anchor chaining, arc-length particle filtering, and filter-lost gating for prompt hint generation. Per-step trajectory logging now records `configured_source`, `source`, and `filter_std_m` so the rerun can verify the VLM only saw the direct oracle signal. Regression coverage was added to prove that a direct oracle `progress_override` bypasses an already-populated `arc_length_particle_filter` state; `PYTHONPATH=scripts python3 -m unittest tests/test_route_memory_agent.py` passes (`19` tests). New scripts are ready: `scripts/run_direct_oracle_hard_fresh_batch_20260629.sh` runs the hard batch with fresh VLM/Isaac per episode, `--route_hint_source=oracle`, and `--route_relocalization_backend=none`; `scripts/run_direct_oracle_return_failures_fresh_20260629.sh` defaults to only the 5 outbound-success/return-failure episodes (`5 187 367 408 994`). Full Isaac/VLM retesting has not been started yet.
+
+**Latest update (2026-06-29) — oracle-anchor hard-case batch with fresh per-episode isolation:** the original oracle-anchor sanity check had only been run on ep994; it showed the route-memory hint interface was feasible when the relocalization backend is perfect. This has now been extended to the 11 hard episodes from the previous 30-episode v4 baseline where the language-only run had `outbound_success=true` and `return_success=false`: 4, 5, 134, 187, 367, 368, 408, 678, 680, 994, 1040. To avoid cross-episode contamination, the batch runner was changed so every episode uses a fresh 8-bit VLM server, a fresh Isaac process, and an episode-specific VLM port (`PORT_BASE + episode_idx`); failed VLM startups are detected immediately and rerun rather than being treated as algorithm results. Two startup failures in the first pass (368, 1040) were rerun successfully. In the final valid oracle-anchor results, 9 episodes had outbound success: 4, 5, 187, 367, 368, 408, 680, 994, 1040. Oracle-anchor return succeeded on 4/9 of those outbound-success episodes: ep4 (`0.664 m`), ep368 (`2.086 m`), ep680 (`1.230 m`), and ep1040 (`1.146 m`). Return still failed on ep5 (`7.589 m`), ep187 (`8.761 m`), ep367 (`6.750 m`), ep408 (`5.475 m`), and ep994 (`4.398 m`). Ep134 and ep678 failed outbound in the oracle run and therefore are not valid return-feasibility samples for this batch. Key implication: perfect nearest-anchor relocalization is helpful but not sufficient as currently prompted/used; failures remain where the VLM either does not exploit the oracle route hints correctly or terminates/moves incorrectly despite exact anchor-relative geometry. Per-step JSONL trajectories for all 9 outbound-success episodes are uploaded in [`artifacts/oracle_anchor_hard_batch_20260629/trajectories/`](artifacts/oracle_anchor_hard_batch_20260629/trajectories/), with [`summary_outbound_success_episodes.tsv`](artifacts/oracle_anchor_hard_batch_20260629/summary_outbound_success_episodes.tsv) and [`manifest.json`](artifacts/oracle_anchor_hard_batch_20260629/manifest.json).
+
+| Episode | Outbound | Return | Final distance to start |
+|---:|:---:|:---:|---:|
+| 4 | True | True | 0.664 m |
+| 5 | True | False | 7.589 m |
+| 187 | True | False | 8.761 m |
+| 367 | True | False | 6.750 m |
+| 368 | True | True | 2.086 m |
+| 408 | True | False | 5.475 m |
+| 680 | True | True | 1.230 m |
+| 994 | True | False | 4.398 m |
+| 1040 | True | True | 1.146 m |
+
+**Latest update (2026-06-29) — rear-camera anchor fix + VIO bridge:** root-cause diagnosis of the seqpf_sfix second-half failure led to two targeted fixes. (1) **GT co-visibility diagnostic (completed 2026-06-28):** per-attempt analysis of all 85 LoFTR calls in `seqpf_sfix` revealed two distinct failure zones. Zone A (d2s < 6 m, attempts 37–85): depth-consistent co-visibility = 0% throughout; cause is **camera-direction mismatch** — Go2 strafes laterally so the outbound anchors (A0–A15) face ~+92° to ±180° (north/west) while the return robot faces ~0° to −90° (east/south), giving a ~150–180° angular separation. LoFTR produces 40–100 "matches" via visual aliasing on repetitive corridor texture, but RANSAC gives position errors of +6 to +13 m which SeqSLAM correctly rejects. Zone B (d2s 6–8 m, attempts 27–35): depth-consistent co-visibility is 13–24% (real shared geometry), LoFTR finds 110–170 inliers with conf=1.0, but **corridor geometric degeneracy** — planar walls cannot constrain translation along the corridor axis — causes RANSAC to give position errors of +3.9 to +5.9 m; again correctly rejected by SeqSLAM. Branch verdicts: Branch 1 (co-visibility low/zero) ✅ confirmed for Zone A (camera direction mismatch, not off-path drift); Branch 2 (co-visibility exists but matching fails) ✅ applies to Zone B (degeneracy, not matcher quality — MASt3R would have the same problem); Branch 3 (anchor spacing too large) ❌ wrong (1 m anchors, robot 0.2–1.5 m from nearest anchor throughout). Key confirmed finding: `hint_gate` was harmful because the VLM is robust to specific-but-wrong hints (it ignores erroneous "0 m arrived" claims) but loses navigational narrative when given generic "position uncertain" messages; the fix is to preserve directional/distance language and only suppress explicit arrival/stop claims when filter std is high. (2) **Rear-camera anchor + LoFTR fix (2026-06-29):** the camera-direction mismatch is fixed by adding a rear-facing camera (`rear_rgbd_camera`, body −x direction, rot=(−0.5, 0.5, 0.5, −0.5), 54° FOV, 512×512 RGB+depth) in `Go2VisionSceneCfg`. `route_memory_descriptor_from_infos` now also saves `rear_rgb`, `rear_depth_depth_measurement`, `rear_camera_intrinsics`, `rear_camera_rotation_body`, `rear_camera_position_body` at each outbound anchor. `build_rear_view_descriptor()` in `relocalization.py` constructs a synthetic anchor descriptor exposing rear camera data under standard field names (so LoFTR + 3-D RANSAC + `camera_rotation_to_body_yaw` work unchanged). `feature_depth_anchor_relocalization` now tries two views per anchor — `("front", anchor.descriptor)` then `("rear", build_rear_view_descriptor(anchor.descriptor))` — with `backend` tags `_front`/`_rear` for diagnostic tracking. During the return phase: current front-camera view (faces east) ↔ anchor rear-camera view (faces east during outbound when body faces west) = correct orientation match. (3) **VIO bridge (2026-06-29, off by default):** `RouteMemoryAgent` computes `_feature_anchor_indices` in `finalize_outbound` by marking consecutive anchor pairs where `|Δyaw| > 15°` (corners/doorways); `_sequence_match_observation` suppresses visual particle-filter updates when filter std > `vio_bridge_std_threshold_m` (default 2.5 m) AND the candidate arc-length is > `vio_bridge_feature_radius_m` (default 2.0 m) from any feature anchor. Enabled with `--vio_bridge`. On ep994, feature anchors identified at A2, A3, A5, A6, A9, A10, A12, A13, A15, A16 (10 of 17, covering all path turns). Next step: run ep994 with `--route_relocalization_backend=loftr_depth --result_suffix=rear_cam_20260629` and compare second-half co-visibility and accepted observation count against `seqpf_sfix`.
+
+**Latest update (2026-06-28) — uncertainty-gated hints + lateral-exclusion odometry + blackout noise inflation:** three targeted fixes to the arc-length particle filter pipeline, motivated by post-hoc diagnosis of `seqpf_sfix`. (1) **Hint gating** (`filter_std_m` field added to `RelativeStartProgress`): when particle filter std exceeds `max(2.5, 20% × route_length)` — 3.2 m for a 16 m route — `_filter_lost()` returns true and the hint switches from a precise distance claim to `"position uncertain (σ≈X m, filter lost lock); continue toward the outbound start using the visual instruction — do NOT stop until you visually confirm you are back at the starting location."` This directly prevents premature VLM stop from a "0 m arrived" hint while the robot is still 4–5 m away. Retroactive replay on seqpf_sfix shows 35/37 hint events would be gated (only the first two — pure action-integration and first anchor match — would pass as high-confidence). (2) **Lateral-motion exclusion**: `update_return_motion()` replaces `math.hypot(dx, dy)` with `abs(dx)` for both particle filter `predict()` and `_sequence_current_s_m` decrement; lateral velocity commands during turns no longer inflate arc-length odometry. (3) **Blackout noise inflation**: `predict()` gains `extra_process_noise_m` parameter; when `_distance_since_sequence_observation_m > 3 m`, extra noise grows at 0.015 m per additional meter, so the filter spreads faster during observation gaps and std crosses the gating threshold sooner. All 57 tests pass. Ep994 rerun `loftr_depth_ep994_hint_gate_20260628` ran and **return failed**: outbound success true, return success false, final distance to start `4.403 m`. Gating activated at step 2626 (dist 10.8 m, std 3.68 m), leaving the VLM with 21 consecutive generic "position uncertain, continue via visual instruction" hints and no specific distance/direction signal for the final 10 m. The VLM stopped at step 3926 based on visual judgment alone. Root cause: hint gating removes navigational narrative that keeps the VLM moving — seqpf_sfix succeeded precisely because the VLM correctly ignored specific-but-wrong "0 m arrived" hints; replacing those with generic warnings removed the implicit "keep moving" signal. Fix direction: preserve directional/distance information even when filter is uncertain, and only suppress the explicit arrival/stop claim. Artifacts in `artifacts/loftr_depth_ep994_hint_gate_20260628/`.
+
+**Latest update (2026-06-28) — SeqSLAM particle filter (seqpf_sfix):** arc-length position is now tracked by a 256-particle filter (`ArcLengthParticleFilter`) updated via LoFTR relocalization observations scored with a SeqSLAM-style sequence-consistency metric. Ep994 rerun `loftr_depth_ep994_seqpf_sfix_20260628` succeeded: outbound success true, return success true, round-trip success true, final distance to start `1.264 m`. The particle filter captured 8 LoFTR observations spanning anchors 14→8 (route positions 14.1 m → 7.8 m from start), then lost track. From step 3626 onward, hints incorrectly reported 0 m remaining while the true simulator distance was 4–5 m; the VLM did not stop prematurely and navigated correctly using visual/instruction cues. Key diagnosis: the particle filter provides accurate early hints but loses observations after anchor 8 and collapses to zero, so late-return guidance currently comes from the VLN instruction rather than the relocalization hint. Measurement and per-step trajectory are in `artifacts/loftr_depth_ep994_seqpf_sfix_20260628/`.
+
+**Latest update (2026-06-28) — monotonic anchor progress v2:** route-memory target-anchor selection now applies a monotonic policy before the consistency gate, rejects anchor-index regressions away from start, and advances targets after passing an anchor even when the robot did not enter a tight 0.8 m radius. Ep994 rerun `loftr_depth_ep994_monotonic_anchor_v2_20260628` succeeded: outbound success true, return success true, round-trip success true, final distance to start `1.148 m`. Target anchors were monotonic (`None -> 14 -> 13 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3`) with zero monotonic violations. The remaining issue is scalar progress: late route-memory distance remains conservative because it still uses `distance_to_target_anchor + target_anchor.route_remaining` instead of full anchor-chain path projection. Source snapshots, tests, measurement, per-step trajectory, and video are in `artifacts/loftr_depth_ep994_monotonic_anchor_v2_20260628/` and `code/`.
+
+**Latest update (2026-06-28) — 3D-3D rotation fix validates ep994 return:** feature-depth/LoFTR relocalization now preserves the full Kabsch/RANSAC rotation and converts it into `anchor_dtheta_rad` instead of treating the backend as translation-only. A fresh 8-bit VLM ep994 rerun with `--route_relocalization_backend=loftr_depth` succeeded end-to-end: outbound success true, return success true, round-trip success true, final distance to start `1.264 m`. The run produced 85 successful relocalization estimates, 672 pose candidates, max 148 3D inliers, and 86/86 nonzero `anchor_dtheta_rad` records. Artifacts, including the per-step trajectory JSONL and video, are in `artifacts/loftr_depth_ep994_rotation_fix_20260628/`.
+
+**Latest update (2026-06-27) — LoFTR matcher integrated:** geometry pipeline verified correct via 18-test suite; LoFTR (`kornia==0.6.12`, `pretrained="outdoor"`) installed in both conda environments and wired as the `loftr_depth` backend. Offline synthetic tests show LoFTR produces 5–9× more inlier matches than ORB under rotation, scale change, and perspective warp. The `--route_relocalization_backend=loftr_depth` flag is ready; ep994 evaluation with the VLM server running is the next step.
+
+**Anchor relocalization pipeline (2026-06-27):** route memory was extended to a map-free relocalization interface. Each outbound anchor stores RGB, depth, camera intrinsics, and route-distance metadata. The Return stage can accept a metric relative pose to any saved anchor and convert it into a prompt hint such as "route anchor A0 is 0.61 m away, 112 deg to your left; estimated remaining route via anchor is 0.61 m." An Isaac oracle-anchor backend verified the full hint pipeline on episode `994`: outbound success true, return success true, round-trip success true, final distance to start `0.619 m`.
+
+**Classical backend failure analysis (2026-06-27):** ORB+depth on ep994 produced 12 estimates from 76 attempts (6–11 3D inliers each), all too noisy to help. GT covisibility diagnostics showed the bottleneck is matching quality, not missing shared view. SIFT+depth produced more candidates but every estimate was rejected by the consistency gate (37/37 rejected; minimum error 8.06 m). Geometry code was independently verified correct — a formal oracle-consistency proof and 18-test suite confirm the backproject→RANSAC→camera-to-body chain is exact. The 8 m+ SIFT errors are caused entirely by bad feature correspondences, not by a geometry bug.
+
+---
+
+## Hardware & System
+
+| Component | Detail |
+|---|---|
+| GPU | NVIDIA GeForce RTX 4090 (24 GB VRAM, sm_89) |
+| CPU | Intel Core i9-14900K (24 cores / 48 threads) |
+| RAM | 125 GB |
+| OS | Ubuntu 22.04.5 LTS |
+| Driver | 570.124.06 |
+| CUDA | 12.8 (system) |
+| Storage | Root: 1.8 TB NVMe; Data: `/mnt/SSD4T` (3.6 TB, used for all project files) |
+
+**Note on storage:** The root partition was at 100% capacity. All project files, conda environments, model checkpoints, and datasets are placed on `/mnt/SSD4T`.
+
+---
+
+## Directory Layout
+
+```
+/mnt/SSD4T/teambruce/
+├── projects/
+│   └── navila-isaac/
+│       ├── NaVILA/               # AnjieCheng/NaVILA (commit 76b98f2)
+│       ├── NaVILA-Bench/         # yang-zj1026/VLN-CE-Isaac (commit e9d2db1)
+│       ├── IsaacLab/             # yang-zj1026/IsaacLab (commit 4d558ec)
+│       └── checkpoints/
+│           └── navila-llama3-8b-8f/  # HuggingFace: a8cheng/navila-llama3-8b-8f (16 GB)
+├── conda_envs/
+│   ├── vlnce-isaac/              # Isaac Sim + IsaacLab environment
+│   └── navila-vlm/               # NaVILA VLM server environment
+└── conda_pkgs/                   # Conda package cache (redirected from root)
+```
+
+---
+
+## Conda Environment Setup
+
+### Configure conda to use SSD4T
+
+```bash
+# ~/.condarc
+pkgs_dirs:
+  - /mnt/SSD4T/teambruce/conda_pkgs
+  - /home/teambruce/miniconda3/pkgs
+envs_dirs:
+  - /mnt/SSD4T/teambruce/conda_envs
+  - /home/teambruce/miniconda3/envs
+```
+
+### Environment 1: `vlnce-isaac` (Isaac Sim + IsaacLab)
+
+```bash
+conda create --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac python=3.10 -y
+
+# Install Isaac Sim 4.1.0.0
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  pip install \
+    isaacsim-rl==4.1.0.0 isaacsim-replicator==4.1.0.0 \
+    isaacsim-extscache-physics==4.1.0.0 isaacsim-extscache-kit-sdk==4.1.0.0 \
+    isaacsim-extscache-kit==4.1.0.0 isaacsim-app==4.1.0.0 \
+    --extra-index-url https://pypi.nvidia.com
+
+# Run IsaacLab installer (this downgrades torch to 2.2.2+cu121 — fine on RTX 4090 sm_89)
+TERM=xterm conda run --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -i none
+
+# Install rsl_rl and warp
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p -m pip install \
+  -e /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/rsl_rl
+
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  pip install warp-lang==1.13.0
+```
+
+Key versions after install:
+- `torch 2.2.2+cu121` (IsaacLab pins this; works on sm_89)
+- `isaacsim-app 4.1.0.0`
+- `omni-isaac-lab 0.20.8` (yang-zj1026 fork)
+- `rsl-rl 2.0.2`
+- `warp-lang 1.13.0`
+
+### Environment 2: `navila-vlm` (NaVILA VLM Server)
+
+```bash
+conda create --prefix /mnt/SSD4T/teambruce/conda_envs/navila-vlm python=3.10 -y
+
+# PyTorch (original NaVILA pin — works natively on RTX 4090)
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/navila-vlm \
+  pip install torch==2.3.0+cu121 torchvision==0.18.0+cu121 \
+  --index-url https://download.pytorch.org/whl/cu121
+
+# FlashAttention 2.5.8 — prebuilt wheel available for sm_89 (Ada Lovelace)
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/navila-vlm \
+  pip install https://github.com/Dao-AILab/flash-attention/releases/download/v2.5.8/flash_attn-2.5.8+cu122torch2.3cxx11abiFALSE-cp310-cp310-linux_x86_64.whl
+
+# NaVILA/VILA package
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/navila-vlm \
+  pip install -e /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA
+
+# Upgrade bitsandbytes (0.41.0 has API incompatibility with transformers patch)
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/navila-vlm \
+  pip install "bitsandbytes>=0.43.0"
+
+# Apply NaVILA transformers patch
+SITE=/mnt/SSD4T/teambruce/conda_envs/navila-vlm/lib/python3.10/site-packages/transformers
+REPLACE=/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA/llava/train/transformers_replace
+cp ${REPLACE}/modeling_utils.py        ${SITE}/modeling_utils.py
+cp ${REPLACE}/models/llama/modeling_llama.py   ${SITE}/models/llama/modeling_llama.py
+cp ${REPLACE}/models/llama/tokenization_llama.py ${SITE}/models/llama/tokenization_llama.py
+cp ${REPLACE}/models/mistral/modeling_mistral.py ${SITE}/models/mistral/modeling_mistral.py
+cp ${REPLACE}/models/mixtral/modeling_mixtral.py ${SITE}/models/mixtral/modeling_mixtral.py
+```
+
+Key versions:
+- `torch 2.3.0+cu121`
+- `flash-attn 2.5.8`
+- `transformers 4.37.2`
+- `bitsandbytes 0.49.2`
+
+---
+
+## Repository Setup
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac
+
+git clone https://github.com/yang-zj1026/VLN-CE-Isaac.git NaVILA-Bench
+git clone https://github.com/yang-zj1026/IsaacLab.git IsaacLab
+git clone https://github.com/AnjieCheng/NaVILA.git NaVILA
+
+# IsaacLab extension symlinks
+ln -sf $(pwd)/NaVILA-Bench/isaaclab_exts/omni.isaac.vlnce \
+       IsaacLab/source/extensions/omni.isaac.vlnce
+ln -sf $(pwd)/NaVILA-Bench/isaaclab_exts/omni.isaac.matterport \
+       IsaacLab/source/extensions/omni.isaac.matterport
+```
+
+---
+
+## Data & Assets
+
+### NaVILA Checkpoint
+
+```bash
+mkdir -p /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/navila-vlm \
+  huggingface-cli download a8cheng/navila-llama3-8b-8f \
+  --local-dir /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f
+```
+
+Size: ~16 GB (4 safetensors shards).
+
+### VLN-CE-Isaac Assets (Matterport USD + Annotations)
+
+```bash
+conda run --prefix /mnt/SSD4T/teambruce/conda_envs/navila-vlm \
+  huggingface-cli download Zhaojing/VLN-CE-Isaac \
+  --repo-type dataset \
+  --local-dir /mnt/SSD4T/teambruce/projects/navila-isaac/vlnce_assets
+
+ASSETS=/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/isaaclab_exts/omni.isaac.vlnce/assets
+mkdir -p ${ASSETS}
+cp vlnce_assets/vln_ce_isaac_v1.json.gz ${ASSETS}/
+unzip -q vlnce_assets/matterport_usd.zip -d ${ASSETS}/
+# Result: 91 Matterport scene directories
+```
+
+Low-level policy checkpoints for Go2 and H1 are bundled in the `NaVILA-Bench/logs/` directory (included in the git repo).
+
+---
+
+## Patches Required
+
+The following patches were necessary to run on this setup. All are due to version mismatches between NaVILA's pinned dependencies and current library releases — none are RTX 4090 / Ada Lovelace specific.
+
+### 1. `NaVILA/llava/train/sequence_parallel/globals.py`
+**Issue:** Hard import of `deepspeed` fails when DeepSpeed is not installed (evaluation-only setup).
+```python
+# Before
+import deepspeed.comm as dist
+
+# After
+import torch
+try:
+    import deepspeed.comm as dist
+except ImportError:
+    import torch.distributed as dist
+```
+
+### 2. `NaVILA/llava/model/builder.py`
+**Issue:** `load_8bit=True` skips setting `torch_dtype`, but `prepare_config_for_eval()` always pops it → `KeyError`.
+```python
+# After (line 44-46)
+if load_8bit:
+    kwargs["load_in_8bit"] = True
+    kwargs["torch_dtype"] = torch.float16  # ← added
+```
+
+### 3. `transformers/modeling_utils.py` (in conda env site-packages AND NaVILA repo)
+**Issue:** NaVILA's transformers patch calls `set_module_quantized_tensor_to_device(..., fp16_statistics=...)`, but the current transformers renamed this parameter to `quantized_stats`.
+```python
+# Before
+set_module_quantized_tensor_to_device(model, param_name, param_device, value=param, fp16_statistics=fp16_statistics)
+
+# After
+set_module_quantized_tensor_to_device(model, param_name, param_device, value=param, quantized_stats=fp16_statistics)
+```
+Apply to both:
+- `conda_envs/navila-vlm/lib/python3.10/site-packages/transformers/modeling_utils.py`
+- `NaVILA/llava/train/transformers_replace/modeling_utils.py`
+
+### 4. `NaVILA-Bench/scripts/vlm_server.py`
+**Issue (a):** `args.model_path` references the global `args` instead of `self.args` → `NameError`.  
+**Issue (b):** Calling `self.model.to(device)` after loading with `device_map` causes meta tensor error.  
+**Fix:** Use `self.args.model_path`, pass explicit `device_map={"": device}`, remove redundant `.to()`.  
+**Added:** `--load_8bit` flag, `--max_new_tokens` flag, `pad_token_id` in generate call.
+
+### 5. `NaVILA-Bench/scripts/navila_eval.py`
+**Issue:** PIL JPEG encoding (`pil_image.save(..., format="JPEG")`) crashes inside Isaac Sim due to bundled PIL version conflict with conda env's Pillow.  
+**Fix:** Replace with OpenCV encoding:
+```python
+import cv2
+np_bgr = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
+_, buf = cv2.imencode(".jpg", np_bgr)
+encoded_images.append(base64.b64encode(buf.tobytes()).decode())
+```
+
+### 6. `vlnce-isaac` conda env `PIL/_util.py`
+**Issue:** Isaac's bundled `PIL/ImageFont.py` calls `PIL._util.is_directory()`, which doesn't exist in Pillow 11.x+.  
+**Fix:** Add the function:
+```python
+def is_directory(f):
+    return isinstance(f, (bytes, str, os.PathLike)) and os.path.isdir(f)
+```
+
+### 7. Isaac bundled `botocore/httpchecksum.py`
+**Path:** `.../isaacsim/extscache/omni.kit.pip_archive/pip_prebundle/botocore/httpchecksum.py`  
+**Issue:** The conda env's `s3transfer` imports `DEFAULT_CHECKSUM_ALGORITHM` from botocore, but Isaac's bundled botocore is too old to have it. This caused `omni.replicator.core` to fail loading, breaking camera sensor initialization.  
+**Fix:** Add the constant to Isaac's bundled botocore:
+```python
+DEFAULT_CHECKSUM_ALGORITHM = "crc32"
+```
+
+---
+
+## Running the Evaluation
+
+Requires two terminals.
+
+### Terminal 1 — VLM Server
+
+```bash
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/navila-vlm \
+  python /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+```
+
+Wait until the port is listening:
+```bash
+ss -tlnp | grep 54321
+```
+
+### Terminal 2 — Isaac Evaluation
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && \
+OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/navila_eval.py \
+  --task=go2_matterport_vision \
+  --num_envs=1 \
+  --history_length=9 \
+  --load_run=2024-09-25_23-22-02 \
+  --headless \
+  --enable_cameras \
+  --episode_idx=0
+```
+
+Results saved to: `eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02/`
+
+### VRAM Usage (RTX 4090, 24 GB)
+
+| Component | VRAM |
+|---|---|
+| VLM server (8-bit) | ~10 GB |
+| Isaac Sim + camera rendering | ~8 GB |
+| **Total** | **~18 GB / 24 GB** |
+
+---
+
+## Results
+
+### Episode 0 — `go2_matterport_vision`
+
+```json
+{
+    "path_length": 8.977,
+    "distance_to_goal": 0.787,
+    "success": 1.0,
+    "spl": 0.907,
+    "oracle_navigation_error": 0.203,
+    "oracle_success": 1.0
+}
+```
+
+**success = 1.0, SPL = 0.907** — the Go2 robot successfully navigated to the goal following NaVILA's language-conditioned commands.
+
+---
+
+## Project Progress Log
+
+### 2026-06-05 — Language-Only Round-Trip Baseline
+
+After confirming the baseline NaVILA + Isaac Sim VLN-CE deployment on six episodes, the next project stage is to construct a single-episode long-horizon task with an Outbound -> Confirm -> Return structure.
+
+Implemented a language-only round-trip baseline evaluator:
+
+```text
+code/round_trip_eval.py
+```
+
+The working copy in the Isaac project is:
+
+```text
+/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/round_trip_eval.py
+```
+
+This baseline intentionally does not use route memory, anchors, template inversion, geometric hints, or fallback control. It only tests whether NaVILA can execute a continuous long-horizon round-trip task from language.
+
+Supported modes:
+
+- `static_long_instruction`: NaVILA always receives one complete outbound-confirm-return instruction from the first step onward.
+- `phase_prompt`: the evaluator provides phase-specific language prompts for Outbound and Return, but still provides no route-memory or geometric information.
+
+Current behavior:
+
+- Converts the original single-trip VLN-CE instruction into a round-trip instruction.
+- Interprets the first NaVILA `stop` during Outbound as a phase transition rather than ending the episode.
+- Runs a scripted Confirm phase as a 360-degree scan.
+- Continues into a Return phase inside the same simulator episode.
+- Evaluates return success by distance to the original starting point.
+- Saves stop events, phase events, generated instructions, outbound success, return distance-to-start, return success, and round-trip success into the measurement JSON.
+- Writes results under `eval_results/round_trip_<mode>_<task>_loco_<run>/` so modes and baseline results are not overwritten.
+
+Run command for Baseline A, the strict long-instruction version:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && \
+OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision \
+  --num_envs=1 \
+  --history_length=9 \
+  --load_run=2024-09-25_23-22-02 \
+  --headless \
+  --enable_cameras \
+  --round_trip_mode=static_long_instruction \
+  --episode_idx=0
+```
+
+Run command for Baseline B, the phase-prompt language-only version:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && \
+OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision \
+  --num_envs=1 \
+  --history_length=9 \
+  --load_run=2024-09-25_23-22-02 \
+  --headless \
+  --enable_cameras \
+  --round_trip_mode=phase_prompt \
+  --episode_idx=0
+```
+
+The next technical steps are:
+
+- Run both baseline modes with GPU access and compare behavior.
+- Decide whether `static_long_instruction` is too strict for NaVILA's original single-trip training distribution.
+- Use the stronger language-only baseline as the comparison target for the later external-memory agent.
+- Only after this baseline is measured, add route-template memory, geometric hints, and fallback control as the proposed method.
+
+### 2026-06-05 — First `phase_prompt` Round-Trip Test
+
+Ran `phase_prompt` on `go2_matterport_vision`, episode 0.
+
+Artifacts:
+
+```text
+results/round_trip_phase_prompt_episode0/
+├── output_0.mp4
+├── measurement_raw_before_outbound_success_fix.json
+└── summary.md
+```
+
+Observed behavior:
+
+- Outbound reached the original target region and NaVILA emitted `stop`.
+- The evaluator transitioned from Outbound to scripted Confirm, then into Return inside the same simulator episode.
+- Return did not reach the original starting point.
+
+Key numbers:
+
+```text
+outbound stop step: 1200
+outbound stop distance to goal: 0.493 m
+outbound goal radius: 3.0 m
+outbound success: true by distance threshold
+return success: false
+round-trip success: false
+final distance to start: 8.523 m
+final distance to outbound goal: 2.974 m
+```
+
+Important evaluator fix:
+
+The raw JSON from this first run records `round_trip.outbound_success=false`, but this is a logging bug: the evaluator inferred outbound success from the final post-return measurement. The code has been fixed so that outbound success is computed at the first outbound `stop` using the outbound goal radius.
+
+### 2026-06-05 — Second `phase_prompt` Run After Evaluator Fix
+
+Ran `phase_prompt` again on `go2_matterport_vision`, episode 0, after fixing outbound-success logging.
+
+Artifacts:
+
+```text
+results/round_trip_phase_prompt_episode0_run2/
+├── output_0.mp4
+├── measurement.json
+└── summary.md
+```
+
+Key numbers:
+
+```text
+outbound stop step: 1425
+outbound stop distance to goal: 0.780 m
+outbound goal radius: 3.0 m
+outbound success: true
+return stop step: 4801
+return stop distance to start: 6.055 m
+final distance to start: 6.062 m
+return success: false
+round-trip success: false
+top-level path length: 29.794 m
+```
+
+Interpretation:
+
+The phase-prompt baseline can complete the outbound portion and transition through Confirm into Return, but it still fails the return-to-start objective. In this run, NaVILA stopped during Return while still about 6 m from the original start. This supports keeping `phase_prompt` as a language-only baseline before adding the external route-memory agent.
+
+### 2026-06-06 — Return-Failure Diagnosis
+
+Reviewed both `phase_prompt` runs using the saved command events, measurements, and videos.
+
+Findings:
+
+- All Return-phase NaVILA outputs were parseable navigation commands; neither run failed because of an invalid-language-output fallback.
+- The robot did not remain physically stuck for a prolonged period.
+- Run 1 stayed mainly around the living-room area and timed out without returning.
+- Run 2 entered a corridor, later selected an incorrect direction, returned toward the living-room area, and emitted `stop` while still about `6.06 m` from the start.
+- The second run therefore shows both route-selection/re-localization failure and incorrect task-completion judgment.
+
+The existing logs do not contain a full per-step pose trajectory, so they cannot yet distinguish gradual geometric drift from a discrete wrong turn at a junction. A later baseline instrumentation update should record pose, heading, distance to the reversed reference path, along-path progress, commanded motion, and executed motion.
+
+### 2026-06-06 — Explicit Reverse-Instruction Generator
+
+Added an offline instruction-rewriting module to the working NaVILA-Bench project:
+
+```text
+scripts/instruction_rewriter.py
+tests/test_instruction_rewriter.py
+```
+
+The module:
+
+- accepts an episode's original outbound instruction;
+- asks a local or OpenAI-compatible LLM for an independently executable Return instruction;
+- requires JSON output;
+- reverses landmark/route order and directional actions through prompt constraints;
+- rejects unchanged, empty, refusal, and obvious stop-first outputs;
+- caches the generated instruction so benchmark runs are deterministic;
+- supports `cache_only` evaluation, keeping the instruction-generation LLM outside the navigation loop.
+
+The initial `llama3.2` generation was rejected during manual review because it reversed landmark order incorrectly and introduced ambiguous room transitions. The prompt was strengthened and versioned as `round-trip-rewriter-v2`. A second generation using local `qwen2.5vl:7b` produced:
+
+```text
+Outbound:
+Exit the bedroom and turn left. Walk straight passing the gray couch
+and stop near the rug.
+
+Return:
+From the rug, walk back past the gray couch. Turn right, enter the bedroom,
+and stop at the original starting location.
+```
+
+Five unit tests currently cover generation, caching, cache-only loading, unchanged-output rejection, and rejection of an outbound `stop` repeated as the first Return action.
+
+Important limitation:
+
+The current generator validates format and several obvious logical errors, but it does **not** mathematically prove that an LLM-generated reverse instruction is geometrically correct. Sparse source instructions may omit junctions, landmark-side relations, or the exact visual identity of the starting location. Generated instructions must therefore remain versioned and manually reviewed before benchmark use.
+
+Planned correction work:
+
+- parse the outbound instruction into structured route steps;
+- mechanically reverse step order and invert directional relations;
+- validate landmark order with a second pass;
+- use the episode reference path and heading to check turn geometry;
+- record an explicit human-review status in the cache and measurement JSON.
+
+### 2026-06-06 — Explicit Reverse-Instruction Baseline Test
+
+Checked system resources before the run:
+
+```text
+GPU: RTX 4090, approximately 23.6 GB VRAM free before loading models
+System memory: approximately 117 GB available
+SSD4T: approximately 2.7 TB available
+```
+
+Ran Episode 0 in `phase_prompt` mode using the reviewed `qwen2.5vl:7b` reverse instruction from the deterministic cache. The result directory used the suffix `explicit_reverse_v2` so the previous runs were not overwritten.
+
+Key results:
+
+```text
+outbound stop step: 1200
+outbound stop distance to goal: 0.529 m
+outbound success: true
+return stop step: 4976
+return stop distance to start: 11.279 m
+final distance to start: 11.281 m
+return success: false
+round-trip success: false
+```
+
+Observed behavior:
+
+- The explicit instruction changed the Return behavior: the robot left the living-room region and entered a long corridor.
+- It entered the wrong part of the environment, continued issuing valid movement commands, and finally emitted `stop` far from the original start.
+- This run demonstrates that replacing the abstract “retrace the route” prompt with a manually reviewed, explicit reverse instruction is not sufficient by itself.
+- The result is consistent with failures in visual re-localization, junction selection, route-progress estimation, and stop judgment.
+
+This remains a language-only baseline. It still uses no route memory, anchor matching, geometric hints, template inversion, or fallback controller.
+
+Operational note:
+
+After Isaac Sim shut down, `nvidia-smi` temporarily lost communication with NVML even though the NVIDIA kernel modules remained loaded and no NVIDIA Xid entry was found in the checked kernel-log window. GPU/driver health should be confirmed before another simulation run.
+
+### 2026-06-06 — Strict Long-Instruction Baseline
+
+After GPU/NVML communication recovered, ran Episode 0 in `static_long_instruction` mode using the same cached `qwen2.5vl:7b` outbound + explicit Return instruction.
+
+Key results:
+
+```text
+outbound success: false
+return started: false
+closest outbound distance to goal: 0.143 m
+final distance to outbound goal: 3.004 m
+final distance to start: 8.410 m
+path length: 13.854 m
+stop events: 0
+outbound timeout: approximately 50 seconds
+```
+
+Observed behavior:
+
+- The robot correctly left the bedroom and entered the living-room area.
+- It passed through the target region and came within `0.143 m` of the outbound goal.
+- NaVILA did not emit `stop`, so the evaluator never transitioned to Confirm or Return.
+- It continued navigating and moved away from the outbound target until timeout.
+
+Interpretation:
+
+This is a subtask-boundary or phase-transition failure. Under the full combined instruction, NaVILA failed to recognize that the outbound subtask had finished. This run does not measure reverse-route ability because Return never started.
+
+Result directory:
+
+```text
+eval_results/round_trip_static_long_instruction_go2_matterport_vision_loco_2024-09-25_23-22-02_strict_explicit_reverse_v2/
+```
+
+### 2026-06-06 — Controlled Phase-Prompt Return Diagnosis
+
+Added reusable diagnostic controls to `round_trip_eval.py`:
+
+```text
+--return_instruction_file=<path>
+--return_instruction_override=<text>
+--oracle_return_pose
+```
+
+The evaluator now records the natural Return pose, optional expert-corrected pose, selected Return instruction, and phase-transition events. `--oracle_return_pose` places the robot at the expert outbound endpoint and faces it toward the previous expert waypoint when Return begins.
+
+Three Episode 0 conditions were compared:
+
+| Return condition | Outbound | Return | Final distance to start |
+|---|---:|---:|---:|
+| Generated reverse instruction + natural pose | Success | Failure | `11.281 m` |
+| Human Oracle instruction + natural pose | Success | Success | `1.995 m` |
+| Human Oracle instruction + expert pose | Success | Success | `1.992 m` |
+
+The human Oracle Return instruction was:
+
+```text
+From the rug, turn around. Retrace the route past the gray couch and continue straight back
+toward the bedroom doorway. Turn right through the doorway into the bedroom and stop at the
+original starting position inside the bedroom. Do not stop before reaching the bedroom.
+```
+
+Additional observations:
+
+- The natural-pose Oracle run began Return approximately `1.01 m` from the expert endpoint and still succeeded.
+- Both Oracle-instruction runs entered the configured `2.0 m` Return success radius.
+- The expert-pose run reproduced the original successful outbound stop distance of `0.529 m` before pose correction.
+- An initial expert-pose implementation exposed an inference-tensor refresh bug; the invalid run was discarded, the history-buffer reset was fixed, and the corrected `oracle_instruction_pose_v2` run completed normally.
+
+Revised conclusion (updated 2026-06-06):
+
+The Oracle instruction successes are methodologically invalid as evidence for NaVILA's round-trip capability. The Oracle instruction adds spatial detail that is absent from the original outbound instruction ("turn around", "Do not stop before reaching the bedroom", explicit doorway language), making it a strictly easier task. A scientifically valid baseline requires a reverse instruction at the same level of specificity as the original. See the 2026-06-06 Instruction Rewriter v3 entry below.
+
+Relevant result directories:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_explicit_reverse_v2/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_oracle_instruction_v1/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_oracle_instruction_pose_v2/
+```
+
+### 2026-06-06 — Instruction Rewriter Upgraded to v3 (Parse → Mechanical Invert → Render)
+
+The one-step LLM generation pipeline (`round-trip-rewriter-v2`) was replaced with a three-step pipeline that separates logic from language:
+
+1. **Parse** — LLM converts the outbound instruction into a structured step sequence (JSON).
+2. **Mechanical invert** — deterministic Python code reverses step order and applies fixed rules: `left ↔ right`, `exit_room ↔ enter_room`, landmark order guaranteed by code.
+3. **Render** — LLM converts the inverted step sequence back to natural language at the same level of specificity as the original.
+
+The motivation is to eliminate instruction logic errors (wrong landmark order, un-inverted turn directions) as a confounding variable, while keeping the generated instruction at the same granularity as the original outbound instruction. Adding detail beyond the original (e.g. "turn around", explicit stop constraints) would reduce task difficulty and invalidate the comparison.
+
+The v2 pipeline depended on the LLM to get both the spatial inversion logic and the language rendering correct in a single step. The v3 pipeline guarantees structural correctness by code and uses the LLM only for parsing and rendering.
+
+Files changed:
+
+```text
+scripts/instruction_rewriter.py   (PROMPT_VERSION → round-trip-rewriter-v3)
+tests/test_instruction_rewriter.py (10 tests, all passing)
+```
+
+Episode 0 v3 generated return instruction (qwen2.5vl:7b):
+
+```text
+From the rug, move straight to the gray couch, turn right, and enter the bedroom. Stop at the bedroom.
+```
+
+### 2026-06-06 — Training Coverage Diagnosis: Reverse-Direction Episode Test
+
+**Research question:** Is the return-phase failure caused by (H1) insufficient training coverage of the reverse route direction, or (H2) a structural limitation specific to the round-trip context?
+
+**Method:** Search the VLN-CE-Isaac dataset for episodes in the same scene (`zsNo4HB9uLZ`) whose outbound path traverses the same waypoints as episode 0's return path, in the reverse direction.
+
+**Finding:** Episodes 1198, 1199, and 1200 share the identical waypoint sequence with episode 0's return path (5/5 waypoints within 2 m), traveling from the corridor near the rug toward the bedroom. Their array indices in the dataset are 705, 706, and 707.
+
+| | Episode 0 outbound | Episodes 1198–1200 outbound |
+|---|---|---|
+| Start | Bedroom `(15.07, 4.48)` | Corridor `(12.86, 0.07)` |
+| Goal | Rug area `(13.05, -1.87)` | Bedroom `(15.07, 4.48)` |
+| Direction | Bedroom → Rug | Corridor → Bedroom (= episode 0 return direction) |
+| Waypoint overlap | — | 5 / 5 |
+
+**Result:** Episode 705 (`episode_id=1198`, instruction: "Walk straight into the hallway. Turn right and go into the room. Wait near the door on the left.") evaluated with standard `navila_eval.py`:
+
+```json
+{
+    "path_length": 7.630,
+    "distance_to_goal": 1.080,
+    "success": 1.0,
+    "spl": 0.807,
+    "oracle_navigation_error": 0.159,
+    "oracle_success": 1.0
+}
+```
+
+**Conclusion:** NaVILA achieves `success = 1.0` on the reverse-direction path as a standard outbound episode. This directly rules out H1: the training distribution covers this path direction, and the model has the capability to navigate it. The return failure in the round-trip evaluation is therefore a structural problem specific to the round-trip context — not a training coverage gap. This is the key result justifying the need for an external route-memory mechanism rather than simply adding more training data.
+
+Result file:
+
+```text
+eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02/measurements/1197.json
+```
+
+### 2026-06-16 - Return-Failure Ablations: Pose Drift vs Instruction Quality
+
+Ran a focused set of Episode 0 round-trip ablations to separate three possible causes of Return failure:
+
+1. accumulated outbound pose drift at the start of Return;
+2. quality and training-distribution fit of the generated reverse instruction;
+3. the round-trip context itself, including phase transition, visual history, and stop judgment.
+
+All runs used the same language-only `phase_prompt` round-trip evaluator and no route memory, anchor matching, geometric hints, or fallback controller unless explicitly noted. The standard v3 reverse instruction was:
+
+```text
+From the rug, move straight to the gray couch, turn right, and enter the bedroom. Stop at the bedroom. This is the return phase. Stop only when you have reached the original starting location.
+```
+
+The retrieved reverse-direction dataset instruction from Episode 705 / `episode_id=1198` was:
+
+```text
+Walk straight into the hallway. Turn right and go into the room. Wait near the door on the left.
+```
+
+#### Round-trip: v3 reverse instruction vs oracle Return pose
+
+| Condition | Outbound | Return | Final distance to start | Return-start pose error |
+|---|---:|---:|---:|---:|
+| v3 reverse instruction + natural Return pose | true | false | `11.213 m` | XY `0.300 m`, yaw `-46.4 deg` |
+| v3 reverse instruction + oracle Return pose | true | false | `10.029 m` | after reset: XY `0.000 m`, yaw `0.0 deg` |
+
+Key observation: oracle Return pose reset worked exactly, but did not recover success. This means accumulated outbound pose drift is not by itself a sufficient explanation for Return failure.
+
+#### Same reverse path as a normal single-trip episode
+
+Used Episode 705 (`episode_id=1198`) in the same scene (`zsNo4HB9uLZ`). This episode follows the reverse direction of Episode 0's Return path as a normal VLN task.
+
+| Single-trip condition on Episode 705 | Success | SPL | Distance to goal |
+|---|---:|---:|---:|
+| Original Episode 705 instruction | `1.0` | `0.892` | `0.317 m` |
+| Episode 0 v3 reverse instruction used as override | `0.0` | `0.000` | `17.740 m` |
+
+Key observation: NaVILA succeeds on this reverse-direction route with the dataset's natural instruction, but fails badly when the v3 reverse instruction is used as the user instruction. This shows reverse-instruction wording and training-distribution fit are a major confound.
+
+#### Round-trip using Episode 705's natural instruction as Return instruction
+
+| Condition | Outbound | Return | Final distance to start | Termination |
+|---|---:|---:|---:|---|
+| Episode 705 instruction + natural Return pose | true | false | `3.532 m` | Return stop at `3.532 m` |
+| Episode 705 instruction + oracle Return pose | true | false | `11.351 m` | Return stop at `11.351 m` |
+
+Replacing the v3 reverse instruction with Episode 705's natural instruction improved the natural-pose Return substantially (`11.21 m` -> `3.53 m` from start), but still did not enter the configured `2.0 m` success radius. Adding oracle Return pose to the Episode 705 instruction did not help in this run.
+
+Current interpretation:
+
+- v3 reverse-instruction quality is insufficient and materially worsens Return behavior.
+- Pose drift exists, especially heading error at Return start, but correcting the Return pose alone does not restore success.
+- Round-trip context remains a separate failure factor: phase transition, accumulated visual history, current-view mismatch, and premature stop judgment can still break Return even with a dataset instruction that succeeds as a clean single-trip episode.
+
+Result directories:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_drift_natural_ep0_v3/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_drift_oracle_pose_ep0_v3/
+eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02_ep1198_original_instruction/
+eval_results/go2_matterport_vision_loco_2024-09-25_23-22-02_ep1198_episode0_v3_return_instruction/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_drift_natural_ep0_ep705_return_instruction/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_drift_oracle_pose_ep0_ep705_return_instruction/
+```
+
+### 2026-06-16 - Instruction Rewriter v4: Dataset Reverse-Path Retrieval
+
+Upgraded the reverse-instruction generator from v3 to v4.
+
+Previous v3 behavior:
+
+- parsed the outbound instruction;
+- mechanically inverted the parsed route;
+- rendered a reverse instruction with an LLM;
+- for Episode 0 produced the weak instruction beginning with `From the rug...`.
+
+Problem identified by ablations:
+
+- the v3 instruction failed even as a clean single-trip override on Episode 705;
+- the dataset's natural reverse-direction instruction succeeded on that same route;
+- therefore the reverse instruction must be treated as a real experimental variable, not as a solved preprocessing step.
+
+New v4 behavior:
+
+1. Given the current dataset path and episode index, search the same scene for episodes whose reference path overlaps the current episode's Return path in reverse order.
+2. Rank candidates by matched waypoints, path-length agreement, coverage, mean waypoint distance, and dataset index.
+3. If a strong reverse-path neighbor exists, use that episode's original VLN instruction as the Return instruction.
+4. If no neighbor exists, fall back to the parse -> mechanical invert -> render pipeline.
+
+For Episode 0, v4 retrieves:
+
+```text
+episode_index=705; episode_id=1198; matched_waypoints=5; mean_distance_m=0.000
+```
+
+and uses:
+
+```text
+Walk straight into the hallway. Turn right and go into the room. Wait near the door on the left.
+```
+
+The cache was updated with a `round-trip-rewriter-v4` entry, so `--instruction_rewriter_provider=cache_only` now resolves Episode 0 to the dataset reverse-path instruction when dataset context is available.
+
+Implementation notes:
+
+```text
+scripts/instruction_rewriter.py    # v4 retrieval + fallback generator
+scripts/round_trip_eval.py         # passes dataset path and episode index into InstructionRewriter
+tests/test_instruction_rewriter.py # 11 tests passing, including reverse-path retrieval ranking
+```
+
+### 2026-06-16 - Per-Step Trajectory Logging and Stronger Oracle Reset
+
+Added per-step trajectory logging to the round-trip evaluator so every completed run can be diagnosed from a JSONL trajectory file rather than only from final measurements.
+
+Each round-trip measurement now records:
+
+```text
+round_trip.trajectory_file
+round_trip.trajectory_record_count
+```
+
+Each trajectory record includes:
+
+- step index and current phase;
+- robot position, quaternion, yaw, root velocity, and planar speed;
+- active high-level command and latest VLM output;
+- distance to the original start and outbound goal;
+- nearest point on the outbound reference path and reversed return path.
+
+Also strengthened `--oracle_return_pose`. It now resets more than just the robot pose:
+
+- writes the expert return-start pose and zero root velocity;
+- clears low-level proprioceptive history;
+- rebuilds low-level observations as normal writable tensors;
+- clears stop/same-position state;
+- clears the VLM image history;
+- forces the first Return VLM query to use a fresh post-reset camera frame.
+
+Two implementation bugs were exposed and fixed while validating this:
+
+1. The local IsaacLab `SimulationContext` does not expose `write_data_to_sim()`, so the call is now version-gated.
+2. Rebuilding low-level observations inside `torch.inference_mode()` created inference tensors that the VLN wrapper could not update in place. The refresh path now temporarily disables inference mode and clones detached tensors.
+
+#### v4 rerun with trajectory logging
+
+Both runs used Episode 0, `phase_prompt`, `cache_only`, and the v4 dataset reverse-path instruction retrieved from Episode 705:
+
+```text
+Walk straight into the hallway. Turn right and go into the room. Wait near the door on the left.
+```
+
+| Condition | Outbound | Return | Round trip | Final distance to start | Trajectory records |
+|---|---:|---:|---:|---:|---:|
+| v4 baseline, natural Return pose | true | true | true | `1.995 m` | `2963` |
+| v4 baseline + stronger oracle reset | true | false | false | `13.295 m` | `3152` |
+
+Baseline details:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_traj_baseline_ep0/
+measurements/0.json
+trajectories/output_0.jsonl
+```
+
+- `instruction_rewriter_provider`: `dataset_reverse_path_neighbor`
+- `instruction_rewriter_model`: `episode_index=705;episode_id=1198;matched_waypoints=5;mean_distance_m=0.000`
+- outbound stop distance to goal: `0.195 m`
+- Return-start pose error before oracle correction: XY `0.456 m`, yaw `-72.6 deg`
+- final distance to start: `1.995 m`, inside the configured `2.0 m` success radius
+
+Oracle-reset details:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_traj_oracle_reset_ep0/
+measurements/0.json
+trajectories/output_0.jsonl
+```
+
+- oracle reset itself was exact: post-reset XY error `0.000 m`, z error `0.000 m`, yaw error `0.0 deg`
+- Return began near the reversed reference path: trajectory sample at Return start had nearest-return-path distance `0.063 m`
+- Return initially moved closer to start (`6.673 m` -> `5.691 m`), then drifted away (`9.096 m`, `12.101 m`) and finally stopped at `13.295 m`
+
+Current interpretation:
+
+- The v4 instruction fix is material: the natural-pose v4 baseline succeeded where earlier v3 variants failed.
+- The stronger oracle reset now cleanly isolates robot pose, low-level history, VLM visual history, and stop/memory state at Return transition.
+- Because oracle reset was exact but the Return trajectory still diverged after the reset, this failure is not explained by accumulated outbound pose drift alone. The per-step log points to post-reset Return-phase visual decision/control drift or stop judgment as the next target.
+
+### 2026-06-16 - v4 Baseline Stability and Random-Episode Generalization
+
+After the first v4 Episode 0 baseline succeeded just inside the configured `2.0 m` return-success radius, repeated the same language-only baseline to check whether that success was a one-off stochastic result.
+
+All runs used Episode 0, `phase_prompt`, `cache_only`, and the v4 dataset reverse-path instruction retrieved from Episode 705.
+
+| Run set | Runs | Round-trip success | Final distance to start |
+|---|---:|---:|---|
+| Original v4 baseline + 5 repeats | 6 | 6 / 6 | `1.995 m` to `2.000 m` |
+
+Repeat-run observations:
+
+- The Episode 0 v4 baseline success is reproducible across six total runs.
+- The margin is extremely narrow: the final distance is consistently just inside the `2.0 m` success threshold.
+- Several runs are bitwise-identical or nearly identical, while two repeats used a slightly different outbound stop pose and still ended inside the threshold.
+
+Representative result directories:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_traj_baseline_ep0/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_repeat_baseline_ep0_r1/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_repeat_baseline_ep0_r2/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_repeat_baseline_ep0_r3/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_repeat_baseline_ep0_r4/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_repeat_baseline_ep0_r5/
+```
+
+Then stopped testing Episode 0 and sampled three different episodes from `vln_ce_isaac_v1.json.gz`, restricted to cases where v4 could retrieve a reverse-path neighbor from the dataset.
+
+| episode_idx | episode_id | scene | Reverse-neighbor source | Outbound | Return | Round trip | Final distance to start |
+|---:|---:|---|---|---:|---:|---:|---:|
+| 189 | 286 | `2azQ1b91cZZ` | episode_idx `696`, 4 matched waypoints, mean distance `0.000 m` | true | false | false | `7.217 m` |
+| 278 | 444 | `EU6Fwq7SyZv` | episode_idx `888`, 4 matched waypoints, mean distance `0.261 m` | false | false | false | `1.173 m` |
+| 799 | 1361 | `zsNo4HB9uLZ` | episode_idx `393`, 5 matched waypoints, mean distance `0.000 m` | false | false | false | `5.932 m` |
+
+Per-episode notes:
+
+- Episode 189 completed Outbound and entered Return, but never got close to the start. During Return its best distance to start was about `6.19 m`, and it stopped at about `7.21 m`.
+- Episode 278 failed before Return. It remained in the Outbound phase and eventually hit the same-location/stuck guard, with final distance to outbound goal `9.954 m`.
+- Episode 799 also failed before Return. It continued issuing movement/turn commands but did not produce a successful outbound stop, ending `2.104 m` from the outbound goal.
+
+Random-episode result directories:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep189/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep278/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep799/
+```
+
+Current interpretation:
+
+- Episode 0 is a favorable narrow-margin case rather than a generally representative round-trip success.
+- On random episodes, many failures happen before Return because Outbound itself does not reliably terminate successfully.
+- For return-specific diagnosis, future tests should either pre-screen for episodes with stable Outbound success or use an oracle Return-start setup to isolate the Return leg from Outbound failure.
+
+### 2026-06-17 — v4 Baseline: 5 New Random Episodes Across 5 Scenes
+
+Ran 5 new episodes sampled from the v4-eligible pool (episodes that have at least one reverse-path neighbor in the same scene). Selected one best candidate per scene, prioritising highest matched-waypoint count and lowest mean path distance. All runs used `phase_prompt` mode and `cache_only` instruction provider (v4 dataset reverse-path retrieval).
+
+System state before run: GPU 24018 MB VRAM free, RAM 120 GB available, SSD4T 2.7 TB available.
+
+| ep_idx | ep_id | scene | Reverse-neighbor source | Outbound | Return | Round trip | Final distance to start |
+|---:|---:|---|---|---:|---:|---:|---:|
+| 366 | 601 | `X7HyMhZNoso` | ep_idx=1038, ep_id=1759, 7 matched, mean 0.000 m | true | false | false | `7.441 m` (timeout) |
+| 105 | 151 | `QUCTc6BB5sX` | ep_idx=993, ep_id=1699, 7 matched, mean 0.000 m | true | true | **true** | `1.997 m` |
+| 3 | 7 | `x8F5xyUWy9e` | ep_idx=354, ep_id=583, 5 matched, mean 0.000 m | false* | true | false | `1.997 m` |
+| 132 | 193 | `2azQ1b91cZZ` | ep_idx=756, ep_id=1288, 7 matched, mean 0.258 m | false | — | false | — |
+| 612 | 1069 | `zsNo4HB9uLZ` | ep_idx=678, ep_id=1165, 7 matched, mean 0.000 m | false | — | false | — |
+
+*ep3 outbound stopped at 3.919 m, marginally outside the 3.0 m goal radius.
+
+Per-episode notes:
+
+- **Episode 366 (X7HyMhZNoso):** Outbound completed successfully (stopped at 2.456 m from goal). During Return, the robot became stuck in alternating left/right 45-degree turns from approximately step 3750 onward, timed out at step 7051 with distance to start 7.441 m. Classic Return visual-decision failure with no forward progress.
+
+- **Episode 105 (QUCTc6BB5sX):** Full round-trip success. Outbound stopped cleanly at 1.186 m from goal. Return distance improved continuously from 11.875 m → 9.822 m → 6.861 m → 3.019 m across 500-step checkpoints. Final distance to start: 1.997 m (inside 2.0 m radius).
+
+- **Episode 3 (x8F5xyUWy9e):** Anomalous result. Outbound formally failed (stopped at 3.919 m, just outside the 3.0 m goal radius) but Return still succeeded (final distance 1.997 m). The robot reached the outbound target area closely enough to execute a successful Return despite the formal outbound failure. This round-trip is counted as a failure (outbound unconfirmed), but it suggests Return capability in this episode is robust even from a slightly incorrect outbound endpoint.
+
+- **Episode 132 (2azQ1b91cZZ):** Outbound never emitted a stop; the episode timed out in the outbound phase at 5.421 m from original start. Return never started.
+
+- **Episode 612 (zsNo4HB9uLZ):** Same failure mode as ep132 — outbound timeout without stop, Return never started. Final position was 2.962 m from the original start (still in outbound phase).
+
+Updated cumulative results across all random episodes tested with v4 (excluding the 6 Episode 0 stability runs):
+
+| ep_idx | scene | Outbound | Return | Round trip | Final dist to start |
+|---:|---|---:|---:|---:|---:|
+| 189 | `2azQ1b91cZZ` | true | false | false | `7.217 m` |
+| 278 | `EU6Fwq7SyZv` | false | — | false | — |
+| 799 | `zsNo4HB9uLZ` | false | — | false | — |
+| 366 | `X7HyMhZNoso` | true | false | false | `7.441 m` |
+| 105 | `QUCTc6BB5sX` | true | true | **true** | `1.997 m` |
+| 3 | `x8F5xyUWy9e` | false* | true | false | `1.997 m` |
+| 132 | `2azQ1b91cZZ` | false | — | false | — |
+| 612 | `zsNo4HB9uLZ` | false | — | false | — |
+
+Round-trip success rate on random episodes: **1 / 8 (12.5%)**, versus 6 / 6 for the Episode 0 stability set. Both confirmed successes (ep0 and ep105) ended just inside the 2.0 m threshold (1.995–1.997 m), suggesting they are near-threshold cases rather than comfortable successes. Outbound failure is the dominant blocker: 5 of 8 random episodes failed before Return started.
+
+Result directories:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep366/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep105/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep3/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep132/
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_v4_random_baseline_ep612/
+```
+
+
+### 2026-06-18 — v4 Baseline: 30 Additional Reverse-Path Episodes
+
+Ran two new automatic serial batches with `phase_prompt` mode and `cache_only` v4 dataset reverse-path retrieval. The batch runner started the next episode automatically after each run completed; no manual intervention was required after launch. All 30 runs exited with code `0`.
+
+Batch scripts and local summaries:
+
+```text
+/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/run_v4_batch_10_20260618.sh
+/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/run_v4_batch_20_20260618.sh
+/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/batch_logs/v4_batch_10_20260618/summary.tsv
+/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/batch_logs/v4_batch_20_20260618/summary.tsv
+```
+
+Aggregate results across the 30 new runs:
+
+- Outbound success: **14 / 30**
+- Return success: **5 / 30**
+- Full round-trip success: **3 / 30**
+- Outbound-success per-step trajectory logs uploaded: **14 JSONL files** under `results/per_step_logs/v4_batch_20260618_outbound_success/`
+
+| Batch | Runs | Outbound | Return | Round trip |
+|---|---:|---:|---:|---:|
+| Batch A: 10 episodes | 10 | 3 | 2 | 0 |
+| Batch B: 20 episodes | 20 | 11 | 3 | 3 |
+| **Combined** | **30** | **14** | **5** | **3** |
+
+Per-episode results:
+
+| Batch | ep_idx | ep_id | scene | Reverse-neighbor source | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Trajectory records | Uploaded trajectory log |
+|---|---:|---:|---|---|---:|---:|---:|---:|---:|---:|---|
+| Batch A: 10 episodes | 106 | 152 | `QUCTc6BB5sX` | ep_idx=993, ep_id=1699, 7 matched, mean 0.000 m | false | true | false | `0.000 m` | `9.581 m` | 4512 | — |
+| Batch A: 10 episodes | 367 | 602 | `X7HyMhZNoso` | ep_idx=1038, ep_id=1759, 7 matched, mean 0.000 m | true | false | false | `5.793 m` | `1.033 m` | 3302 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_10_20260618_ep367_episode602_X7HyMhZNoso.jsonl` |
+| Batch A: 10 episodes | 613 | 1070 | `zsNo4HB9uLZ` | ep_idx=678, ep_id=1165, 7 matched, mean 0.000 m | false | true | false | `1.996 m` | `16.438 m` | 1714 | — |
+| Batch A: 10 episodes | 133 | 194 | `2azQ1b91cZZ` | ep_idx=756, ep_id=1288, 7 matched, mean 0.258 m | false | false | false | `6.199 m` | — | 2502 | — |
+| Batch A: 10 episodes | 198 | 307 | `TbHJrupSAjP` | ep_idx=537, ep_id=928, 7 matched, mean 1.519 m | false | false | false | `0.550 m` | — | 2502 | — |
+| Batch A: 10 episodes | 186 | 280 | `EU6Fwq7SyZv` | ep_idx=447, ep_id=754, 6 matched, mean 0.433 m | false | false | false | `3.561 m` | — | 2502 | — |
+| Batch A: 10 episodes | 4 | 8 | `x8F5xyUWy9e` | ep_idx=354, ep_id=583, 5 matched, mean 0.000 m | true | false | false | `10.151 m` | `1.630 m` | 2552 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_10_20260618_ep4_episode8_x8F5xyUWy9e.jsonl` |
+| Batch A: 10 episodes | 336 | 547 | `Z6MFQCViBuw` | ep_idx=651, ep_id=1132, 4 matched, mean 0.000 m | false | false | false | `12.322 m` | — | 2502 | — |
+| Batch A: 10 episodes | 408 | 682 | `oLBMNvg9in8` | ep_idx=522, ep_id=907, 4 matched, mean 0.761 m | true | false | false | `6.884 m` | `0.686 m` | 5827 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_10_20260618_ep408_episode682_oLBMNvg9in8.jsonl` |
+| Batch A: 10 episodes | 107 | 153 | `QUCTc6BB5sX` | ep_idx=993, ep_id=1699, 7 matched, mean 0.000 m | false | false | false | `12.227 m` | — | 2502 | — |
+| Batch B: 20 episodes | 368 | 603 | `X7HyMhZNoso` | ep_idx=1038, ep_id=1759, 7 matched, mean 0.000 m | true | false | false | `6.826 m` | `0.451 m` | 7027 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep368_episode603_X7HyMhZNoso.jsonl` |
+| Batch B: 20 episodes | 614 | 1071 | `zsNo4HB9uLZ` | ep_idx=678, ep_id=1165, 7 matched, mean 0.000 m | false | false | false | `0.761 m` | — | 2502 | — |
+| Batch B: 20 episodes | 993 | 1699 | `QUCTc6BB5sX` | ep_idx=105, ep_id=151, 7 matched, mean 0.000 m | true | true | true | `1.994 m` | `0.522 m` | 4411 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep993_episode1699_QUCTc6BB5sX.jsonl` |
+| Batch B: 20 episodes | 134 | 195 | `2azQ1b91cZZ` | ep_idx=756, ep_id=1288, 7 matched, mean 0.258 m | true | false | false | `6.223 m` | `0.252 m` | 3252 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep134_episode195_2azQ1b91cZZ.jsonl` |
+| Batch B: 20 episodes | 199 | 308 | `TbHJrupSAjP` | ep_idx=537, ep_id=928, 7 matched, mean 1.519 m | false | false | false | `0.589 m` | — | 2502 | — |
+| Batch B: 20 episodes | 187 | 281 | `EU6Fwq7SyZv` | ep_idx=447, ep_id=754, 6 matched, mean 0.433 m | true | false | false | `11.813 m` | `0.216 m` | 7727 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep187_episode281_EU6Fwq7SyZv.jsonl` |
+| Batch B: 20 episodes | 5 | 9 | `x8F5xyUWy9e` | ep_idx=354, ep_id=583, 5 matched, mean 0.000 m | true | false | false | `8.598 m` | `0.255 m` | 3882 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep5_episode9_x8F5xyUWy9e.jsonl` |
+| Batch B: 20 episodes | 337 | 548 | `Z6MFQCViBuw` | ep_idx=651, ep_id=1132, 4 matched, mean 0.000 m | false | false | false | `4.622 m` | `4.818 m` | 3702 | — |
+| Batch B: 20 episodes | 409 | 683 | `oLBMNvg9in8` | ep_idx=522, ep_id=907, 4 matched, mean 0.761 m | false | false | false | `2.125 m` | — | 1666 | — |
+| Batch B: 20 episodes | 678 | 1165 | `zsNo4HB9uLZ` | ep_idx=612, ep_id=1069, 7 matched, mean 0.000 m | true | false | false | `3.782 m` | `0.208 m` | 3777 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep678_episode1165_zsNo4HB9uLZ.jsonl` |
+| Batch B: 20 episodes | 679 | 1166 | `zsNo4HB9uLZ` | ep_idx=612, ep_id=1069, 7 matched, mean 0.000 m | true | true | true | `1.995 m` | `0.227 m` | 4021 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep679_episode1166_zsNo4HB9uLZ.jsonl` |
+| Batch B: 20 episodes | 680 | 1167 | `zsNo4HB9uLZ` | ep_idx=612, ep_id=1069, 7 matched, mean 0.000 m | true | false | false | `3.710 m` | `0.380 m` | 3877 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep680_episode1167_zsNo4HB9uLZ.jsonl` |
+| Batch B: 20 episodes | 994 | 1700 | `QUCTc6BB5sX` | ep_idx=105, ep_id=151, 7 matched, mean 0.000 m | true | false | false | `4.522 m` | `0.729 m` | 3927 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep994_episode1700_QUCTc6BB5sX.jsonl` |
+| Batch B: 20 episodes | 995 | 1701 | `QUCTc6BB5sX` | ep_idx=105, ep_id=151, 7 matched, mean 0.000 m | false | false | false | `11.760 m` | — | 2502 | — |
+| Batch B: 20 episodes | 1038 | 1759 | `X7HyMhZNoso` | ep_idx=366, ep_id=601, 7 matched, mean 0.000 m | true | true | true | `1.998 m` | `1.004 m` | 3881 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep1038_episode1759_X7HyMhZNoso.jsonl` |
+| Batch B: 20 episodes | 1039 | 1760 | `X7HyMhZNoso` | ep_idx=366, ep_id=601, 7 matched, mean 0.000 m | false | false | false | `3.748 m` | — | 2502 | — |
+| Batch B: 20 episodes | 1040 | 1761 | `X7HyMhZNoso` | ep_idx=366, ep_id=601, 7 matched, mean 0.000 m | true | false | false | `2.415 m` | `0.993 m` | 4152 | `results/per_step_logs/v4_batch_20260618_outbound_success/v4_batch_20_20260618_ep1040_episode1761_X7HyMhZNoso.jsonl` |
+| Batch B: 20 episodes | 465 | 793 | `QUCTc6BB5sX` | ep_idx=600, ep_id=1042, 7 matched, mean 0.216 m | false | false | false | `0.000 m` | — | 952 | — |
+| Batch B: 20 episodes | 466 | 794 | `QUCTc6BB5sX` | ep_idx=600, ep_id=1042, 7 matched, mean 0.216 m | false | false | false | `3.630 m` | `5.201 m` | 6603 | — |
+| Batch B: 20 episodes | 467 | 795 | `QUCTc6BB5sX` | ep_idx=600, ep_id=1042, 7 matched, mean 0.216 m | false | false | false | `4.176 m` | — | 2502 | — |
+
+The three confirmed round-trip successes were:
+
+| ep_idx | scene | Final distance to start |
+|---:|---|---:|
+| 993 | `QUCTc6BB5sX` | `1.994 m` |
+| 679 | `zsNo4HB9uLZ` | `1.995 m` |
+| 1038 | `X7HyMhZNoso` | `1.998 m` |
+
+Interpretation: the larger 30-episode sample keeps the same pattern seen in the earlier random v4 runs. v4 reverse-path retrieval can produce full round-trip success, but successes remain narrow-margin cases ending just inside the 2.0 m return-success radius. Outbound failure is still common, and among episodes that do enter Return, visual decision and stop-judgment errors remain the main failure modes.
+
+
+### 2026-06-26 — Relative-Odometry Route-Memory Batch Test
+
+Updated the round-trip evaluator so outbound and return success both use the official `3.0 m` goal radius. Return success now requires a VLM-issued `stop` inside the start radius; entering the radius alone does not terminate the episode or count as success.
+
+Implemented the first external route-memory agent:
+
+- Records outbound anchors using relative odometry deltas rather than storing Isaac/global coordinates.
+- Builds a reversed route template for Return.
+- Injects compact route-progress hints into the Return prompt, including the remaining route-template distance to the start.
+- Adds a conservative fallback controller for low-progress or oscillatory Return behavior.
+
+Batch selection:
+
+- Source: previous 30-episode phase-prompt baseline.
+- Criterion: baseline outbound success was true and baseline return success was false.
+- Tested episodes: `4, 5, 134, 187, 367, 368, 408, 678, 680, 994`.
+- Excluded episode `1040` because it was a borderline case under the current `3.0 m` radius.
+
+Artifacts:
+
+```text
+results/route_memory_batch_10_20260626/
+├── summary.tsv
+├── summary.json
+├── measurements/
+└── trajectories/
+```
+
+Key aggregate result:
+
+| Method | Outbound Success | Return Success | Round-Trip Success | Final Distance Improved |
+|---|---:|---:|---:|---:|
+| Baseline | 10/10 | 0/10 | 0/10 | - |
+| Route memory, relative odometry | 8/10 | 3/10 | 3/10 | 7/10 |
+
+Per-episode comparison:
+
+| Episode | Baseline Return | Baseline Distance to Start (m) | Route-Memory Outbound | Route-Memory Return | Route-Memory Distance to Start (m) | Return Stop Count | Fallback Count |
+|---:|:---:|---:|:---:|:---:|---:|---:|---:|
+| 4 | False | 10.151 | True | False | 0.000 | 0 | 2 |
+| 5 | False | 8.598 | True | False | 8.859 | 0 | 16 |
+| 134 | False | 6.223 | False | False | 2.605 | 0 | 0 |
+| 187 | False | 11.813 | True | False | 8.820 | 0 | 18 |
+| 367 | False | 5.793 | True | True | 1.765 | 1 | 2 |
+| 368 | False | 6.826 | True | False | 7.137 | 0 | 12 |
+| 408 | False | 6.884 | False | False | 2.125 | 0 | 0 |
+| 678 | False | 3.782 | True | True | 2.691 | 1 | 1 |
+| 680 | False | 3.710 | True | True | 1.925 | 1 | 1 |
+| 994 | False | 4.522 | True | False | 4.742 | 1 | 1 |
+
+Interpretation:
+
+- The route-memory framework produced a clear return improvement on this hard subset: round-trip success rose from `0/10` to `3/10`.
+- Seven of ten episodes ended closer to the start than the baseline.
+- Episode `4` reached `0.000 m` from the start but did not emit a Return-phase VLM `stop`, so it is correctly counted as return failure under the stop-required rule.
+- Episodes `134` and `408` regressed on outbound success, so the current framework is promising but not stable enough to claim a general improvement.
+
+---
+
+### 2026-06-29 — GT Co-visibility Diagnostic + Rear Camera Fix + VIO Bridge
+
+#### GT Co-visibility Diagnostic (completed 2026-06-28)
+
+Ran a detailed per-attempt analysis of all 85 LoFTR relocalization calls recorded in `seqpf_sfix` (`measurements/1699.json`, `covisibility_records`). The particle filter successfully accepted 8 observations covering anchors A14→A8 (d2s ~14→7.8 m) in the first half of the return route, then lost track completely.
+
+**Two distinct failure zones in the second half:**
+
+| Zone | d2s range | Attempts | Depth co-vis | LoFTR inliers | Position error | SeqSLAM verdict |
+|---|---|---|---|---|---|---|
+| A (deep) | 0–6 m | 37–85 | 0% | 40–100 (aliasing) | +6 to +13 m | Correctly rejected |
+| B (transition) | 6–8 m | 27–35 | 13–24% | 110–170 (conf=1.0) | +3.9 to +5.9 m | Correctly rejected |
+
+**Zone A root cause:** camera direction mismatch. Go2 strafes laterally during navigation, so its body yaw is roughly perpendicular to its velocity. Outbound anchors A0–A15 captured views facing ~+92° to ±180° (north/west); the return robot faces ~0° to −90° (east/south). The ~150–180° angular separation means there is zero genuine co-visibility. LoFTR's high match count (40–100) comes from visual aliasing on repetitive corridor and room textures. Robot stays within 0–2 m of the outbound path throughout (not off-path drift).
+
+**Zone B root cause:** corridor geometric degeneracy. At d2s 6–8 m the robot's rear view overlaps with anchor front views from the far corridor walls, giving 13–24% real depth-consistent co-visibility. LoFTR succeeds (110–170 inliers), but the scene is a planar wall — RANSAC/Kabsch cannot recover the translation component along the corridor axis, producing +4–6 m position errors. This would affect MASt3R equally.
+
+**Three-branch verdict:**
+- Branch 1 (co-visibility low/zero → coverage problem): ✅ confirmed for Zone A, caused by camera direction mismatch
+- Branch 2 (co-visibility exists but matching fails): ✅ confirmed for Zone B, caused by planar degeneracy
+- Branch 3 (anchor spacing too large): ❌ ruled out — 1 m spacing, robot within 0.2–1.5 m of nearest anchor
+
+**Hint gating re-confirmed harmful:** the `hint_gate` experiment failed (4.403 m final distance) because the VLM uses specific distance/bearing hints as navigational narrative ("keep going toward 0 m") rather than as precise localization. Replacing specific-but-wrong hints with generic "position uncertain" messages removed this signal. Fix: preserve directional/distance content in hints when filter is uncertain; only suppress explicit "you have arrived / stop now" language.
+
+#### Rear Camera Anchor Fix
+
+Added a rear-facing camera to `Go2VisionSceneCfg` to capture the scene direction that the return robot's front camera will see:
+
+**`go2_matterport_vision_cfg.py`:**
+- `rear_rgbd_camera`: `pos=(−0.1, 0.0, 0.5)`, `rot=(−0.5, 0.5, 0.5, −0.5)` — camera +Z maps to body −x (rear-facing), 54° FOV, 512×512 RGB + depth
+- `RearCameraObsCfg` and `RearDepthObsCfg` observation groups added to `ObservationsCfg`
+
+**`round_trip_eval.py`:**
+- `rear_camera_intrinsics_from_env`, `rear_camera_pose_from_env`, `rear_camera_extrinsic_body_from_env` added
+- `route_memory_descriptor_from_infos` saves: `rear_rgb`, `rear_depth_depth_measurement`, `rear_camera_intrinsics`, `rear_camera_position_w`, `rear_camera_quat_wxyz`, `rear_camera_rotation_body`, `rear_camera_position_body`
+
+**`relocalization.py`:**
+- `descriptor_rear_depth`, `descriptor_rear_rgb_gray`, `build_rear_view_descriptor` added
+- `build_rear_view_descriptor(anchor_descriptor)`: constructs a synthetic descriptor exposing `rear_rgb` → `rgb`, `rear_depth_*` → `depth_obs`, `rear_camera_intrinsics` → `camera_intrinsics`, `rear_camera_rotation_body`/`rear_camera_position_body` → standard extrinsics; all existing geometry code (LoFTR, RANSAC, `camera_rotation_to_body_yaw`) works unchanged
+- `feature_depth_anchor_relocalization` now iterates `views_to_try = [("front", anchor.descriptor), ("rear", rear_view)]` per anchor, tagging backend as `feature_depth_loftr_3d3d_front` or `feature_depth_loftr_3d3d_rear`; all candidates across all views/anchors compete by score
+
+During the return phase, the correct matching combination is: current front-camera image (faces east) ↔ anchor rear-camera image (also faces east, since outbound body faced west). The rear view descriptor carries the rear camera's extrinsics, so `camera_rotation_to_body_yaw` correctly resolves the anchor body heading relative to the current body frame.
+
+#### VIO Bridge (off by default, `--vio_bridge`)
+
+`RouteMemoryAgent._compute_feature_anchors()` scans consecutive anchor pairs for `|Δyaw| > 15°` after `finalize_outbound()`, marking those anchors as path feature points (corners, doorways) where scene geometry disambiguates position along the route.
+
+`_sequence_match_observation()` new gate: if `filter.std() > vio_bridge_std_threshold_m` (default 2.5 m) AND the candidate arc-length is more than `vio_bridge_feature_radius_m` (default 2.0 m) from any feature anchor, reject the visual observation and continue with dead reckoning. Logged as `"vio_bridge_suppressed"`.
+
+On ep994: feature anchors at A2, A3, A5, A6, A9, A10, A12, A13, A15, A16 (covers all path turns). The bridge is most useful for episodes with long featureless straight corridors; ep994 has many turns so the bridge rarely activates.
+
+**Next step:** run ep994 with `--route_relocalization_backend=loftr_depth --result_suffix=rear_cam_20260629` to measure whether rear-camera matching produces accepted observations in the second-half corridor (Zone A + Zone B) that were previously rejected.
+
+
+### 2026-06-27 — Anchor Relocalization Interface and Feature-Depth Backend
+
+Motivation:
+
+The previous route-memory design still depended on the robot entering a local anchor acquisition radius before an anchor could help. This fails in cases like episode `994`, where local geometry descriptors are available but the robot never reaches the first target anchor, so `lock_anchor=0` and anchor correction never activates.
+
+The route-memory agent was redesigned so anchors can be used as map-free relocalization references. Instead of asking "am I standing on this anchor?", the Return stage can now ask "where is this saved outbound anchor relative to my current frame?" A successful relocalizer returns a metric relative pose:
+
+```text
+AnchorRelocalization(
+  anchor_index=<saved outbound anchor>,
+  anchor_dx_m=<anchor forward distance in robot frame>,
+  anchor_dy_m=<anchor left/right distance in robot frame>,
+  anchor_dtheta_rad=<relative heading>,
+  confidence=<backend confidence>,
+  backend=<backend name>
+)
+```
+
+The agent then converts that into route-progress hints:
+
+```text
+[System Hint: route anchor A0 is 0.61 m away, 112 deg to your left;
+estimated remaining route via anchor is 0.61 m;
+start vector dx=-0.23 m, dy=0.56 m.]
+```
+
+Implemented code changes:
+
+- `scripts/route_memory_agent.py`
+  - Added `RouteAnchor`, `AnchorRelocalization`, and anchor-relative fields on `RelativeStartProgress`.
+  - Keeps the old action-integrated relative-start estimate as a fallback.
+  - Stores sparse outbound anchors with route-distance metadata.
+  - Accepts external relocalization outputs and prioritizes anchor-relative progress when confidence is high enough.
+  - Summarizes descriptors by shape/range in measurements instead of dumping large arrays.
+- `scripts/round_trip_eval.py`
+  - Added `--route_relocalization_backend={none,oracle_anchor,feature_depth}`.
+  - Added `--route_relocalization_window` and `--route_relocalization_interval_updates`.
+  - Extracts route-memory descriptors from `camera_obs`, `depth_obs`, and `route_memory_obs`.
+  - Saves RGB, metric depth, camera intrinsics, height map, and height scan into anchor descriptors.
+  - Records anchor relocalization fields in every per-step JSONL trajectory.
+- `scripts/vlm_server.py`
+  - Fixed a robustness issue where an empty socket connection or malformed JSON request could crash the server.
+- `tests/test_route_memory_agent.py`
+  - Added tests for anchor saving, anchor-route remaining distance, low-confidence relocalization rejection, and relocalization-driven hint generation.
+
+Validation commands:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench
+
+env PYTHONPATH=scripts python -m unittest tests/test_route_memory_agent.py
+
+env PYTHONPYCACHEPREFIX=/tmp/navila_pycache \
+  python -m py_compile \
+  scripts/vlm_server.py \
+  scripts/route_memory_agent.py \
+  scripts/round_trip_eval.py
+```
+
+Both checks passed.
+
+#### Oracle-anchor closed-loop test
+
+The first test used Isaac pose only to simulate a perfect anchor relocalizer. It does not count as a proposed method result; its purpose is to verify the complete plumbing:
+
+```text
+current frame -> anchor relative pose -> anchor route hint -> VLM Return prompt -> stop decision
+```
+
+Run configuration:
+
+```bash
+TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision \
+  --num_envs=1 \
+  --history_length=9 \
+  --load_run=2024-09-25_23-22-02 \
+  --headless \
+  --enable_cameras \
+  --round_trip_mode=phase_prompt \
+  --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory \
+  --route_hint_mode=compact \
+  --route_relocalization_backend=oracle_anchor \
+  --result_suffix=oracle_anchor_reloc_ep994_20260627
+```
+
+Artifacts:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_oracle_anchor_reloc_ep994_20260627/
+├── measurements/1699.json
+├── trajectories/output_1699.jsonl
+└── videos/output_1699.mp4
+```
+
+Result:
+
+| Episode | Backend | Outbound | Return | Round trip | Final distance to start | Anchors | Relocalization events | Hint events |
+|---:|---|:---:|:---:|:---:|---:|---:|---:|---:|
+| 994 | `oracle_anchor` | True | True | True | `0.619 m` | 17 | 2052 | 36 |
+
+Interpretation:
+
+- The anchor-relative hint pipeline is correct.
+- The VLM can use a metric anchor/start hint to stop near the start when the relative pose source is accurate.
+- This supports the hypothesis that previous failures are primarily caused by unreliable relative pose estimation, not by the prompt-hint idea itself.
+
+#### First real feature-depth backend
+
+A first non-oracle backend was added:
+
+```text
+RGB + depth + ORB feature matching + 3D-3D RANSAC/Kabsch
+```
+
+The backend:
+
+- extracts ORB features from the current RGB frame and saved anchor RGB frames;
+- matches features with ratio test and cross-check fallback;
+- uses aligned depth to back-project matched pixels into metric 3D;
+- estimates a rigid 3D transform with RANSAC and Kabsch;
+- converts the resulting anchor translation into robot-frame `dx/dy` for `AnchorRelocalization`.
+
+Strict run:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_feature_depth_reloc_ep994_20260627/
+```
+
+Result:
+
+- Relocalization events: `0`
+- Return success: false
+- Final distance to start: `4.363 m`
+
+Relaxed run:
+
+```text
+eval_results/round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_feature_depth_relaxed_ep994_20260627/
+```
+
+Result:
+
+| Episode | Backend | Outbound | Return | Round trip | Final distance to start | Anchors | Relocalization events |
+|---:|---|:---:|:---:|:---:|---:|---:|---:|
+| 994 | `feature_depth_orb_3d3d` | True | False | False | `4.424 m` | 17 | 12 |
+
+Diagnostics from the relaxed run:
+
+```json
+{
+  "attempts": 76,
+  "candidate_anchors": 608,
+  "ransac_failed": 591,
+  "no_pose_selected": 64,
+  "low_confidence_pose": 4,
+  "successful_estimates": 12
+}
+```
+
+Representative successful estimates were low confidence:
+
+```text
+anchor_index=10, dx=1.10 m, dy=-0.09 m, confidence=0.347, inliers=11
+anchor_index=8,  dx=1.59 m, dy=-0.65 m, confidence=0.215, inliers=8
+anchor_index=15, dx=-1.43 m, dy=-0.91 m, confidence=0.158, inliers=7
+```
+
+Interpretation:
+
+- The real backend is wired correctly: it can produce `AnchorRelocalization` events and drive anchor-relative hints without crashing the evaluator.
+- ORB+depth is too weak for this setting. Most candidate anchor matches fail RANSAC, and successful estimates usually have only `6-11` 3D inliers.
+- Anchor choice is unstable under this backend, so the Return prompt can receive noisy hints and does not improve over the baseline.
+- The next backend should be a stronger cross-view matcher or learned map-free relative-pose model: SuperPoint/LightGlue, LoFTR, or MicKey-style metric relative pose.
+
+Current conclusion:
+
+The research direction remains valid. The oracle-anchor result proves that "remote anchor relative pose -> Return hint" is useful when pose is reliable. The first real classical backend proves the integration path works but also shows that handcrafted ORB+depth matching is not enough for the viewpoint change and low-overlap conditions in these VLN-CE trajectories.
+
+### 2026-06-27 — Geometry Verification, SIFT Diagnostics, and LoFTR Integration
+
+#### Geometry pipeline extraction and verification
+
+All geometry and feature-matching functions were extracted from `round_trip_eval.py` into a standalone module:
+
+```text
+scripts/relocalization.py
+```
+
+This makes offline testing possible without Isaac Sim. Key exported functions:
+`backproject_points`, `rigid_transform_3d`, `ransac_rigid_transform`, `camera_point_to_body`, `loftr_match_points`, `feature_depth_anchor_relocalization`, plus all descriptor accessors.
+
+An 18-test verification suite was added:
+
+```text
+tests/test_geometry_pipeline.py
+```
+
+Test groups:
+- **TestRigidTransform3D** (5 tests): pure translation, pure rotation, general R+t, reflection check (det=+1), too-few-points→None
+- **TestRansacRigidTransform** (4 tests): no outliers exact recovery, 50% outliers, too-few-points, inlier mask shape
+- **TestCameraPointToBody** (6 tests): fallback axis mapping, extrinsic identity+offset, oracle consistency proof, 20 random pose oracle consistency
+- **TestFullPipelineSynthetic** (3 tests): pure translation scene, yaw-rotated cameras, 10+ random configs vs oracle
+
+All 18 tests pass. Key result: the oracle consistency test proves mathematically that given perfect RANSAC output (i.e., `t = Rc_w.T @ (Pa_w - Pc_w)`), `camera_point_to_body` recovers the same body-frame anchor position as the oracle formula `Rb_w.T @ (Pa_w - Pb_w)`.
+
+**Conclusion:** The 8 m+ consistency errors from SIFT are caused entirely by bad feature matches, not by a bug in the geometry transformation code.
+
+Run command:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench
+PYTHONPATH=scripts python -m unittest tests/test_geometry_pipeline.py -v
+```
+
+#### SIFT backend test on ep994
+
+The `sift_depth` backend with full extrinsic conversion and consistency gate was tested on episode `994`:
+
+| Backend | Return | Final dist | Notes |
+|---|:---:|---:|---|
+| `oracle_anchor` | True | 0.619 m | Proves hint pipeline correct |
+| `feature_depth` (ORB) | False | 4.424 m | 12/76 estimates; 6–11 inliers |
+| `sift_depth` | False | — | 37/37 rejected by consistency gate; min error 8.06 m |
+
+SIFT produced more raw candidates than ORB but every estimate was too far from the action-integrated odometry estimate to be trusted. The system correctly fell back to odometry-only hints rather than injecting wrong anchor directions.
+
+#### LoFTR integration
+
+`kornia==0.6.12` was installed in both `navila-vlm` and `vlnce-isaac` conda environments. The LoFTR `outdoor` pretrained model (44.2 MB, 108 MB VRAM on CUDA) is cached at `~/.cache/torch/hub/checkpoints/loftr_outdoor.ckpt`.
+
+A second test suite was added:
+
+```text
+tests/test_loftr_matching.py
+```
+
+Offline LoFTR vs ORB comparison on synthetic image pairs (9 tests, all pass):
+
+| Condition | ORB matches | LoFTR inliers | Ratio |
+|---|---:|---:|---:|
+| Small translation (20 px) | 494 | 2455 | 5.0× |
+| 15° rotation | 387 | 2598 | 6.7× |
+| 25° rotation | 381 | 1718 | 4.5× |
+| 0.75× scale | 324 | 1900 | 5.9× |
+| Perspective warp (≈30° tilt) | 229 | 2164 | 9.4× |
+
+LoFTR is wired as the `loftr_depth` backend in `round_trip_eval.py`:
+
+```bash
+--route_relocalization_backend=loftr_depth
+```
+
+The selection path is: `loftr_depth` → `matcher_backend="loftr"` → `feature_depth_anchor_relocalization(..., matcher_backend="loftr")` → `loftr_match_points()` in `relocalization.py` → `kornia.feature.LoFTR(pretrained="outdoor")`.
+
+Run command for ep994 evaluation with LoFTR (requires VLM server to be running on port 54321):
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_<date>
+```
+
+#### First LoFTR closed-loop result on ep994
+
+The first real `loftr_depth` closed-loop run was completed on episode `994` with a fresh VLM server:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_20260628_codex
+```
+
+Result:
+
+| Episode | Backend | Outbound | Return | Round trip | Final distance to start | Accepted relocalization lines | Mean confidence |
+|---:|---|:---:|:---:|:---:|---:|---:|---:|
+| 994 | `feature_depth_loftr_3d3d` | True | True | True | `1.072 m` | 503 | 0.918 |
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_single_success_20260628/
+├── measurements/ep994_1699.json
+└── trajectories/ep994_output_1699.jsonl
+```
+
+Interpretation: this run confirms that the non-oracle LoFTR+depth relocalization path can drive the route-memory hint pipeline to a successful return. The robot emitted the required Return-phase stop inside the 3.0 m start radius.
+
+#### LoFTR hard-subset batch from the previous 30-episode baseline
+
+The previous 30-episode phase-prompt baseline was filtered for episodes with:
+
+```text
+baseline outbound_success = true
+baseline return_success = false
+```
+
+This selected 11 hard episodes:
+
+```text
+4, 5, 134, 187, 367, 368, 408, 678, 680, 994, 1040
+```
+
+They were evaluated with the same route-memory and LoFTR backend:
+
+```bash
+bash scripts/run_loftr_depth_hard_batch_20260628.sh
+```
+
+Aggregate result:
+
+| Set | Episodes | Outbound success | Return success | Round-trip success |
+|---|---:|---:|---:|---:|
+| LoFTR hard subset | 11 | 8/11 | 3/11 | 3/11 |
+| Conditional on outbound success in this run | 8 | 8/8 | 3/8 | 3/8 |
+
+Per-episode result:
+
+| Episode | Outbound | Return | Round trip | Final distance to start | Accepted relocalization lines | Mean confidence |
+|---:|:---:|:---:|:---:|---:|---:|---:|
+| 4 | True | False | False | `7.577 m` | 0 | — |
+| 5 | True | False | False | `7.589 m` | 294 | 0.883 |
+| 134 | False | False | False | `7.886 m` | 0 | — |
+| 187 | True | False | False | `14.208 m` | 1460 | 0.814 |
+| 367 | True | True | True | `1.606 m` | 1553 | 0.998 |
+| 368 | True | False | False | `7.743 m` | 4878 | 0.898 |
+| 408 | False | False | False | `2.125 m` | 0 | — |
+| 678 | False | False | False | `5.824 m` | 0 | — |
+| 680 | True | True | True | `1.656 m` | 3 | 0.666 |
+| 994 | True | False | False | `4.265 m` | 0 | — |
+| 1040 | True | True | True | `1.124 m` | 0 | — |
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_hard_batch_20260628/
+├── summary.json
+├── summary.tsv
+├── logs/
+├── measurements/
+└── trajectories/
+```
+
+Important reproducibility note:
+
+- A fresh-server single run of ep994 succeeded with 503 accepted LoFTR relocalization trajectory records.
+- The batch run of ep994 used the same latest code and the same core CLI parameters, but it failed and had 0 accepted LoFTR relocalization records.
+
+This means the ep994 batch failure should not be interpreted as direct evidence of a code regression. It is more likely caused by non-determinism in VLM output, trajectory branching, Isaac runtime state, or continuous-batch execution effects. Future evaluation should report fresh-server repeated trials separately from continuous-batch trials.
+
+#### Ep994 rerun after anchor-heading reliability fix
+
+After the anchor-heading composition bug was identified, the LoFTR/feature-depth relocalizer was treated as translation-only:
+
+- `anchor_heading_reliable=false` for `feature_depth_loftr_3d3d`.
+- LoFTR still supplies the matched anchor vector and via-anchor remaining route distance.
+- The start vector is no longer composed through a fake `anchor_dtheta_rad=0`; it falls back to the action-integrated return pose when anchor heading is not reliable.
+- `current_pose_from_start` is now populated in anchor-relocalization progress records for diagnostics instead of staying as `[]`.
+
+The first attempt to rerun ep994 with the default W16A16 VLM was invalid: the VLM process successfully listened on `127.0.0.1:54321`, but it hit CUDA OOM during the first generation after Isaac loaded. The valid rerun used the same benchmark command with an 8-bit VLM server:
+
+```bash
+python scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+```
+
+Benchmark command:
+
+```bash
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_fix_8bit_20260628
+```
+
+Result:
+
+| Episode | VLM | Backend | Outbound | Return | Round trip | Final true distance to start | Accepted relocalization events | Per-step anchor-relocalization records | Mean confidence |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---:|---:|
+| 994 | 8-bit | `feature_depth_loftr_3d3d` | True | False | False | `4.363 m` | 73 | 1803 | 0.975 |
+
+Diagnostics:
+
+- VLM was confirmed running for the valid rerun; no VLM OOM occurred in the 8-bit run.
+- `route_relocalization_backend=loftr_depth`.
+- `anchor_heading_reliable=false` appeared in 139 measurement records, confirming the translation-only path was active.
+- The VLM stopped at a true simulator distance of `4.363 m`, outside the 3.0 m return-success radius.
+- The final route-memory start vector estimated about `2.947 m` from action-integrated return pose, while simulator ground truth was `4.363 m`; this points to action-integrated return-pose drift after the fake-anchor-heading bug was removed.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_post_anchor_heading_fix_8bit_20260628/
+├── logs/ep994.log
+├── measurements/ep994_1699.json
+└── trajectories/ep994_output_1699.jsonl
+```
+
+
+#### Ep994 rerun after 3D-3D rotation/dtheta fix
+
+The previous post-anchor-heading run correctly avoided composing through a fake zero heading, but it also discarded the rotation returned by the 3D-3D Kabsch/RANSAC estimate. The feature-depth/LoFTR backend now converts the full registration rotation into `anchor_dtheta_rad`, marks the anchor heading reliable, and lets the route-memory agent compose the anchor-relative start vector with the measured anchor heading.
+
+Run configuration:
+
+```bash
+python scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_rotation_fix_20260628
+```
+
+Result:
+
+| Episode | VLM | Backend | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Successful estimates | Pose candidates | Max 3D inliers | Nonzero dtheta records |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---:|---:|---:|---:|
+| 994 | 8-bit | `feature_depth_loftr_3d3d` | True | True | True | `1.264 m` | `1.109 m` | 85 | 672 | 148 | 86/86 |
+
+Return distance checkpoints:
+
+```text
+step 2525: 11.719 m
+step 3025:  8.436 m
+step 3525:  5.952 m
+step 4025:  4.435 m
+step 4525:  1.703 m
+step 4651:  1.264 m, Return stop emitted
+```
+
+Diagnostics:
+
+- `anchor_dtheta_rad` is no longer stuck at zero: 86 records were present and all 86 were nonzero.
+- Example dtheta values include `6.97 deg`, `-12.03 deg`, `176.13 deg`, `-179.05 deg`, and `-176.67 deg`.
+- The relocalizer produced 85 successful estimates; the diagnostics contain 672 pose candidates with mean confidence about `0.709`.
+- This supports the diagnosis that the earlier direction failure was caused by dropping the 3D-3D rotation output, not by an ill-conditioned point set.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_rotation_fix_20260628/
+├── summary.json
+├── measurements/ep994_1699.json
+├── trajectories/ep994_output_1699.jsonl
+└── videos/ep994_output_1699.mp4
+```
+
+The trajectory JSONL contains the full per-step record for this run.
+
+
+#### Ep994 rerun after monotonic anchor progress v2
+
+This update addresses the anchor selection / sequence monotonicity problem exposed after the 3D-3D rotation fix. The previous monotonic-anchor attempt stopped anchor regressions but could remain too conservative after a target anchor was passed. The v2 change keeps the monotonic policy, applies it before the consistency gate, and allows target advancement when the robot clearly moves away after approaching a target anchor, even if it never entered the tight `0.8 m` pass radius.
+
+Implemented code snapshot:
+
+```text
+code/route_memory_agent.py
+code/relocalization.py
+code/tests/test_route_memory_agent.py
+code/tests/test_geometry_pipeline.py
+```
+
+Validation:
+
+```text
+tests/test_route_memory_agent.py: 17/17 OK
+tests/test_geometry_pipeline.py: 20/20 OK
+py_compile route_memory_agent.py relocalization.py round_trip_eval.py: OK
+```
+
+Run configuration:
+
+```bash
+python scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_monotonic_anchor_v2_20260628
+```
+
+Result:
+
+| Episode | VLM | Backend | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Successful estimates | Monotonic violations |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---:|---:|
+| 994 | 8-bit | `feature_depth_loftr_3d3d` | True | True | True | `1.148 m` | `0.581 m` | 92 | 0 |
+
+Target-anchor sequence:
+
+```text
+None -> 14 -> 13 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3
+```
+
+Return distance checkpoints:
+
+```text
+step 3075: true distance to start 9.576 m
+step 3575: true distance to start 6.715 m
+step 4075: true distance to start 4.805 m
+step 4575: true distance to start 2.457 m
+step 4876: true distance to start 1.148 m, Return stop emitted
+```
+
+Important remaining issue:
+
+The target-anchor sequence is now monotonic and ep994 succeeds, but scalar route-memory progress remains conservative late in the run. Near the end the target is still A3 and route-memory distance is about `7.09 m`, while the simulator true distance is `1.15 m`. This happens because the scalar estimate is still `distance_to_target_anchor + target_anchor.route_remaining`. The next fix should replace that scalar with anchor-chain path projection plus monotonic clamping, so passing A3/A2/A1 is represented as along-route progress rather than increasing distance to the old target.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_monotonic_anchor_v2_20260628/
+├── summary.json
+├── measurements/ep994_1699.json
+├── trajectories/ep994_output_1699.jsonl
+└── videos/ep994_output_1699.mp4
+```
+
+The trajectory JSONL contains the full per-step record for this run.
+
+
+#### Ep994 rerun with SeqSLAM particle filter (seqpf_sfix)
+
+This update replaces the single-frame monotonic anchor selection with a probabilistic arc-length tracker. An `ArcLengthParticleFilter` (256 particles) maintains a distribution over the robot's position along the 16 m return route. At each LoFTR relocalization interval the filter receives an observation produced by `seqslam_pose_projection`: the accepted anchor is chosen by ranking candidates against the running history of observations (sequence-consistency score = sum of individual match scores), then the observation arc-length is fed into the particle filter as a Gaussian likelihood update.
+
+`sfix` refers to a stop-emission fix applied alongside the particle filter: the hint format now correctly saturates at 0 m remaining (anchor 0, "at your current position") rather than allowing negative or wrap-around values.
+
+Run configuration:
+
+```bash
+python scripts/vlm_server.py \
+  --model_path /mnt/SSD4T/teambruce/projects/navila-isaac/checkpoints/navila-llama3-8b-8f \
+  --port 54321 \
+  --load_8bit
+
+cd /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench && TERM=xterm OMNI_KIT_ACCEPT_EULA=YES \
+/home/teambruce/miniconda3/bin/conda run \
+  --prefix /mnt/SSD4T/teambruce/conda_envs/vlnce-isaac \
+  /mnt/SSD4T/teambruce/projects/navila-isaac/IsaacLab/isaaclab.sh -p \
+  scripts/round_trip_eval.py \
+  --task=go2_matterport_vision --num_envs=1 --history_length=9 \
+  --load_run=2024-09-25_23-22-02 --headless --enable_cameras \
+  --round_trip_mode=phase_prompt --instruction_rewriter_provider=cache_only \
+  --episode_idx=994 \
+  --route_memory --route_hint_mode=compact \
+  --route_relocalization_backend=loftr_depth \
+  --result_suffix=loftr_depth_ep994_seqpf_sfix_20260628
+```
+
+Result:
+
+| Episode | VLM | Backend | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Successful estimates | Total candidates |
+|---:|---|---|:---:|:---:|:---:|---:|---:|---:|---:|
+| 994 | 8-bit | `feature_depth_loftr_3d3d` | True | True | True | `1.264 m` | `1.109 m` | 85 | 680 |
+
+Target-anchor sequence (particle filter driven):
+
+```text
+None -> 13 -> 9 -> 7 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 0
+```
+
+All 10 anchor transitions occurred with decreasing distance-to-start estimates (monotonic). LoFTR observations contributed to 8 unique sequence entries spanning anchors 14 → 8.
+
+Return distance checkpoints (true Isaac simulator distance vs. particle filter claimed distance):
+
+```text
+step 2526: true dist ~13.5 m | hint (action-integrated): 13.54 m     ← accurate
+step 2576: true dist ~11.5 m | hint (anchor A13):        13.76 m arc  ← arc, not Euclidean; plausible
+step 2726: true dist ~10.0 m | hint (anchor A7):          7.84 m      ← ~2 m underestimate
+step 2951: true dist  ~8.6 m | hint (anchor A5):          5.59 m      ← ~3 m underestimate
+step 3201: true dist  ~7.5 m | hint (anchor A3):          3.34 m      ← ~4 m underestimate
+step 3551: true dist   5.8 m | hint (anchor A0):          0.34 m      ← 5.5 m ERROR — filter lost track
+step 3626: true dist   5.5 m | hint (anchor A0):          0.00 m      ← saturated at 0, robot still ~5.5 m away
+step 4400: true dist   2.5 m | hint (anchor A0):          0.00 m      ← still saturated
+step 4576: true dist   1.4 m | hint (anchor A0):          0.00 m      ← still saturated
+step 4651: true dist   1.3 m | VLM emits stop (return success)
+```
+
+Particle filter final state:
+
+```text
+particle_count:    256
+total_length_m:   16.00
+mean_remaining_m:  6.72  (high — bimodal distribution)
+mode_remaining_m:  1.19  (mode is accurate: 1.19 m vs true 1.26 m)
+std_remaining_m:   4.10  (very high — filter is uncertain)
+confidence:        0.49
+```
+
+Diagnosis:
+
+The particle filter made 8 successful LoFTR observations while the robot traversed anchors 14 → 8 (route positions 14.1 m → 7.8 m). After passing the anchor-8 region no further observations were accepted, likely because the robot's viewpoint moved outside the field-of-view overlap with outbound anchor images. Without new observations the filter propagated on motion-model alone, accumulated drift, and reported anchor-0 arrival (≤ 0.34 m remaining) from step 3551 onward — 1100 steps and ~5 m of true travel before the robot actually stopped.
+
+From step 3626 to 4651 every VLM call received the hint "route anchor A0 is 0.00 m away, at your current position." Despite this the VLM did **not** emit a premature stop; it continued navigating until the simulator true distance was ~1.26 m. This means:
+
+1. The VLM correctly down-weighted or ignored the erroneous terminal hint.
+2. Return success on this episode is attributable to the VLN return instruction and visual navigation, not to the relocalization hint.
+3. The particle filter provides accurate guidance during the first half of Return (~14 m → 8 m from start) but fails in the second half where LoFTR co-visibility drops.
+
+Next step: increase anchor density or use wider-baseline matching in the second half of the route so the filter stays calibrated closer to the start.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_seqpf_sfix_20260628/
+├── summary.json
+├── measurements/ep994_1699.json
+└── trajectories/ep994_output_1699.jsonl
+```
+
+The trajectory JSONL contains the full 4652-step per-step record for this run (4652 records: 2225 outbound + 300 confirm + 2127 return).
+
+---
+
+### Run: `loftr_depth_ep994_hint_gate_20260628`
+
+**Date:** 2026-06-28  
+**Suffix:** `loftr_depth_ep994_hint_gate_20260628`  
+**Config:** LoFTR backend, SeqSLAM particle filter, 8-bit VLM, uncertainty-gated hints (improvements 1–3)
+
+| Metric | Value |
+|---|---|
+| outbound_success | true |
+| return_success | **false** |
+| round_trip_success | **false** |
+| distance_to_start_m | **4.403 m** |
+| outbound_stop_distance_to_goal_m | 1.040 m |
+| total_steps | 3927 |
+| hint_events | 26 (5 normal, 21 gated) |
+| relocalization_successful | 12 |
+| sequence_observations | 8 |
+| particle_filter_std_at_stop | ~3.88 m |
+
+Hint events:
+
+```
+step 2376: dist=13.82m  std=N/A   → normal  (action-integration only)
+step 2426: dist=13.77m  std=1.29m → normal  (LoFTR anchor 12)
+step 2451: dist=14.04m  std=1.57m → normal
+step 2476: dist=13.13m  std=1.17m → normal
+step 2551: dist=12.62m  std=2.91m → normal  (last observation — anchor 8)
+step 2626: dist=10.80m  std=3.68m → GATED ← threshold 3.2m crossed
+step 2701-3926: 21× GATED         → "position uncertain (σ≈4.0m, filter lost lock); ... do NOT stop until visually confirmed"
+```
+
+VLM stop at step 3926, distance to start = **4.403 m** (outside 3.0 m threshold → failure).
+
+Diagnosis:
+
+Hint gating activated at dist 10.8 m — leaving the VLM with no specific distance or direction guidance for the remaining 10+ m of return. The VLM received 21 consecutive generic "position uncertain, continue via visual instruction" messages. Without a concrete anchor-distance narrative, the VLM applied a visual stop check and terminated at 4.4 m, judging it had reached the start.
+
+Comparison with `seqpf_sfix` (which succeeded at 1.264 m):
+
+| | seqpf_sfix (success) | hint_gate (failure) |
+|---|---|---|
+| Hint from step 2626 onward | "A0 is 0.00 m away" (specific, wrong) | "position uncertain, use visual instruction" (generic, correct) |
+| VLM behaviour | Ignored wrong arrival claim, kept moving for 600 more steps | No navigational narrative; stopped at 4.4 m on visual cue |
+| Return steps | 2127 | ~1550 |
+
+Key lesson: the VLM is robust to *specific-but-wrong* distance hints — it correctly down-weighted the erroneous "0 m arrived" claim in seqpf_sfix via its visual system. Replacing specific hints with generic "keep going" warnings removed the implicit navigational narrative without improving VLM robustness. The hint gating as implemented is harmful.
+
+Fix direction: preserve specific directional and distance information in gated hints; suppress only the explicit "you have arrived / stop now" claim. For example, a gated hint should still report anchor bearing and approximate distance while marking the estimate as uncertain, rather than delegating entirely to visual judgment.
+
+Particle filter final state:
+
+```text
+sequence_observations: 8 (anchors 12→8, same coverage as seqpf_sfix)
+filter_std_at_stop:    ~3.88 m
+mode_remaining_m:      ~0.0 m (filter collapsed — same failure mode as seqpf_sfix)
+```
+
+The filter collapse pattern is identical to seqpf_sfix: 8 observations in the first half of the route (14–8 m from start), then no observations and rapid std inflation due to blackout noise. The gating correctly detected filter loss-of-lock but the resulting hint change made things worse.
+
+Artifacts:
+
+```text
+artifacts/loftr_depth_ep994_hint_gate_20260628/
+├── summary.json
+├── measurements/ep994_1699.json
+└── trajectories/ep994_output_1699.jsonl
+```
+
+The trajectory JSONL contains 3927 per-step records (2075 outbound + 0 confirm-phase + 1852 return — shorter than seqpf_sfix because VLM stopped earlier).
+
+---
+
+### Run: `oracle_shadow_loftr_v4_30_return_anchor_fix_20260701`
+
+**Date:** 2026-07-01  
+**Suffix/tag:** `oracle_shadow_loftr_v4_30_return_anchor_fix_20260701`  
+**Purpose:** Run the selected 30 v4 baseline episodes with oracle hints still driving the VLM, while the non-oracle LoFTR route-memory pipeline runs in shadow and records per-step anchor/distance/bearing diagnostics.
+
+Code changes in this snapshot:
+
+- `finalize_outbound()` now stores the final outbound descriptor and metadata instead of creating an unmatchable descriptor-less final anchor.
+- Return start forces the first relocalization update immediately instead of waiting up to `route_relocalization_interval_updates=25`.
+- Oracle direct-route anchor selection and route-memory anchor selection now use the same lookahead helper, removing the code-level source of a one-anchor target mismatch.
+- The oracle-shadow logging path records non-oracle shadow anchor, route-progress, vector, bearing, and alignment fields while the VLM continues to receive oracle hints.
+
+Run configuration:
+
+```bash
+RUN_TAG=oracle_shadow_loftr_v4_30_return_anchor_fix_20260701 \
+  ./code/run_oracle_shadow_loftr_v4_30_batch_20260701.sh
+```
+
+Important flags:
+
+```text
+--route_memory
+--route_hint_mode=compact
+--route_hint_source=oracle
+--route_relocalization_backend=loftr_depth
+--route_relocalization_interval_updates=25
+--oracle_align_return_yaw_to_anchor_segment
+--stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0
+--topdown_route_map
+--hint_action_arbiter
+```
+
+Batch result:
+
+| Metric | Value |
+|---|---:|
+| Total episodes | 30 |
+| Normal eval completions | 28 |
+| VLM startup timeouts (`exit_code=98`) | 2 |
+| Outbound successes among normal completions | 11 / 28 |
+| Return successes among outbound successes | 10 / 11 |
+| Round-trip successes among outbound successes | 10 / 11 |
+
+VLM startup timeouts:
+
+```text
+367, 995
+```
+
+Outbound-success episodes:
+
+```text
+4, 368, 993, 187, 5, 678, 679, 680, 994, 1038, 1040
+```
+
+Round-trip-success episodes:
+
+```text
+4, 368, 993, 187, 678, 679, 680, 994, 1038, 1040
+```
+
+The only outbound-success return failure was episode `5`.
+
+Successful trajectory records:
+
+| Episode | Round trip | Final distance to start | Outbound stop distance to goal | Per-step records |
+|---:|:---:|---:|---:|---:|
+| 4 | True | 1.118 m | 1.532 m | 2727 |
+| 368 | True | 1.335 m | 0.451 m | 3552 |
+| 993 | True | 1.392 m | 0.522 m | 4452 |
+| 187 | True | 1.832 m | 0.113 m | 5402 |
+| 678 | True | 1.529 m | 0.208 m | 4227 |
+| 679 | True | 1.772 m | 0.302 m | 4027 |
+| 680 | True | 1.552 m | 2.595 m | 4877 |
+| 994 | True | 1.164 m | 1.076 m | 4352 |
+| 1038 | True | 2.265 m | 1.514 m | 3352 |
+| 1040 | True | 2.326 m | 0.993 m | 3727 |
+
+Current diagnosis of the non-oracle shadow pipeline:
+
+The return-start mismatch is fixed: the non-oracle shadow now receives a matchable final outbound anchor and can relocalize on the first return update. The remaining dominant non-oracle failure mode is later in Return. The current LoFTR relocalizer searches a fixed reversed candidate slice near the outbound end anchors, so long routes can remain locked to middle/end anchors after the robot has progressed closer to the start. This shows up as target-anchor lag and large bearing/vector errors late in return.
+
+The second issue is target-vector orientation quality. Even when the anchor index is correct or close, projected bearing can differ by tens of degrees because `_project_estimate_to_anchor()` amplifies pose/yaw errors. The next non-oracle fix should replace the fixed reversed candidate slice with an expected-progress candidate window plus global fallback, then add progress hysteresis and extra diagnostics for high-bearing-error steps.
+
+Follow-up code change: the hard default `8` relocalization-window cap has been removed. `--route_relocalization_window=0` now means search all descriptor-bearing anchors, while positive values still provide an explicit cap for debugging or runtime control. Candidate order is still outbound-end-first, so a later expected-progress ordering pass is still useful.
+
+Follow-up anti-aliasing change: return now seeds the route-progress filter and sequence prior at `s=total_length` when `finalize_outbound()` starts Return. This means the first visual relocalization is no longer allowed to set progress from an unconstrained state; a first-frame corridor alias several meters behind the return start receives a large sequence-continuity penalty and is rejected unless it is consistent with the known return-start position. VIO bridge is also enabled by default (`--no_vio_bridge` disables it) so uncertain visual observations in corridor dead zones are suppressed unless they land near feature anchors such as turns/doorways.
+
+Artifacts:
+
+```text
+artifacts/oracle_shadow_loftr_v4_30_return_anchor_fix_20260701_success10/
+├── README.md
+├── summary.tsv
+├── per_step/
+│   ├── ep4_output_7.jsonl
+│   ├── ep368_output_602.jsonl
+│   ├── ep993_output_1698.jsonl
+│   ├── ep187_output_280.jsonl
+│   ├── ep678_output_1164.jsonl
+│   ├── ep679_output_1165.jsonl
+│   ├── ep680_output_1166.jsonl
+│   ├── ep994_output_1699.jsonl
+│   ├── ep1038_output_1758.jsonl
+│   └── ep1040_output_1760.jsonl
+├── measurements/
+└── route_maps/      # map metadata plus routes/occupancy PNGs
+```
+
+Non-oracle code snapshot:
+
+```text
+non_oracle_route_memory_20260701/
+├── README.md
+├── route_memory_agent.py
+├── relocalization.py
+├── local_map.py
+├── hint_action_arbiter.py
+├── round_trip_eval.py
+├── run_oracle_shadow_loftr_v4_30_batch_20260701.sh
+└── tests/
+```
+
+---
+
+### Update: LiDAR Local-Map Relocalization Backend
+
+**Date:** 2026-07-01  
+**Current code status:** RGB-D/LoFTR remains available, but a new LiDAR local-map relocalization backend has been added for non-oracle shadow evaluation.
+
+The attempted `aliasgate+tangent` experiment was reverted after testing. It preserved oracle episode success, but the non-oracle shadow hint quality became much worse: same-anchor bearing median rose from about `16 deg` to about `76 deg`, and same-anchor vector median rose from about `0.49 m` to about `1.52 m`. The failure mode was traced to the route-tangent fusion producing incorrect shadow `dx/dy` directions, sometimes nearly opposite the oracle vector. The repository and live scripts were restored to the pre-experiment state before starting the LiDAR work.
+
+New LiDAR/local-map implementation:
+
+- `relocalization.py`
+  - Added `descriptor_local_map_points()` to read `local_map_points_body`, `lidar_points_body`, `scan_points_body`, or `height_scan_points_body`.
+  - Added 2-D voxel downsampling and point-to-point ICP scan matching.
+  - Added `local_map_anchor_relocalization()`, which compares the current local map against saved anchor local maps and returns standard `AnchorRelocalization` candidates.
+  - ICP searches multiple initial yaw hypotheses at 15-degree spacing, including reverse-facing return views.
+- `round_trip_eval.py`
+  - Added `--route_relocalization_backend=lidar_local_map`.
+  - This backend uses the same route-memory/PF/hint pipeline as LoFTR, so oracle-shadow evaluation remains directly comparable.
+- `tests/test_geometry_pipeline.py`
+  - Added a synthetic local-map test that recovers anchor `dx/dy/yaw` from a transformed LiDAR point cloud and rejects a distractor anchor.
+
+Validation before live sync:
+
+```text
+tests/test_geometry_pipeline.py     22 tests OK
+tests/test_route_memory_agent.py    21 tests OK
+tests/test_local_map.py              2 tests OK
+py_compile relocalization.py round_trip_eval.py OK
+```
+
+Live script backup before sync:
+
+```text
+/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts/backup_lidar_local_map_relocalization_20260701/
+├── relocalization.py
+└── round_trip_eval.py
+```
+
+LiDAR local-map oracle-shadow smoke run:
+
+**Run tag:** `oracle_shadow_lidar_localmap_680_994_187_20260701`  
+**Purpose:** Run the same three diagnostic episodes (`187`, `680`, `994`) with oracle hints still driving VLM behavior, while the non-oracle shadow relocalizer uses LiDAR local-map ICP instead of RGB-D/LoFTR.
+
+Important flags:
+
+```text
+--route_memory
+--route_hint_mode=compact
+--route_hint_source=oracle
+--route_relocalization_backend=lidar_local_map
+--route_relocalization_interval_updates=25
+--oracle_align_return_yaw_to_anchor_segment
+--stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0
+--topdown_route_map
+--hint_action_arbiter
+```
+
+Episode results:
+
+| Episode | Outbound | Return | Round trip | Final distance to start | Outbound stop distance to goal | Per-step records |
+|---:|:---:|:---:|:---:|---:|---:|---:|
+| 187 | True | True | True | 1.761 m | 0.265 m | 5102 |
+| 680 | True | True | True | 1.377 m | 0.242 m | 4252 |
+| 994 | True | True | True | 1.148 m | 1.105 m | 4227 |
+
+These success values are oracle-primary results. The next step is to analyze the LiDAR shadow per-step records against the previous LoFTR shadow run:
+
+- `oracle_shadow_loftr_aliasfix_680_994_187_20260701`
+- `oracle_shadow_lidar_localmap_680_994_187_20260701`
+
+The key comparison should use both:
+
+- oracle-alignment error: direct shadow hint vs oracle hint.
+- same-anchor error: only steps where shadow and oracle selected the same target anchor, to isolate local-map pose/direction quality from anchor-selection lag.
+
+Open technical risks:
+
+- ICP can still alias in geometrically repetitive corridors; local-map confidence, residual, and multi-candidate ambiguity should be used as gates before allowing PF updates.
+- The current implementation is a conservative first pass using 2-D point-to-point ICP. It does not yet use occupancy-grid correlation, multi-frame scan accumulation, or feature-anchor-specific acceptance rules.
+- Runtime scales with number of searched anchors. `--route_relocalization_window=0` still searches all anchors, which is useful for diagnostics but may need expected-progress candidate ordering for long routes.
+
+---
+
+## Key Differences vs RTX 5090 (Blackwell) Setup
+
+This deployment is significantly simpler than running on a Blackwell GPU:
+
+| Item | RTX 5090 (Blackwell sm_120) | RTX 4090 (Ada Lovelace sm_89) |
+|---|---|---|
+| PyTorch | Needed cu128 (torch 2.11+) | Original cu121 (torch 2.3.0) works |
+| FlashAttention | No prebuilt wheel; source build failed | Prebuilt wheel available |
+| Isaac torch | Needed upgrade to cu128 | IsaacLab-pinned 2.2.2+cu121 works |
+| RAM/VRAM | 32 GB VRAM (5090) | 24 GB (tight but sufficient with 8-bit) |
+
+The only patches needed here are genuine code bugs or minor version mismatches unrelated to GPU architecture.
+
+---
+
+## References
+
+- [NaVILA Paper (RSS 2025)](https://arxiv.org/abs/2412.04453)
+- [NaVILA GitHub](https://github.com/AnjieCheng/NaVILA)
+- [NaVILA-Bench GitHub](https://github.com/yang-zj1026/VLN-CE-Isaac)
+- [IsaacLab fork](https://github.com/yang-zj1026/IsaacLab)
+- [NaVILA checkpoint (HuggingFace)](https://huggingface.co/a8cheng/navila-llama3-8b-8f)
+- [VLN-CE-Isaac dataset (HuggingFace)](https://huggingface.co/datasets/Zhaojing/VLN-CE-Isaac)
