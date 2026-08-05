@@ -1,0 +1,30 @@
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@ -4358,6 +4358,11 @@
+         num_steps += 1
+
+         # if args_cli.visualize_path:
+         #     visualizer.visualize(reference_path_isaac)
++    print(
++        f"[LOOP_EXIT] num_steps={num_steps} phase={phase} done={bool(done)} "
++        f"is_stop_called={bool(env.is_stop_called)}",
++        flush=True,
++    )
+     measurements = infos["measurements"]
+     final_pos = get_robot_position(env)
+     distance_to_start = float(np.linalg.norm(final_pos[:2] - start_pos[:2]))
+@@ -4624,7 +4629,11 @@
+     measurement_dir = os.path.join(result_dir, "measurements")
+     measurement_path = os.path.join(
+         measurement_dir,
+         f"{episode_output_id}.json",
+     )
+-    atomic_json_dump(measurement_path, measurements, indent=4)
++    try:
++        atomic_json_dump(measurement_path, measurements, indent=4)
++    except Exception as exc:
++        print(f"[MEASUREMENT_WRITE_FAILED] path={measurement_path} error={exc!r}", flush=True)
++        raise
++    print(f"[MEASUREMENT_WRITE_OK] wrote {measurement_path}", flush=True)
+
+     replay_steps_dir = os.path.join(icp_replay_dataset_dir, "steps")
