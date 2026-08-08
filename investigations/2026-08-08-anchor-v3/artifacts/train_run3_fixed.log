@@ -1,0 +1,58 @@
+/home/teambruce/anchor-v3-20260808/.conda-env/lib/python3.10/site-packages/torch/nn/modules/transformer.py:379: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+{
+  "epochs": 5,
+  "history": [
+    {
+      "train_total": 3.106634400343294,
+      "validation": {
+        "total": 2.3184782781686586,
+        "action": 0.5911607547820389,
+        "pair": 1.1788014637112811,
+        "belief": 0.9627117057899376,
+        "confidence": 0.2686409130601769
+      }
+    },
+    {
+      "train_total": 1.9428102415722202,
+      "validation": {
+        "total": 2.0857258446956077,
+        "action": 0.48434844573161434,
+        "pair": 1.1317564476063693,
+        "belief": 0.8409664859729153,
+        "confidence": 0.196550847341113
+      }
+    },
+    {
+      "train_total": 1.4681623911578163,
+      "validation": {
+        "total": 1.71880174170221,
+        "action": 0.487923034387807,
+        "pair": 0.8164459604334522,
+        "belief": 0.7426982452584938,
+        "confidence": 0.17233449736740078
+      }
+    },
+    {
+      "train_total": 1.1433381138751049,
+      "validation": {
+        "total": 2.097422533452,
+        "action": 0.48583604641222433,
+        "pair": 1.2006142269150966,
+        "belief": 0.7004257639894238,
+        "confidence": 0.24303749227805999
+      }
+    },
+    {
+      "train_total": 1.0102194592281764,
+      "validation": {
+        "total": 1.865339347775917,
+        "action": 0.538438501325847,
+        "pair": 0.936613477347721,
+        "belief": 0.6371881161126998,
+        "confidence": 0.28677322782242337
+      }
+    }
+  ],
+  "checkpoint": "/home/teambruce/anchor-v3-20260808/reports/anchor_v3_baseline_checkpoint.pt"
+}
