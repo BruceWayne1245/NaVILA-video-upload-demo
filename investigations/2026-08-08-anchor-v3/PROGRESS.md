@@ -62,7 +62,8 @@ An escalated read-only check detected the RTX 4090 and reported
 
 The 5,691-frame replay plan is split into 8 independently resumable shards.
 Materialization is CPU-only and uses the canonical relocalization hash above.
-At the latest checkpoint, 780 rows had been written; the shard processes had
+At the latest checkpoint, 961 rows had been written across the eight shards;
+the shard processes had
 been restarted using their existing `(physical_episode_id, step)` keys so no
 completed row is recomputed.
 
@@ -78,4 +79,3 @@ JSONL, hash, candidate-coverage, and tensorization audits.
 - `anchor_v3/contract.py`, `teacher.py`, `tensorize.py`, `dataset.py`, `model.py`
 - `tools/materialize_replay_shard.py`
 - `tools/train_anchor_v3.py`
-
