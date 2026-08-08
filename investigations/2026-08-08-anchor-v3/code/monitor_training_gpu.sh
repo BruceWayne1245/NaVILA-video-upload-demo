@@ -8,8 +8,8 @@ set -u
 
 WORKSPACE="/home/teambruce/anchor-v3-20260808"
 LOG="$WORKSPACE/reports/gpu_monitor.log"
-CHECKPOINT="$WORKSPACE/reports/anchor_v3_baseline_checkpoint.pt"
-MATCH_PATTERN="tools/train_anchor_v3.py.*anchor_v3_baseline_checkpoint"
+CHECKPOINT="${1:-$WORKSPACE/reports/anchor_v3_baseline_checkpoint.pt}"
+MATCH_PATTERN="tools/train_anchor_v3.py"
 POLL_SECONDS=15
 FREE_MEM_WARN_MIB=2048
 FREE_MEM_CRIT_MIB=512

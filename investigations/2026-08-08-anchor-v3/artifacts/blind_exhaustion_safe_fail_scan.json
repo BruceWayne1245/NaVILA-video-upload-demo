@@ -1,0 +1,548 @@
+{
+  "total_catalog_directories": 872,
+  "total_safe_fail_directories": 67,
+  "reason_breakdown": {
+    "blind_probe_budget_exhausted_without_terminal_evidence": 67
+  },
+  "max_blind_query_count_distribution": {
+    "8": 67
+  },
+  "blind_exhaustion_episodes": [
+    {
+      "physical_episode_id": 1040,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_batch49_20260802_ep1040",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 187,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_batch49_20260802_ep187",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 351,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_batch49_20260802_ep351",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 5,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_batch49_20260802_ep5",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "test"
+    },
+    {
+      "physical_episode_id": 87,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_batch49_20260802_ep87",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 88,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_batch49_20260802_ep88",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 89,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_batch49_20260802_ep89",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 95,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_20260805_tail29_ep95",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 1040,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep1040",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 187,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep187",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 276,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep276",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 484,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep484",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 5,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep5",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "test"
+    },
+    {
+      "physical_episode_id": 579,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep579",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 88,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep88",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 888,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep888",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 95,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_recoveryfix30_rerun2_20260807_ep95",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 268,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep268",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 276,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep276",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 367,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep367",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 427,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep427",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 5,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep5",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "test"
+    },
+    {
+      "physical_episode_id": 658,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep658",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 680,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep680",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 89,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep89",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 95,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep95",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 994,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_anchor_v2_full_active_semanticfix30_rerun1_20260804_ep994",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 498,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_learned_anchor_terminal_replay_shadow_5ep_20260729_ep498",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 19,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_anchor_stop_active50_20260728_ep19",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "test"
+    },
+    {
+      "physical_episode_id": 205,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_anchor_stop_active50_20260728_ep205",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 268,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_anchor_stop_active50_20260728_ep268",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 88,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_anchor_stop_active50_20260728_ep88",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 89,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_reliability_v11_anchor_stop_active50_20260728_ep89",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 1040,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_anchorv2_terminal_collection50_20260801_batch49_ep1040",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 276,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_anchorv2_terminal_collection50_20260801_batch49_ep276",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 5,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_anchorv2_terminal_collection50_20260801_batch49_ep5",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "test"
+    },
+    {
+      "physical_episode_id": 678,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_anchorv2_terminal_collection50_20260801_batch49_ep678",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 1008,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep1008",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 319,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep319",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 324,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep324",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 336,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep336",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 408,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep408",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "test"
+    },
+    {
+      "physical_episode_id": 470,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep470",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 517,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep517",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 555,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep555",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 784,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep784",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 806,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_development_20260801_ep806",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 226,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_locked_validation_20260801_ep226",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 291,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_locked_validation_20260801_ep291",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 304,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_locked_validation_20260801_ep304",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 376,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_locked_validation_20260801_ep376",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 610,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_locked_validation_20260801_ep610",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 735,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_locked_validation_20260801_ep735",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 738,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_locked_validation_20260801_ep738",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 885,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_route2_core_locked_validation_20260801_ep885",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 696,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_three_model_readonly_shadow30_20260729_ep696",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 670,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_three_model_readonly_shadow30_canary_20260729_ep670",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "validation"
+    },
+    {
+      "physical_episode_id": 1016,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep1016",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 168,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep168",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 266,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep266",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 336,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep336",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 386,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep386",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "test"
+    },
+    {
+      "physical_episode_id": 621,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep621",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 802,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep802",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 806,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep806",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 86,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep86",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    },
+    {
+      "physical_episode_id": 960,
+      "episode_directory": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_unified_shadow50_fresh49_retry4_20260730_ep960",
+      "gate_reason": "blind_probe_budget_exhausted_without_terminal_evidence",
+      "max_blind_query_count_seen": 8,
+      "in_anchor_v3_dataset": true,
+      "anchor_v3_split": "train"
+    }
+  ]
+}

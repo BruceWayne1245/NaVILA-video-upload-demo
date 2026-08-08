@@ -29,7 +29,7 @@ def batches(dataset: ReplaySequenceDataset, batch_size: int):
 
 def evaluate(model, loader, normalizer, device):
     model.eval()
-    totals = {"total": 0.0, "action": 0.0, "pair": 0.0, "belief": 0.0, "confidence": 0.0}
+    totals = {"total": 0.0, "action": 0.0, "pair": 0.0, "belief": 0.0, "confidence": 0.0, "consistency": 0.0}
     count = 0
     with torch.no_grad():
         for batch in loader:

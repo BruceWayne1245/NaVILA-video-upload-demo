@@ -1,0 +1,63 @@
+/home/teambruce/anchor-v3-20260808/.conda-env/lib/python3.10/site-packages/torch/nn/modules/transformer.py:379: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+{
+  "epochs": 5,
+  "history": [
+    {
+      "train_total": 3.0878186835336696,
+      "validation": {
+        "total": 2.396519770375574,
+        "action": 0.5935288997436571,
+        "pair": 1.2524713816774355,
+        "belief": 0.9560079486532644,
+        "confidence": 0.28250309527101747,
+        "consistency": 0.01889726624823823
+      }
+    },
+    {
+      "train_total": 1.9449076624310873,
+      "validation": {
+        "total": 2.0116039721004957,
+        "action": 0.5217948952151535,
+        "pair": 1.0168989811178792,
+        "belief": 0.8201951777876971,
+        "confidence": 0.2393753939525938,
+        "consistency": 0.029686419495877314
+      }
+    },
+    {
+      "train_total": 1.485727131193399,
+      "validation": {
+        "total": 1.878234267853164,
+        "action": 0.4922711425355043,
+        "pair": 0.9597227772933661,
+        "belief": 0.7506545804102313,
+        "confidence": 0.18908607021923624,
+        "consistency": 0.03641531933643311
+      }
+    },
+    {
+      "train_total": 1.1782552452490205,
+      "validation": {
+        "total": 2.0041457899297983,
+        "action": 0.45760324534440566,
+        "pair": 1.1532361890049878,
+        "belief": 0.6663795433357939,
+        "confidence": 0.21835536577045433,
+        "consistency": 0.05527750073532217
+      }
+    },
+    {
+      "train_total": 0.9983423800226846,
+      "validation": {
+        "total": 1.9341470962978877,
+        "action": 0.5044904810444926,
+        "pair": 1.0652904399313856,
+        "belief": 0.5985895132936248,
+        "confidence": 0.23621876286311558,
+        "consistency": 0.06016727024348552
+      }
+    }
+  ],
+  "checkpoint": "/home/teambruce/anchor-v3-20260808/reports/anchor_v3_consistency_checkpoint.pt"
+}

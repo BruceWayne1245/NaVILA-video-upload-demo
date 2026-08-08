@@ -1,0 +1,26 @@
+{
+  "sequences": 60,
+  "loss": {
+    "total": 2.0677416563034057,
+    "action": 0.6479477375745774,
+    "pair": 0.9474003020285939,
+    "belief": 0.8480315101643403,
+    "confidence": 0.17276040147989988,
+    "consistency": 0.05187754979124293
+  },
+  "action_accuracy": 0.7186046511627907,
+  "action_frames": 430,
+  "pair_exact_match_accuracy": 0.7261306532663316,
+  "pair_adjacency_compliance": 1.0,
+  "pair_frames": 398,
+  "belief_top1_accuracy": 0.7202970297029703,
+  "belief_frames": 404,
+  "confidence_brier_score": 0.04746398714385916,
+  "confidence_threshold_accuracy": 0.9418604651162791,
+  "confidence_frames": 430,
+  "checkpoint": "reports/anchor_v3_consistency_checkpoint.pt",
+  "checkpoint_epoch": 2,
+  "test_shard": [
+    "shards/formal_dataset/test.jsonl"
+  ]
+}

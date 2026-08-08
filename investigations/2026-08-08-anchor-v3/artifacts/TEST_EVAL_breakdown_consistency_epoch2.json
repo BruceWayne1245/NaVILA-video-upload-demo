@@ -1,0 +1,89 @@
+{
+  "checkpoint": "reports/anchor_v3_consistency_checkpoint.pt",
+  "checkpoint_epoch": 2,
+  "action_accuracy_by_teacher_stream": {
+    "tracking": {
+      "accuracy": 0.7293233082706767,
+      "n": 266
+    },
+    "corrective_sample_gap": {
+      "accuracy": 0.7012195121951219,
+      "n": 164
+    }
+  },
+  "pair_exact_match_by_teacher_stream": {
+    "tracking": {
+      "accuracy": 0.6626984126984127,
+      "n": 252
+    },
+    "corrective_sample_gap": {
+      "accuracy": 0.8356164383561644,
+      "n": 146
+    }
+  },
+  "belief_top1_by_teacher_stream": {
+    "tracking": {
+      "accuracy": 0.6124031007751938,
+      "n": 258
+    },
+    "corrective_sample_gap": {
+      "accuracy": 0.910958904109589,
+      "n": 146
+    }
+  },
+  "action_recall_by_true_class": {
+    "rebase": {
+      "accuracy": 0.9122807017543859,
+      "n": 57
+    },
+    "keep": {
+      "accuracy": 0.7037037037037037,
+      "n": 270
+    },
+    "promote": {
+      "accuracy": 0.7671232876712328,
+      "n": 73
+    },
+    "rollback": {
+      "accuracy": 0.0,
+      "n": 4
+    },
+    "abstain": {
+      "accuracy": 0.4230769230769231,
+      "n": 26
+    }
+  },
+  "true_action_class_distribution": {
+    "rebase": 57,
+    "keep": 270,
+    "promote": 73,
+    "rollback": 4,
+    "abstain": 26
+  },
+  "predicted_action_class_distribution": {
+    "rebase": 62,
+    "keep": 207,
+    "promote": 137,
+    "abstain": 24
+  },
+  "majority_class_baseline": {
+    "class": "keep",
+    "accuracy_if_always_predicted": 0.627906976744186
+  },
+  "confusion_matrix_true_pred_counts": {
+    "rebase->rebase": 52,
+    "keep->keep": 190,
+    "promote->promote": 56,
+    "keep->promote": 76,
+    "promote->keep": 13,
+    "rebase->abstain": 5,
+    "rollback->keep": 2,
+    "abstain->keep": 2,
+    "abstain->rebase": 10,
+    "abstain->abstain": 11,
+    "abstain->promote": 3,
+    "rollback->promote": 2,
+    "keep->abstain": 4,
+    "promote->abstain": 4
+  }
+}

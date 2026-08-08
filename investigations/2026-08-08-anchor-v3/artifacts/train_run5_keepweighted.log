@@ -1,0 +1,63 @@
+/home/teambruce/anchor-v3-20260808/.conda-env/lib/python3.10/site-packages/torch/nn/modules/transformer.py:379: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+{
+  "epochs": 5,
+  "history": [
+    {
+      "train_total": 3.004892979855244,
+      "validation": {
+        "total": 2.2470136246184347,
+        "action": 0.4966594299797404,
+        "pair": 1.201572186615947,
+        "belief": 0.9637946650966421,
+        "confidence": 0.2675387060100382,
+        "consistency": 0.020064762578887847
+      }
+    },
+    {
+      "train_total": 1.8709402896690706,
+      "validation": {
+        "total": 1.9266968126977226,
+        "action": 0.462498935994801,
+        "pair": 1.0047932755271602,
+        "belief": 0.7975515574700647,
+        "confidence": 0.2425152610945092,
+        "consistency": 0.029747912834675126
+      }
+    },
+    {
+      "train_total": 1.4240148293515493,
+      "validation": {
+        "total": 1.6443196815883063,
+        "action": 0.40211938656624646,
+        "pair": 0.8376277470031402,
+        "belief": 0.7294180696564061,
+        "confidence": 0.15945404768405883,
+        "consistency": 0.03168791980942252
+      }
+    },
+    {
+      "train_total": 1.1974713738778087,
+      "validation": {
+        "total": 1.7681875216805636,
+        "action": 0.44127355795022927,
+        "pair": 0.9279163632702155,
+        "belief": 0.6818856095967741,
+        "confidence": 0.23221927234823983,
+        "consistency": 0.03926362223288592
+      }
+    },
+    {
+      "train_total": 0.9858678356185128,
+      "validation": {
+        "total": 1.9582214687626136,
+        "action": 0.453081055845643,
+        "pair": 1.096490795736189,
+        "belief": 0.7097370387962112,
+        "confidence": 0.21512435734060198,
+        "consistency": 0.058626277830059394
+      }
+    }
+  ],
+  "checkpoint": "/home/teambruce/anchor-v3-20260808/reports/anchor_v3_keepweighted_checkpoint.pt"
+}
