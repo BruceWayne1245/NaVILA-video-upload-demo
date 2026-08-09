@@ -7,11 +7,11 @@ extraction is needed: this reuses `tensorize_candidates` unchanged from the
 offline package.
 
 This module does not import, modify, or depend on anything in the runtime
-repo (`navila-route2-v11-core-20260801`). It is a standalone adapter that a
-future, separately-reviewed integration step would call from
-`route_memory_agent.py` -- that wiring has not been written yet and is not
-authorized by this module. There is no shadow/active flag here because there
-is nothing to flag on: nothing calls this from a live process yet.
+repo (`navila-route2-v11-core-20260801`). Wired into `round_trip_eval.py` as
+of 2026-08-09 behind `--anchor_v3_shadow` (default off) as a pure observer --
+it logs a prediction per attempt and never influences navigation, promotion,
+or the stop decision. Actually using its output to influence any real
+decision is separate, not-yet-authorized work.
 
 Maintains a rolling `sequence_length`-frame window per episode (the causal
 Transformer's context), unlike the offline `ReplaySequenceDataset` which
@@ -19,6 +19,25 @@ operates on fixed pre-chunked sequences from a whole recorded episode. There
 is no oracle at inference time, so `AtomicDecision`/`validate_decision` from
 `anchor_v3.contract` are used for the output instead of `teacher.py`, which
 requires ground truth and only applies to offline label construction.
+
+Known, by-design behavior near the terminal anchor (2026-08-09, from the
+first live shadow batch): the model reliably drops to sustained low-
+confidence ABSTAIN once anchor 0 (home) enters the candidate pool -- 3/3
+episodes that got close enough to home to test it (ep386, ep4, ep88)
+showed this, never recovering for the rest of the episode. Root-caused: the
+training corpus has zero frames where the true current anchor is 0, because
+anchor 0's own point-cloud capture was empty/broken in the runtime for the
+entire period the training episodes were recorded in (fixed since, but the
+existing corpus predates the fix and can't be retroactively repaired).
+Checked and ruled out: this is not a raw-ICP-evidence-quality effect --
+anchor 0's aggregate overlap_ratio/confidence/inlier_count in the historical
+data is comparable to (if anything slightly better than) other anchors, so
+retraining on today's data wouldn't obviously fix it either, at least not
+without deliberately collecting more frames in this specific regime.
+Deliberately NOT worked around by forcing confidence here: home-arrival is
+`stop_gate`'s decision to make, not V3's -- see `is_terminal_approach()`
+below, which callers should use to distinguish this expected handoff state
+from a genuine tracking failure elsewhere on the route.
 """
 from __future__ import annotations
 
@@ -38,6 +57,22 @@ from anchor_v3.tensorize import tensorize_candidates
 
 class AnchorV3OnlineAdapter:
     """Call ``observe_attempt`` once per completed relocalization attempt."""
+
+    HOME_ANCHOR_INDEX = 0
+
+    @classmethod
+    def is_terminal_approach(cls, candidates: list[dict[str, Any]]) -> bool:
+        """True when anchor 0 (home) is among this attempt's candidates.
+
+        Callers should treat a sustained low-confidence/ABSTAIN run once this
+        is true as the expected home-approach handoff (see the module
+        docstring), not evidence of a tracking failure -- V3's mandate is
+        current/next selection during navigation, not the arrival decision,
+        which belongs to `stop_gate`.
+        """
+        return any(
+            int(c.get("anchor_index", -1)) == cls.HOME_ANCHOR_INDEX for c in candidates
+        )
 
     def __init__(
         self,
