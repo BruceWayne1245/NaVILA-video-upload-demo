@@ -146,16 +146,121 @@ Two hypotheses checked:
    than transient noise, but not yet confirmed against V1.1's actual
    training data.
 
+## 2026-08-10 (continued): 5-episode follow-up batch -- only 2/5 ran, both confirm the finding, hypothesis 3 revised down
+
+A follow-up batch (`code/run_anchor0_landmark_smoke_ep386_fixed.sh`'s pattern
+generalized to 5 episodes) was launched via a plain `systemd-run --user`
+(no linger configured). It only reached **2 of 5 planned episodes** (ep95,
+ep680) before the batch died -- no crash in the eval process itself: a
+desktop session/X-server restart (visible in `journalctl` as a new
+`systemd --user` instance replacing the old one, ~13:38-13:46) killed
+whatever was running in the old session scope, since this launch wasn't
+set up to survive it. The remaining 3 episodes never started, and the
+launch script itself was in a session-scoped scratchpad that no longer
+exists, so the original episode list can't be recovered. Not re-run
+further this session (explicit user instruction: analyze what already ran,
+don't launch more).
+
+| ep | landmark placed | return_checks | `pose_trusted=true` | closest distance | basin_1 overlap_ratio (min/max/mean) |
+|---|---|---|---|---|---|
+| 386 (smoke) | 1 | 414 | 0 | 0.65m | ~0.72 typical |
+| 95 (killed by the wrapper's own 43-min timeout, unrelated to this instrumentation) | 1 | 202 | **0** | 0.52m | 0.31 / 0.55 / 0.45 |
+| 680 (cut off by the session-restart interruption above) | 1 | 67 | **0** | 0.78m | 0.55 / 0.75 / 0.62 |
+
+**Across all 3 episodes tested to date, `pose_trusted` was true in zero of
+683 combined return-phase attempts**, even at sub-1m distance. This
+strengthens the finding from "one episode" to "reproduced 3/3" and rules out
+it being ep386-specific.
+
+### Revised root cause: raw match quality, not (primarily) V1.1 distributional bias
+
+Digging into the raw feature values behind these numbers changes the
+diagnosis from hypothesis 3 above. `reliability_v11_portable_runtime.py`
+(the actual runtime used here) is a pure sklearn-free tree-evaluator with
+**no OOD/eligibility gating at all** -- that logic only exists in the
+offline `reliability/bundle.py` (`ReliabilityBundle.predict_features_many`,
+used for training/replay, not shadow inference). So `pose_trusted=False`
+here is a direct, raw threshold comparison (`p_pose_bad <= 0.3017`), not an
+abstain-gate artifact -- confirmed by inspecting full output records: all
+three heads (`bearing_trusted`, `distance_trusted`, `pose_trusted`) reject
+consistently, and `basin_1_overlap_ratio` never exceeds ~0.75 across any of
+the 683 attempts (mean 0.45-0.62), well under the ~0.84+ overlap seen on
+matches this project treats as genuinely trusted elsewhere. Even at the
+closest approach in ep95 (0.52m, `estimated_anchor_dtheta_deg` near 0deg --
+i.e. the yaw estimate was essentially correct), overlap still capped at
+0.45. **This is not primarily a "V1.1 has never seen anchor-0 examples"
+distributional-bias effect (hypothesis 3, previously leading) -- the raw
+ICP overlap between the landmark and the return-phase local map is
+genuinely mediocre, and V1.1 is correctly declining to trust it.**
+
+Root cause: the landmark descriptor is a **single, un-merged frame**
+captured at whatever heading the robot had at one instant during outbound
+(`anchor0_landmark_state["descriptor"] = route_descriptor`, single frame,
+no multi-view merge). A single-frame, ego-centric local map only covers a
+limited angular slice of the scene; matching it against a return-phase
+frame captured from a different position/heading yields only partial
+overlap regardless of distance. This is the exact same limitation this
+project already discovered and fixed for real waypoint anchors via
+`--route_memory_multiframe_anchor_window` /
+`--route_memory_multiframe_anchor_symmetric_enabled` (backward+forward
+frame accumulation, merged via `RouteMemoryAgent._merge_point_frames`) --
+that machinery was simply never applied to the landmark.
+
+## 2026-08-10/11: multiframe merge fix implemented (not yet live-tested)
+
+Implemented in the same untracked local file
+(`navila-route2-v11-core-20260801/runtime_candidate/scripts/round_trip_eval.py`).
+See `code/round_trip_eval_multiframe_landmark_diff.py` for the exact added
+code. Summary:
+
+- **Not** a call into `route_agent._begin_pending_anchor`/
+  `_finalize_pending_anchor` (the real-anchor pending-window state machine)
+  -- that machine has a single shared `route_agent._pending_anchor` slot
+  also used by real outbound anchor placement, and its finalize path always
+  calls `_append_anchor`, inserting into `route_agent.anchors`, which the
+  landmark must never do (breaks the isolation invariant this whole feature
+  is built around).
+- Reuses only the pure, stateless merge primitive
+  `RouteMemoryAgent._merge_point_frames(frames, target_pose)` plus the data
+  already being passively collected in
+  `route_agent._outbound_symmetric_frame_buffer` (populated whenever
+  `--route_memory_multiframe_anchor_symmetric_enabled` is on, independent of
+  whether any real anchor uses it).
+- The landmark now keeps its own local pending-window bookkeeping
+  (`anchor0_landmark_state["awaiting_merge"/"pending_trigger_distance_m"/
+  "pending_trigger_pose"/"pending_backward_frames"/"pending_updates"]`),
+  entirely separate from `route_agent._pending_anchor`.
+- One subtlety required a second fix: `route_agent`'s own buffer-pruning
+  logic freezes its cutoff reference at `route_agent._pending_anchor`'s
+  trigger distance *only while a real anchor is pending* -- otherwise it
+  prunes relative to the still-advancing current distance, which would
+  silently evict the landmark's own pre-trigger (backward) frames before
+  its forward window finished accumulating, since the landmark's pending
+  state is invisible to that logic. Fixed by **snapshotting the backward
+  half of the window immediately at trigger time** (before any further
+  pruning can touch it) and only re-reading the forward half fresh from the
+  buffer at finalize time.
+- Falls back to the old single-frame behavior automatically if
+  `--route_memory_multiframe_anchor_symmetric_enabled` is off (keeps
+  existing runs reproducible), and to the single-frame fallback descriptor
+  if the merge itself returns `None` for any reason.
+
+**Not yet smoke-tested or run live** -- this is implemented but unverified
+code, same status the original landmark idea was in after 08-09 before its
+own smoke test. Next step: a 1-episode smoke test (e.g. ep386 again) with
+`--route_memory_multiframe_anchor_symmetric_enabled` added to the launch
+command, to confirm `basin_1_overlap_ratio` actually improves and check
+whether `pose_trusted` starts flipping true.
+
 ## Status / next steps
 
-The mechanism itself (place + repeatedly re-check) works correctly end to
-end. Whether it can ever be useful depends on resolving hypothesis 3 above
--- unconfirmed. Not pursued further this session; a broader batch (5 more
-episodes, `code/run_anchor0_landmark_smoke_ep386_fixed.sh`'s pattern
-generalized) was queued next to see whether ep386's zero-recognition result
-generalizes or was episode-specific.
+Mechanism confirmed working (placement) but never recognizing (0/683
+attempts) across 3 real episodes -- root-caused to single-frame overlap
+being capped well under this project's trusted-match threshold, not
+primarily a V1.1 near-home training gap. A multiframe fix reusing existing,
+already-vetted merge infrastructure is implemented but not yet tested live.
 
-**Safety boundary maintained:** no runtime integration beyond Route 2's own
-reference copy of `round_trip_eval.py`, no change to `route_agent.anchors`
-or any real decision path, no modification of
+**Safety boundary maintained throughout:** no runtime integration beyond
+Route 2's own reference copy of `round_trip_eval.py`, no change to
+`route_agent.anchors` or `route_agent._pending_anchor`, no modification of
 `navila-route2-v11-core-20260801`'s other consumers.
