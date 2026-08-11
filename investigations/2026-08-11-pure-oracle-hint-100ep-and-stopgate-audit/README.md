@@ -79,8 +79,13 @@ Re-verified 2026-08-11 16:0x that live sysctl values match the file exactly, and
 
 An unrelated, pre-existing, always-broken distro service was also noticed in passing: `ipmiutil_wdt.service` fails every boot (`Cannot open an IPMI driver` — this consumer board has no real BMC). Not something the user configured; not a substitute for the sysctl fix above; not actionable.
 
+## Related: why non-oracle episodes take 4-7x longer wall-clock (and a proposed fix)
+
+See `ICP_PERFORMANCE_AND_KDTREE_PROPOSAL.md` in this folder — found while comparing this batch's per-episode timing against non-oracle batches. Root cause: the sequential_pair relocalization backend's ICP is pure CPU numpy (no GPU involvement at all), brute-force nearest-neighbor (no KD-tree), swept across 24 yaw seeds per candidate anchor per query. Same-episode step counts are nearly identical between oracle and non-oracle, so it's confirmed to be per-query compute overhead, not extra simulated motion. A KD-tree swap is proposed as a zero-accuracy-risk speed fix, **not yet implemented** — planned to try 2026-08-12/13 when the next non-oracle batch runs.
+
 ## For a fresh session picking this up
 
 1. Check current batch state: `systemctl --user status navila-oracle-hint-100ep-20260811.service`, `wc -l /mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/batch_logs/pure_oracle_hint_100ep_20260811/summary.tsv`.
 2. If complete: apply the same outbound/return-success merge methodology as `final_data/README.md` did for the baseline (check whether any of the same historical pre-canonical-100 episodes need merging in) to get a final comparable number, then push a `final_data`-style summary.
 3. Don't re-derive the stop_gate/hint-text findings above from scratch — they're fully covered here with real data, not hypothesized.
+4. If about to run a non-oracle batch, check `ICP_PERFORMANCE_AND_KDTREE_PROPOSAL.md` first — the KD-tree speed fix proposed there hasn't been tried yet.
