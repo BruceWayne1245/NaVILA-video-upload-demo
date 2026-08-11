@@ -1,0 +1,39 @@
+--- a/runtime_candidate/scripts/route_memory_agent.py
++++ b/runtime_candidate/scripts/route_memory_agent.py
+@@ -1164,13 +1164,30 @@
+             cutoff = reference_distance - self.multiframe_anchor_backward_distance_m
+             while self._outbound_symmetric_frame_buffer and self._outbound_symmetric_frame_buffer[0][0] < cutoff:
+                 self._outbound_symmetric_frame_buffer.pop(0)
++        # 2026-08-11 fix: this branch used to route every regular anchor
++        # (1, 2, 3, ... -- anchor 0 is never placed here, see
++        # initialize_start_anchor_descriptor) through the same wide
++        # backward+forward symmetric merge that anchor0_landmark needs.
++        # _outbound_symmetric_frame_buffer above is still populated
++        # unconditionally when the flag is on -- anchor0_landmark's own
++        # merge call in round_trip_eval.py reads that buffer directly and
++        # is unaffected by this change. But merging every regular anchor's
++        # descriptor from a 1.5-3m backward+forward window (rather than the
++        # single capture frame) makes ALL of them span that much corridor,
++        # not just anchor 0 -- measured on a real stuck episode: anchor
++        # descriptors ballooned from ~9k points (single frame) to ~2-4M
++        # (the whole window's raw points), and even after the match-time
++        # 512-point voxel downsample, that much genuinely-distinct corridor
++        # coverage produces a self-similar 512-point sample
++        # (corridor_degeneracy_ratio ~0.93-0.96, confidence stuck ~0.21-0.30,
++        # permanently below min_relocalization_confidence's 0.35 floor --
++        # see investigations/2026-08-11-anchor-v3-active-30ep-multiframe-
++        # degeneracy). Historical batches with this flag off never showed
++        # that failure mode (0/4751 and 1/5697 attempts with both current+
++        # next below 0.35, across two independent 30ep batches) -- regular
++        # anchors never needed the wider window, only anchor 0 did.
+         if self._should_save_anchor():
+-            if self.multiframe_anchor_symmetric_enabled:
+-                self._begin_pending_anchor(descriptor=descriptor, metadata=metadata)
+-            else:
+-                self._append_anchor(descriptor=descriptor, metadata=metadata)
+-        if self._pending_anchor is not None:
+-            self._maybe_finalize_pending_anchor()
++            self._append_anchor(descriptor=descriptor, metadata=metadata)
+ 
+     def update_return_odometry(self, delta: Iterable[float], **kwargs: object) -> None:
+         self.update_return_motion(delta, **kwargs)
