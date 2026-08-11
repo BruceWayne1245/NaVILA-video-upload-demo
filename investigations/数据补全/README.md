@@ -20,7 +20,9 @@
 
 这批复现的是 2026-06-29 `direct_oracle_hard_fresh_20260629` 批次的 route-memory flag 组合（已核对该批次自己 eval_log 里的真实 argv），只是把测试集从原来的 hard-11 换成了本项目 7/20 起统一使用的 100-episode canonical set。
 
-截至本文档撰写时批次仍在跑，最终 return-success 数字会在 `final_data/` 下按跟 `pure_navila_baseline_100ep_20260810` 相同的方法论汇总（分母 = outbound-success 集合，含跨批次历史成功的合并规则）。
+**更新（2026-08-11 22:50 BST，批次已跑完）**：100/100集全部完成。本周本身的原始数据：`outbound_success=30/100`，`return_success=9/100`，`round_trip_success=5/100`。按项目既定的 return-rate 分母约定（`round_trip_success` / `outbound_success`，不用 `return_success` 也不用总集数——见 `feedback_return_rate_denominator` 记忆），本周原始 return-success 率为 **5/30 ≈ 16.7%**，尚未按 `final_data/README.md` 那套方法论合并历史 outbound 成功集。
+
+这个 30% 的 outbound 成功率经核实是这份 100集 canonical manifest 的历史常态（不是这次配置特有的问题）——见下方第6节的完整调查。
 
 ## 2. "4.3%/97%"结论的真实来源（2026-06-30 / 07-01）
 
@@ -90,9 +92,48 @@ oracle_hint  →  oracle_hint_action(=oracle_hint + hint_action_arbiter + topdow
 
 `--oracle_align_return_yaw_to_anchor_segment` 目前不在这条链的计划内，暂不添加。具体的第三批脚本/flag细节留到那时候再定，本节先记录已经确认的方向，供后续接手的人核对。
 
+## 6. canonical-100 的低 outbound 成功率是历史常态；另挑了一份高成功率的 100 集样本
+
+`pure_oracle_hint_100ep_20260811` 跑完后 outbound_success 只有 30/100，用户怀疑这份 manifest 是不是本来就难。逐一核对了用同一份 7/20 canonical-100 manifest 跑过的所有历史批次：
+
+| 批次 | outbound_success |
+|---|---|
+| `canonical_report_next_stopgate_100ep_20260720` | 28/100 = 28% |
+| `reliability_fixon_100ep_20260721` | 19/73 = 26%（只完成73集） |
+| `reliability_v11_prospective_capture_shadow_100ep_20260722` | 43/100 = 43% |
+| `reliability_v11_decision_shadow_rgbd_100ep_20260724` | 38/104 = 36.5% |
+| `pure_navila_baseline_100ep_20260810` | 34/100 = 34% |
+| `pure_oracle_hint_100ep_20260811` | 30/100 = 30% |
+
+**结论：canonical-100 这份 manifest 从建立以来 outbound 成功率就一直在 26%-43% 区间**，不是这次配置或hint机制的问题，是这份 episode 采样对 NaVILA 这个 VLM 来说 outbound 阶段本身偏难。
+
+同时确认了项目历史上确实专门挑过高 outbound 成功率的样本——Route2（Codex 那条线）2026-07-25 的 `reliability_v11_policy_v2_active_50ep_outbound_top_20260725`（50集，非100集），实测 outbound_success=36/50=72%。另有两次未竟的类似尝试：`reliable100`（2026-07-30，想选100集"未训练过+可靠"的池子，扫描全部221个候选后发现这个规模下根本不存在这样的池子，被用户叫停，只跑了1集没有真实数据）、`reliable30v3`（2026-07-31，30集，挑选标准是"历史最常完整跑到返程阶段"而非纯outbound率，实测15/34=44%）。
+
+### 新挑选的高 outbound 成功率 100 集样本（2026-08-11）
+
+用户要求"在现有的所有测试中尽可能统计成功率高的"，挑出一份新的 100 集。方法论：
+
+1. 扫描项目 `batch_logs/` 下全部196个批次的 `summary.tsv`（137个有可用的 `episode_id`+`outbound_success` 数据；排除掉 StreamVLN 等没有 `episode_id` 字段的旧格式日志，以及 VLM 启动失败/超时这类 infra 失败行）。
+2. 以 `episode_id`（而非 `episode_idx`）为跨批次拼接键——这是项目一直沿用的约定，因为不同批次脚本里 `episode_idx` 只是"这个脚本manifest里的第几个"，不是稳定标识符。额外验证：全部297个出现过的 `episode_id`，其对应的 `episode_idx` 在所有历史批次里**零冲突**——因为 `round_trip_eval.py` 的 `read_episodes()`（定义于 `run_benchmark.py`）只是对固定不变的 `vln_ce_isaac_v1.json.gz`（自6月3日起未变过）做一次性 gzip+json 读取，不做任何打乱/过滤，所以历史 `episode_idx` 可以放心复用来拼新脚本。
+3. 按每个 `episode_id` 的历史 outbound 成功率从高到低排序（同分按历史尝试次数排序，优先选证据更充分的），取前100个。
+
+**结果**：264个有历史数据的 episode_id 中选出的这100个，加权历史成功率 **884/932 = 94.85%**（对比 canonical-100 的 26-43%，以及 outbound_top-50 的 72%）。证据强度构成：52个有≥5次历史尝试支撑，20个有2-4次，28个只有1次历史尝试（100%但样本量=1，统计上偏弱，如实标注不隐藏）。跟原 canonical-100 只重叠30个，跟 outbound_top-50 重叠46个（互相印证）。场景分布覆盖项目全部8个场景中的7个，不算集中。
+
+完整100行数据（含 `episode_idx`/`scene`/`neighbor` 等字段，可直接用于拼batch脚本）：[`code/high_outbound_success_100ep_selection.tsv`](code/high_outbound_success_100ep_selection.tsv)。
+
+### 用这份新样本重跑的 oracle_hint 批次
+
+脚本：`scripts/run_pure_oracle_hint_highsuccess100ep_20260811.sh`（`RUN_TAG=pure_oracle_hint_highsuccess100ep_20260811`）。跟 `pure_oracle_hint_100ep_20260811` 的 eval 命令逐字节核对过——flag 完全相同（`--route_memory --route_hint_mode=compact --route_hint_source=oracle --route_relocalization_backend=none`，同样不开 stop_gate/oracle_align_yaw/hint_action_arbiter），**唯一变量是换成了上面这份高成功率的100集**。
+
+2026-08-11 23:22 BST 通过 `systemd-run --user`（`--unit=navila-oracle-hint-highsuccess100ep-20260811`）启动，cgroup 确认在 `user@1006.service/app.slice` 下（非 `session-*.scope`），配合已开启的 `loginctl enable-linger`，SSH断开/对话结束都不影响运行。结果会落在 `NaVILA-Bench/batch_logs/pure_oracle_hint_highsuccess100ep_20260811/summary.tsv`。
+
+**注意：这批数据因为换了 episode 样本，跟 canonical-100 系列（baseline / oracle_hint / oracle_hint_action）不能做逐集比较**，只能单独作为"同样的oracle_hint配置，在更容易outbound成功的样本上表现如何"来看，不能替代 canonical-100 的结果写进消融链主表。
+
 ## 相关文件
 
-- `scripts/run_pure_oracle_hint_100ep_20260811.sh`（当前正跑）
+- `scripts/run_pure_oracle_hint_100ep_20260811.sh`（已跑完，30/100 outbound，5/30 return-success 原始数字）
 - `scripts/run_pure_oracle_hint_action_100ep_20260812.sh`（已准备好，未启动）
+- `scripts/run_pure_oracle_hint_highsuccess100ep_20260811.sh`（高outbound成功率100集变体，正在跑）
 - `investigations/2026-08-11-pure-oracle-hint-100ep-and-stopgate-audit/README.md`（oracle_hint 批次的完整背景、stop_gate审计、hint文本机制对比）
-- `code/run_pure_oracle_hint_100ep_20260811.sh`、`code/run_pure_oracle_hint_action_100ep_20260812.sh`（本文件夹内两份脚本快照，供对照）
+- `code/run_pure_oracle_hint_100ep_20260811.sh`、`code/run_pure_oracle_hint_action_100ep_20260812.sh`、`code/run_pure_oracle_hint_highsuccess100ep_20260811.sh`（本文件夹内三份脚本快照，供对照）
+- `code/high_outbound_success_100ep_selection.tsv`（新100集的完整选择数据：episode_id/历史尝试次数/成功次数/成功率/episode_idx/scene/neighbor等字段）
