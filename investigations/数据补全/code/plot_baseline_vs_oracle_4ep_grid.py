@@ -38,8 +38,10 @@ from topdown_route_map import TopDownMap  # noqa: E402
 
 def render_route_overlay_no_return_order(topdown_map, trajectory_records, route_memory_summary, episode):
     """Same as topdown_route_map.render_route_overlay(), minus the magenta
-    numbered "return order" markers (_draw_return_timestamps) -- those often
-    sit directly on top of the orange return line and hide it."""
+    numbered "return order" markers (_draw_return_timestamps) and the yellow
+    A1/A2/... route-memory anchor markers -- both tended to clutter/hide the
+    orange return line, and the anchors aren't needed to read baseline-vs-
+    oracle_hint success/failure off these maps."""
     image = topdown_map.image.copy()
     meta = topdown_map.meta
 
@@ -58,14 +60,7 @@ def render_route_overlay_no_return_order(topdown_map, trajectory_records, route_
     ]
     tdm._dashed_polyline(image, outbound, meta, (230, 105, 35), thickness=1, dash_px=8.0, gap_px=5.0)
     tdm._dashed_polyline(image, ret, meta, (35, 75, 230), thickness=1, dash_px=8.0, gap_px=5.0)
-    # (deliberately no _draw_return_timestamps call here)
-
-    anchors = (route_memory_summary or {}).get("anchors") or []
-    for anchor in anchors:
-        xy = tdm._anchor_world_xy(anchor)
-        if xy is None:
-            continue
-        tdm._draw_marker(image, xy, meta, (0, 220, 255), f"A{int(anchor.get('index', 0))}", radius=4)
+    # (deliberately no _draw_return_timestamps call, and no anchor markers, here)
 
     start = episode.get("start_position")
     goal = (episode.get("reference_path") or [None])[-1]
@@ -83,7 +78,6 @@ def render_route_overlay_no_return_order(topdown_map, trajectory_records, route_
         ((55, 55, 55), "occupied"),
         ((230, 105, 35), "outbound"),
         ((35, 75, 230), "return"),
-        ((0, 220, 255), "anchor"),
     ]
     for idx, (color, label) in enumerate(legend):
         y = legend_y + idx * 20
