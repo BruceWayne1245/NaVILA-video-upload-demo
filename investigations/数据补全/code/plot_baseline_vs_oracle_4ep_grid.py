@@ -11,6 +11,15 @@ there's no occupancy capture saved under their own eval_results/ — the occupan
 background is scene-fixed, so a real captured floor slice is reused from any
 historical batch that did capture it for the same episode_idx
 (canonical_report_next_stopgate_100ep_20260720_accumulated has all 4).
+
+The underlying occupancy captures are native-resolution (0.05 m/px, fixed at
+Isaac Sim capture time -- can't be recaptured offline). To still ship a
+higher-resolution PNG, every panel's fully-rendered map (background + route
+overlay, all baked into one raster by render_route_overlay) is upscaled with
+cubic interpolation to a shared, deliberately-oversized cell (RESOLUTION_SCALE
+x the largest native panel), and every header/legend/banner element is drawn
+fresh, vector, at that same larger scale -- so text and box edges stay crisp
+rather than being blurred/blocked-up by the upscale.
 """
 
 from __future__ import annotations
@@ -47,6 +56,16 @@ RED = (60, 30, 150)
 GRAY = (90, 90, 90)
 BANNER_BG = (35, 35, 35)
 
+# How much bigger than the largest native (0.05 m/px) panel every tile's map
+# area should be rendered at. Native panels are only ~230-460 px on a side,
+# which looks blocky once tiled into a grid -- 3x with cubic interpolation
+# gives a visibly sharper, higher-pixel-count image without changing any
+# proportions (header/legend text is drawn fresh at the same 3x scale, not
+# stretched, so it stays crisp).
+RESOLUTION_SCALE = 3
+HEADER_H = 54 * RESOLUTION_SCALE
+BANNER_H = 54 * RESOLUTION_SCALE
+
 
 def result_dir(run_tag: str, ep_idx: int) -> Path:
     return BENCH / "eval_results" / f"{RUN_PREFIX}_{run_tag}_ep{ep_idx}"
@@ -76,11 +95,11 @@ def load_occupancy(ep_idx: int, output_id: int) -> TopDownMap:
 
 def fit_text(image: np.ndarray, text: str, x: int, y: int, max_width: int, base_scale: float, color, thickness: int = 1) -> None:
     scale = base_scale
-    while scale > 0.22:
+    while scale > 0.22 * RESOLUTION_SCALE:
         w = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, scale, thickness)[0][0]
         if w <= max_width:
             break
-        scale -= 0.02
+        scale -= 0.02 * RESOLUTION_SCALE
     cv2.putText(image, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, scale, color, thickness, cv2.LINE_AA)
 
 
@@ -112,33 +131,34 @@ def panel(run_data: dict, topdown_map: TopDownMap, ep_id: int) -> dict:
 
 
 def resize_to(image: np.ndarray, width: int, height: int) -> np.ndarray:
-    interp = cv2.INTER_AREA if (width < image.shape[1] or height < image.shape[0]) else cv2.INTER_LINEAR
+    interp = cv2.INTER_AREA if (width < image.shape[1] and height < image.shape[0]) else cv2.INTER_CUBIC
     return cv2.resize(image, (width, height), interpolation=interp)
 
 
-def compose_tile(info: dict, cell_w: int, header_h: int, map_h: int) -> np.ndarray:
+def compose_tile(info: dict, cell_w: int, map_h: int) -> np.ndarray:
     """Resize this panel's map to (cell_w, map_h) and draw a fresh, undistorted header on top."""
     map_img = resize_to(info["map"], cell_w, map_h)
-    tile = np.empty((header_h + map_h, cell_w, 3), dtype=np.uint8)
-    tile[:header_h, :] = info["header_color"]
-    tile[header_h:, :] = map_img
-    cv2.rectangle(tile, (0, 0), (cell_w - 1, tile.shape[0] - 1), info["header_color"], 3)
+    tile = np.empty((HEADER_H + map_h, cell_w, 3), dtype=np.uint8)
+    tile[:HEADER_H, :] = info["header_color"]
+    tile[HEADER_H:, :] = map_img
+    border = max(2, RESOLUTION_SCALE)
+    cv2.rectangle(tile, (0, 0), (cell_w - 1, tile.shape[0] - 1), info["header_color"], border)
 
-    avail = cell_w - 20
-    fit_text(tile, f"Episode {info['ep_id']}", 10, 20, avail, 0.52, (255, 255, 255))
-    fit_text(tile, info["status"], 10, 42, avail, 0.40, (255, 255, 255))
+    avail = cell_w - 20 * RESOLUTION_SCALE
+    fit_text(tile, f"Episode {info['ep_id']}", 10 * RESOLUTION_SCALE, 20 * RESOLUTION_SCALE, avail, 0.52 * RESOLUTION_SCALE, (255, 255, 255), thickness=RESOLUTION_SCALE)
+    fit_text(tile, info["status"], 10 * RESOLUTION_SCALE, 42 * RESOLUTION_SCALE, avail, 0.40 * RESOLUTION_SCALE, (255, 255, 255), thickness=max(1, RESOLUTION_SCALE - 1))
     return tile
 
 
 def make_grid(panels: list[dict], title: str) -> np.ndarray:
-    # Every tile gets the SAME cell_w x map_h map area (largest across all 4,
-    # maps stretched to fit) plus a fixed, undistorted header -- so all 4
-    # tiles are pixel-identical in size and the grid has zero gaps/padding.
-    header_h = 54
-    cell_w = max(p["map"].shape[1] for p in panels)
-    map_h = max(p["map"].shape[0] for p in panels)
-    tiles = [compose_tile(p, cell_w, header_h, map_h) for p in panels]
-    cell_h = header_h + map_h
+    # Every tile gets the SAME cell_w x map_h map area (RESOLUTION_SCALE x the
+    # largest native panel, maps upscaled with cubic interpolation) plus a
+    # fixed, undistorted header -- so all 4 tiles are pixel-identical in size
+    # and the grid has zero gaps/padding.
+    cell_w = max(p["map"].shape[1] for p in panels) * RESOLUTION_SCALE
+    map_h = max(p["map"].shape[0] for p in panels) * RESOLUTION_SCALE
+    tiles = [compose_tile(p, cell_w, map_h) for p in panels]
+    cell_h = HEADER_H + map_h
 
     cols, rows = 2, 2
     grid_w = cols * cell_w
@@ -150,19 +170,23 @@ def make_grid(panels: list[dict], title: str) -> np.ndarray:
         x0 = c * cell_w
         grid[y0 : y0 + cell_h, x0 : x0 + cell_w] = t
 
-    banner_h = 54
-    out = np.full((grid_h + banner_h, grid_w, 3), BANNER_BG, dtype=np.uint8)
-    out[banner_h:, :] = grid
+    out = np.full((grid_h + BANNER_H, grid_w, 3), BANNER_BG, dtype=np.uint8)
+    out[BANNER_H:, :] = grid
 
     legend = [(GREEN, "Round-trip success"), (RED, "Failure (outbound or return)")]
-    lx, ly = 14, 20
+    lx, ly = 14 * RESOLUTION_SCALE, 20 * RESOLUTION_SCALE
+    legend_font = 0.40 * RESOLUTION_SCALE
+    legend_thick = max(1, RESOLUTION_SCALE - 1)
     for color, label in legend:
-        cv2.rectangle(out, (lx, ly - 10), (lx + 18, ly + 3), color, -1)
-        cv2.putText(out, label, (lx + 24, ly + 1), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (255, 255, 255), 1, cv2.LINE_AA)
-        text_w = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.40, 1)[0][0]
-        lx += 18 + 8 + text_w + 24
+        cv2.rectangle(out, (lx, ly - 10 * RESOLUTION_SCALE), (lx + 18 * RESOLUTION_SCALE, ly + 3 * RESOLUTION_SCALE), color, -1)
+        cv2.putText(out, label, (lx + 24 * RESOLUTION_SCALE, ly + 1 * RESOLUTION_SCALE), cv2.FONT_HERSHEY_SIMPLEX, legend_font, (255, 255, 255), legend_thick, cv2.LINE_AA)
+        text_w = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, legend_font, legend_thick)[0][0]
+        lx += 18 * RESOLUTION_SCALE + 8 * RESOLUTION_SCALE + text_w + 40 * RESOLUTION_SCALE
 
-    cv2.putText(out, title, (14, 44), cv2.FONT_HERSHEY_SIMPLEX, 0.42, (210, 210, 210), 1, cv2.LINE_AA)
+    cv2.putText(
+        out, title, (14 * RESOLUTION_SCALE, 44 * RESOLUTION_SCALE), cv2.FONT_HERSHEY_SIMPLEX,
+        0.42 * RESOLUTION_SCALE, (210, 210, 210), legend_thick, cv2.LINE_AA,
+    )
     return out
 
 
@@ -173,13 +197,9 @@ def build(run_tag: str, out_name: str, title: str) -> Path:
         topdown_map = load_occupancy(ep_idx, output_id)
         panels.append(panel(run_data, topdown_map, ep_id))
     grid = make_grid(panels, title)
-    grid = cv2.resize(grid, (grid.shape[1] * UPSCALE, grid.shape[0] * UPSCALE), interpolation=cv2.INTER_NEAREST)
     out_path = OUT_DIR / out_name
-    cv2.imwrite(str(out_path), grid)
+    cv2.imwrite(str(out_path), grid, [cv2.IMWRITE_PNG_COMPRESSION, 6])
     return out_path
-
-
-UPSCALE = 2
 
 
 def main() -> None:
