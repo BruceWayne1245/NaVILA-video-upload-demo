@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
-"""2x2 route-map grids for the 4 overlap episodes where oracle_hint returned
-successfully but the pure baseline did not (episode_id 422/602/1153/1378).
+"""3x3 route-map grids for 9 overlap episodes between pure_navila_baseline_100ep_20260810
+and pure_oracle_hint_highsuccess100ep_20260811: the original 4 where oracle_hint flipped
+a baseline return-fail to a return-success (episode_id 422/602/1153/1378), plus 5 more
+picked for visibly different return trajectories even though both configs still fail
+return (episode_id 512/1134/476/128/33 -- ranked by mean per-point divergence between
+the two return paths after arc-length resampling, skipping near-duplicate mirror-route
+pairs like 128/129 which share the same neighbor episode and start/goal).
 
 Reuses the same building blocks as the 2026-06-30 hard-11 grid
 (artifacts/stop_gate_r3_oracle_hard_20260630_route_maps/hard11_stop_gate_r3_hint_action_arbiter_20260630_grid.png):
@@ -10,7 +15,7 @@ nor pure_oracle_hint_highsuccess100ep_20260811 was run with --topdown_route_map,
 there's no occupancy capture saved under their own eval_results/ — the occupancy
 background is scene-fixed, so a real captured floor slice is reused from any
 historical batch that did capture it for the same episode_idx
-(canonical_report_next_stopgate_100ep_20260720_accumulated has all 4).
+(canonical_report_next_stopgate_100ep_20260720_accumulated has all 9).
 
 The underlying occupancy captures are native-resolution (0.05 m/px, fixed at
 Isaac Sim capture time -- can't be recaptured offline). To still ship a
@@ -98,9 +103,14 @@ EPISODES = [
     (367, 602, 601),
     (669, 1153, 1152),
     (813, 1378, 1377),
+    (319, 512, 511),
+    (653, 1134, 1133),
+    (295, 476, 475),
+    (88, 128, 127),
+    (20, 33, 32),
 ]
 
-OUT_DIR = Path("/tmp/claude-1006/-home-teambruce/1b3ab78e-16b9-404a-820f-7d54ceb5d8c9/scratchpad")
+OUT_DIR = Path("/tmp/claude-1006/-home-teambruce/8d729e83-ca24-4399-b9f8-5c9ab0940dc6/scratchpad")
 
 GREEN = (60, 130, 30)
 RED = (60, 30, 150)
@@ -211,7 +221,7 @@ def make_grid(panels: list[dict], title: str) -> np.ndarray:
     tiles = [compose_tile(p, cell_w, map_h) for p in panels]
     cell_h = HEADER_H + map_h
 
-    cols, rows = 2, 2
+    cols, rows = 3, 3
     grid_w = cols * cell_w
     grid_h = rows * cell_h
     grid = np.zeros((grid_h, grid_w, 3), dtype=np.uint8)
@@ -254,9 +264,9 @@ def build(run_tag: str, out_name: str, title: str) -> Path:
 
 
 def main() -> None:
-    p1 = build(BASELINE_TAG, "baseline_4ep_return_grid_20260812.png", "pure NaVILA baseline -- 20260810")
+    p1 = build(BASELINE_TAG, "baseline_9ep_return_grid_20260812.png", "pure NaVILA baseline -- 20260810")
     print(p1)
-    p2 = build(ORACLE_TAG, "oracle_hint_4ep_return_grid_20260812.png", "oracle_hint highsuccess100ep -- 20260811")
+    p2 = build(ORACLE_TAG, "oracle_hint_9ep_return_grid_20260812.png", "oracle_hint highsuccess100ep -- 20260811")
     print(p2)
 
 
