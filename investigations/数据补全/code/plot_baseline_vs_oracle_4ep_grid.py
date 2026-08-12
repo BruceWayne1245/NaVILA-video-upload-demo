@@ -32,7 +32,64 @@ import cv2
 import numpy as np
 
 sys.path.insert(0, "/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/scripts")
-from topdown_route_map import TopDownMap, render_route_overlay  # noqa: E402
+import topdown_route_map as tdm  # noqa: E402
+from topdown_route_map import TopDownMap  # noqa: E402
+
+
+def render_route_overlay_no_return_order(topdown_map, trajectory_records, route_memory_summary, episode):
+    """Same as topdown_route_map.render_route_overlay(), minus the magenta
+    numbered "return order" markers (_draw_return_timestamps) -- those often
+    sit directly on top of the orange return line and hide it."""
+    image = topdown_map.image.copy()
+    meta = topdown_map.meta
+
+    reference_path = [[float(p[0]), float(p[1])] for p in episode.get("reference_path", [])]
+    tdm._polyline(image, reference_path, meta, (170, 170, 170), 1)
+
+    outbound = [
+        [float(r["position"][0]), float(r["position"][1])]
+        for r in trajectory_records
+        if r.get("phase") == "outbound" and r.get("position") is not None
+    ]
+    ret = [
+        [float(r["position"][0]), float(r["position"][1])]
+        for r in trajectory_records
+        if r.get("phase") == "return" and r.get("position") is not None
+    ]
+    tdm._dashed_polyline(image, outbound, meta, (230, 105, 35), thickness=1, dash_px=8.0, gap_px=5.0)
+    tdm._dashed_polyline(image, ret, meta, (35, 75, 230), thickness=1, dash_px=8.0, gap_px=5.0)
+    # (deliberately no _draw_return_timestamps call here)
+
+    anchors = (route_memory_summary or {}).get("anchors") or []
+    for anchor in anchors:
+        xy = tdm._anchor_world_xy(anchor)
+        if xy is None:
+            continue
+        tdm._draw_marker(image, xy, meta, (0, 220, 255), f"A{int(anchor.get('index', 0))}", radius=4)
+
+    start = episode.get("start_position")
+    goal = (episode.get("reference_path") or [None])[-1]
+    if start is not None:
+        tdm._draw_marker(image, start[:2], meta, (60, 180, 75), "start", radius=7)
+    if goal is not None:
+        tdm._draw_marker(image, goal[:2], meta, (180, 70, 180), "goal", radius=7)
+    if trajectory_records:
+        final_pos = trajectory_records[-1].get("position")
+        if final_pos is not None:
+            tdm._draw_marker(image, final_pos[:2], meta, (35, 35, 230), "final", radius=6)
+
+    legend_x, legend_y = 12, 20
+    legend = [
+        ((55, 55, 55), "occupied"),
+        ((230, 105, 35), "outbound"),
+        ((35, 75, 230), "return"),
+        ((0, 220, 255), "anchor"),
+    ]
+    for idx, (color, label) in enumerate(legend):
+        y = legend_y + idx * 20
+        cv2.line(image, (legend_x, y), (legend_x + 24, y), color, 4, cv2.LINE_AA)
+        cv2.putText(image, label, (legend_x + 32, y + 5), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (20, 20, 20), 1, cv2.LINE_AA)
+    return image
 
 BENCH = Path("/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench")
 RUN_PREFIX = "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02"
@@ -111,7 +168,7 @@ def panel(run_data: dict, topdown_map: TopDownMap, ep_id: int) -> dict:
         "reference_path": [],
     }
     route_memory = rt.get("route_memory")
-    overlay = render_route_overlay(topdown_map, records, route_memory, episode)
+    overlay = render_route_overlay_no_return_order(topdown_map, records, route_memory, episode)
 
     dist = float(rt.get("distance_to_start", float("nan")))
     if rt.get("round_trip_success"):
