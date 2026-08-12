@@ -84,7 +84,7 @@ def fit_text(image: np.ndarray, text: str, x: int, y: int, max_width: int, base_
     cv2.putText(image, text, (x, y), cv2.FONT_HERSHEY_SIMPLEX, scale, color, thickness, cv2.LINE_AA)
 
 
-def panel(run_data: dict, topdown_map: TopDownMap, ep_id: int) -> np.ndarray:
+def panel(run_data: dict, topdown_map: TopDownMap, ep_id: int) -> dict:
     records = run_data["records"]
     rt = run_data["round_trip"]
     episode = {
@@ -93,9 +93,6 @@ def panel(run_data: dict, topdown_map: TopDownMap, ep_id: int) -> np.ndarray:
     }
     route_memory = rt.get("route_memory")
     overlay = render_route_overlay(topdown_map, records, route_memory, episode)
-
-    header_h = 54
-    out = np.full((overlay.shape[0] + header_h, overlay.shape[1], 3), 255, dtype=np.uint8)
 
     dist = float(rt.get("distance_to_start", float("nan")))
     if rt.get("round_trip_success"):
@@ -111,39 +108,47 @@ def panel(run_data: dict, topdown_map: TopDownMap, ep_id: int) -> np.ndarray:
         else:
             status = f"FAIL outbound | dist {dist:.2f}m"
 
-    out[:header_h, :] = header_color
-    out[header_h:, :] = overlay
-    cv2.rectangle(out, (0, 0), (out.shape[1] - 1, out.shape[0] - 1), header_color, 3)
-
-    avail = out.shape[1] - 20
-    fit_text(out, f"Episode {ep_id}", 10, 20, avail, 0.52, (255, 255, 255))
-    fit_text(out, status, 10, 42, avail, 0.40, (255, 255, 255))
-    return out
+    return {"map": overlay, "ep_id": ep_id, "header_color": header_color, "status": status}
 
 
-def pad_to(image: np.ndarray, width: int, height: int) -> np.ndarray:
-    out = np.full((height, width, 3), 20, dtype=np.uint8)
-    y0 = (height - image.shape[0]) // 2
-    x0 = (width - image.shape[1]) // 2
-    out[y0 : y0 + image.shape[0], x0 : x0 + image.shape[1]] = image
-    return out
+def resize_to(image: np.ndarray, width: int, height: int) -> np.ndarray:
+    interp = cv2.INTER_AREA if (width < image.shape[1] or height < image.shape[0]) else cv2.INTER_LINEAR
+    return cv2.resize(image, (width, height), interpolation=interp)
 
 
-def make_grid(panels: list[np.ndarray], title: str) -> np.ndarray:
-    cell_w = max(p.shape[1] for p in panels)
-    cell_h = max(p.shape[0] for p in panels)
-    padded = [pad_to(p, cell_w, cell_h) for p in panels]
+def compose_tile(info: dict, cell_w: int, header_h: int, map_h: int) -> np.ndarray:
+    """Resize this panel's map to (cell_w, map_h) and draw a fresh, undistorted header on top."""
+    map_img = resize_to(info["map"], cell_w, map_h)
+    tile = np.empty((header_h + map_h, cell_w, 3), dtype=np.uint8)
+    tile[:header_h, :] = info["header_color"]
+    tile[header_h:, :] = map_img
+    cv2.rectangle(tile, (0, 0), (cell_w - 1, tile.shape[0] - 1), info["header_color"], 3)
 
-    gap = 4
+    avail = cell_w - 20
+    fit_text(tile, f"Episode {info['ep_id']}", 10, 20, avail, 0.52, (255, 255, 255))
+    fit_text(tile, info["status"], 10, 42, avail, 0.40, (255, 255, 255))
+    return tile
+
+
+def make_grid(panels: list[dict], title: str) -> np.ndarray:
+    # Every tile gets the SAME cell_w x map_h map area (largest across all 4,
+    # maps stretched to fit) plus a fixed, undistorted header -- so all 4
+    # tiles are pixel-identical in size and the grid has zero gaps/padding.
+    header_h = 54
+    cell_w = max(p["map"].shape[1] for p in panels)
+    map_h = max(p["map"].shape[0] for p in panels)
+    tiles = [compose_tile(p, cell_w, header_h, map_h) for p in panels]
+    cell_h = header_h + map_h
+
     cols, rows = 2, 2
-    grid_w = cols * cell_w + (cols - 1) * gap
-    grid_h = rows * cell_h + (rows - 1) * gap
-    grid = np.full((grid_h, grid_w, 3), 20, dtype=np.uint8)
-    for i, p in enumerate(padded):
+    grid_w = cols * cell_w
+    grid_h = rows * cell_h
+    grid = np.zeros((grid_h, grid_w, 3), dtype=np.uint8)
+    for i, t in enumerate(tiles):
         r, c = divmod(i, cols)
-        y0 = r * (cell_h + gap)
-        x0 = c * (cell_w + gap)
-        grid[y0 : y0 + cell_h, x0 : x0 + cell_w] = p
+        y0 = r * cell_h
+        x0 = c * cell_w
+        grid[y0 : y0 + cell_h, x0 : x0 + cell_w] = t
 
     banner_h = 54
     out = np.full((grid_h + banner_h, grid_w, 3), BANNER_BG, dtype=np.uint8)
