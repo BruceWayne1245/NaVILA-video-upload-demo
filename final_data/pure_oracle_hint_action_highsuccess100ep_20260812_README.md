@@ -72,3 +72,60 @@ successes, return-rate +23.3 points.
 - 28/100 episodes in this sample have only a single historical attempt backing their selection
   (100% on n=1) — statistically weak for a subset of the manifest, flagged in the original
   selection methodology, not hidden.
+
+## Arbiter intervention-rate re-check (2026-08-13) — the "4.3%" figure does not transfer to this config
+
+The project's oft-cited "`hint_action_arbiter` only overrides the VLM on 4.3% of return-phase
+decisions (15/348), yet return success jumps from ~50% to 97%" figure comes from two 2026-06-30/
+07-01 batches (`stop_gate_r3_hint_arbiter_hard11_20260630` + `oracle_shadow_loftr_v4_30_return_anchor_fix_20260701`,
+see `investigations/数据补全/README.md` §2) that always ran `hint_action_arbiter` bundled with
+`--oracle_align_return_yaw_to_anchor_segment` and `--stop_gate` — never in isolation. This batch
+(`pure_oracle_hint_action_highsuccess100ep_20260812`) is the first isolation of
+`hint_action_arbiter` (+`--topdown_route_map`) on its own, with those two other mechanisms
+explicitly off, so the same override-rate computation was re-run against its own `[hint_arbiter]`
+per-step log lines (`ep*_eval.log`, `grep "\[hint_arbiter\] step="`, same methodology as the
+historical 4.3% figure) to see whether the rate transfers.
+
+**It does not — the isolated arbiter overrides roughly 4x more often:**
+
+| batch | total return-phase decisions | override=True (VLM output replaced) | override rate |
+|---|---|---|---|
+| historical 4.3% source (06-30/07-01, arbiter+yaw-oracle+stop_gate bundled) | 348 | 15 | 4.3% |
+| `pure_oracle_hint_action_highsuccess100ep_20260812` (arbiter alone, this batch) | 3094 | 503 | **16.26%** |
+| `pure_oracle_hint_action_100ep_20260812` (canonical-100, discarded 98/100 run — cross-check only) | 2480 | 433 | 17.46% |
+
+The canonical-100 discarded run (different, harder episode manifest, not otherwise used as final
+data) lands within 1.2 points of this batch's rate, so 16-17% looks like a property of running
+the arbiter without yaw-oracle/stop_gate support, not an artifact of the high-success episode
+sample.
+
+Full per-episode decision counts and reason breakdown for this batch:
+[`pure_oracle_hint_action_highsuccess100ep_20260812_arbiter_decisions.tsv`](pure_oracle_hint_action_highsuccess100ep_20260812_arbiter_decisions.tsv)
+(87 of the 100 episodes reached the return phase and logged at least one arbiter decision; the
+other 13 never entered return, consistent with `outbound_success=86/100` minus a couple of
+episodes that stopped immediately on entering return). Reason-code breakdown, pooled:
+
+| reason | count | share | meaning |
+|---|---|---|---|
+| `vlm_action_consistent` | 1699 | 54.9% | VLM action already matched the hint direction, no override needed |
+| `occupied_in_local_map_path` | 727 | 23.5% | VLM conflicted with the hint, but the hinted path was occupied per the local/topdown map, so the arbiter declined to override |
+| `vlm_conflicts_with_clear_hint` | 503 | 16.3% | VLM conflicted with the hint, hinted path was clear → **overridden** |
+| `target_too_close` | 165 | 5.3% | next-anchor target distance below `min_anchor_distance_m`, decision skipped — a reason code not present in the historical 06-30/07-01 batches' arbiter version |
+
+Per-episode intervention rate is broadly distributed, not driven by a few outlier episodes:
+median 13.3% across the 87 episodes with at least one decision, 70/87 episodes have at least one
+override, only a handful of low-decision-count episodes (≤14 decisions) hit 100%.
+
+**Interpretation:** the 4.3% figure was never a property of `hint_action_arbiter` alone — it
+described how often the arbiter still needed to intervene *after* `--oracle_align_return_yaw_to_anchor_segment`
+had already removed most of the robot's heading noise. Without that oracle yaw correction, the
+VLM's own action more often genuinely conflicts with the route hint, so the arbiter's real
+correction workload in isolation is roughly 4x higher than the historical headline number. This
+does not contradict the return-rate finding above (arbiter alone still adds +23.3 points over
+hint-alone on this sample) — it only means the 4.3%/97% headline should not be quoted as
+`hint_action_arbiter`'s own intervention rate going forward.
+
+Source logs: `batch_logs/pure_oracle_hint_action_highsuccess100ep_20260812/ep*_eval.log` and
+`batch_logs/pure_oracle_hint_action_100ep_20260812/ep*_eval.log` on `hrl-4090-server`
+(`/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/`), `[hint_arbiter]` log lines emitted
+by `scripts/hint_action_arbiter.py`.
