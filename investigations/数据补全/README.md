@@ -162,7 +162,7 @@ episode manifest：跟 `pure_oracle_hint_highsuccess100ep_20260811`（第6节）
 
 **注意：这批数据因为换了 episode 样本，跟 canonical-100 系列（baseline / oracle_hint / 第4节的oracle_hint_action）不能做逐集比较**——第4节canonical-100版已产出的23/37=62.2%（98/100，未跑满）仍然是有效数据，只是样本效率低，不建议作为最终论文数字；本批（第7节）预期能在同样甚至更短GPU时间内产出远多于37个的outbound-success样本，是接下来消融链默认要用的数据来源。
 
-## 8. 第三批（消融链最后一步）：`pure_oracle_hint_action_stopgate_highsuccess100ep_20260813`，已启动
+## 8. 第三批（消融链最后一步）：`pure_oracle_hint_action_stopgate_highsuccess100ep_20260813`，已完成
 
 脚本：`scripts/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`（`RUN_TAG=pure_oracle_hint_action_stopgate_highsuccess100ep_20260813`）。
 
@@ -180,7 +180,40 @@ episode manifest：跟 `pure_oracle_hint_highsuccess100ep_20260811`（第6节）
 
 结果落在 `NaVILA-Bench/batch_logs/pure_oracle_hint_action_stopgate_highsuccess100ep_20260813/summary.tsv`；master log `/home/teambruce/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813_master.log`。启动后确认第一集（`episode_idx=5`）VLM server 已就绪、Isaac Sim 评估进程已起来。
 
-**这是消融链的最后一步**，完成后三批（oracle_hint → oracle_hint_action → oracle_hint_action+stop_gate）将在同一份高成功率100集manifest上构成一条完整、逐步叠加、互相可比的数据点。
+**这是消融链的最后一步**，完成后三批（oracle_hint → oracle_hint_action → oracle_hint_action+stop_gate）在同一份高成功率100集manifest上构成一条完整、逐步叠加、互相可比的数据点。
+
+**2026-08-13 18:05:27 BST 完成**：outbound_success=87/100，return_success=73/100，round_trip_success=71/100，1个infra failure（episode_idx=539，exit_code=124）。**return-rate = 71/87 ≈ 81.6%**。三步消融链完整结果：
+
+| 步骤 | 配置 | return-rate |
+|---|---|---|
+| 1（第6节） | oracle_hint only | 32/86 ≈ 37.2% |
+| 2（第7节） | + hint_action_arbiter | 52/86 ≈ 60.5% |
+| 3（本节） | + stop_gate | **71/87 ≈ 81.6%** |
+
+已推送 `final_data/pure_oracle_hint_action_stopgate_highsuccess100ep_20260813_README.md` + `..._full_results.tsv`（含完整三步对比表）。
+
+## 9. 非oracle对照批次（Route1 70%配置）：`line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813`，正在跑
+
+上面三步消融链全部是 `route_hint_source=oracle` 的**oracle侧**结果。这一节是为了给整条链找一个**非oracle侧**的对照点：Route1当前主线的 hard-coded 架构（`stop_gate` v2 + `route_memory_agent` 6项修复，不依赖任何controller模型），历史上唯一一次在当前代码上验证过、且return-rate ≥55%的配置——`line2_stopgate_redesign_30ep_20260804`批次，n=10时70.0%（7/10），后来在n=29的更大样本上复测得58.6%（17/29，`line2_50ep_historical_outbound_20260805`，未曾写过报告）。完整候选调查过程见本会话对话记录，未单独写投稿folder。
+
+**配置**：脚本 `NaVILA-Bench/scripts/run_line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813.sh`（`RUN_TAG=line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813`）。逐行diff确认：
+- `COMMON_EXTRA`（stop_gate/route_memory_agent/hint_action_arbiter相关的全部flag）与08-04原始批次逐行一致，仅一处注释文字差异，无功能影响
+- 基础调用参数（`--route_memory --route_hint_mode=compact --route_hint_source=integrated --route_relocalization_backend=sequential_pair`）与08-04 driver的默认值一致
+- Episode manifest 与第6-8节oracle链完全相同的高成功率100集，逐行diff100条`run_episode`确认一致（同一份manifest，直接episode-for-episode可比）
+
+**与08-04原批次唯一的刻意差异**：`--oracle_align_return_yaw_to_anchor_segment` 未启用（08-04原批次通过driver的隐式默认值`ORACLE_ALIGN_RETURN_YAW_TO_ANCHOR_SEGMENT:-1`带上了这个flag——本会话审计发现这其实是全项目自07-12以来几乎所有"非oracle"批次的隐性惯例，从未被专门标注过，见下方背景）。本批次**也没有**启用同一会话新实现的 `--icp_align_return_yaw_to_anchor_segment`（ICP自驱动版本，见 `investigations/2026-08-13-icp-return-yaw-alignment/FINDINGS.md`）——两个yaw对齐机制都不用，return阶段朝向不做任何修正，confirm结束时是什么朝向就是什么朝向。按本会话审计，这是全项目历史上第一次在批量规模（n=100）上跑这种配置。
+
+**代码完整性核实**（启动前）：
+- `stop_gate.py`（08-04 11:26）、`route_memory_agent.py`（08-04 11:24）、`hint_action_arbiter.py`（08-03 11:37）自那以后未再改动
+- `round_trip_eval.py` 当天早些时候被本会话修改过（新增 `--icp_align_return_yaw_to_anchor_segment` 机制，见第8节旁的ICP investigations folder），但直接核对了运行时guard逻辑：由于本批次两个yaw flag都不传，`entering_icp_yaw_align` 保持 `False`，代码原样走到未经改动的原始return-entry尾段——即本批次实际执行的逻辑与ICP机制加入之前完全一致
+
+**启动记录**：2026-08-13 20:18:47 BST 通过 `systemd-run --user --unit=navila-line2-stopgate-noyaw-highsuccess100ep-20260813` 启动，PORT_BASE=62000（避开同日更早一次已停止批次的端口范围）。已核实完全独立于SSH/对话会话：主进程SID与当前shell SID不同，PPID挂在systemd --user daemon（PID 1668）下，cgroup路径 `/user.slice/user-1006.slice/user@1006.service/app.slice/navila-line2-stopgate-noyaw-highsuccess100ep-20260813.service`（`app.slice`，非`session-*.scope`），`loginctl show-user teambruce -p Linger` → `Linger=yes`。
+
+结果落在 `NaVILA-Bench/batch_logs/line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813/summary.tsv`；master log `/home/teambruce/run_line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813_master.log`。
+
+**GPU资源注意**：本批次与一个不相关的RL训练任务（`scripts/rsl_rl/train_multi.py`，G1 dribbling，已跑20+小时）并行跑在同一块GPU上，按用户明确指示不等待其结束。启动时显存占用约23.3GB/24.6GB（约95%），空闲margin很薄（~1.2GB）。截至本次更新未观察到OOM相关的infra failure，但后续如果episode的exit_code异常增多，需要检查是否与显存争用有关。
+
+**上一次尝试**（同日更早，`line2_stopgate_redesign_highsuccess100ep_20260813`，保留`--oracle_align_return_yaw_to_anchor_segment`）被用户两次叫停、从未跑完——那批脚本仍在 `NaVILA-Bench/scripts/` 下，如果之后需要"非oracle但保留yaw-oracle"这个变体做三方对比，可以直接复用。
 
 ## 相关文件
 
@@ -188,7 +221,10 @@ episode manifest：跟 `pure_oracle_hint_highsuccess100ep_20260811`（第6节）
 - `scripts/run_pure_oracle_hint_action_100ep_20260812.sh`（第4节，canonical-100，已手动停止于98/100，37/98 outbound，未采纳为最终数据）
 - `scripts/run_pure_oracle_hint_highsuccess100ep_20260811.sh`（第6节，高成功率100集变体，纯oracle_hint，已跑完）
 - `scripts/run_pure_oracle_hint_action_highsuccess100ep_20260812.sh`（第7节，高成功率100集 + hint_action_arbiter，已跑完，52/86≈60.5% return-rate）
-- `scripts/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`（第8节，高成功率100集 + hint_action_arbiter + stop_gate，**当前正在跑，消融链最后一步**）
+- `scripts/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`（第8节，高成功率100集 + hint_action_arbiter + stop_gate，消融链最后一步，**已完成，71/87≈81.6%**）
+- `scripts/run_line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813.sh`（第9节，非oracle Route1 70%配置，同一份高成功率100集，不带任何yaw对齐，**当前正在跑**）
+- `scripts/run_line2_stopgate_redesign_highsuccess100ep_20260813.sh`（第9节提到的"上一次尝试"，保留oracle yaw对齐，被停止两次未跑完，留作备用）
 - `investigations/2026-08-11-pure-oracle-hint-100ep-and-stopgate-audit/README.md`（oracle_hint 批次的完整背景、stop_gate审计、hint文本机制对比）
-- `code/run_pure_oracle_hint_100ep_20260811.sh`、`code/run_pure_oracle_hint_action_100ep_20260812.sh`、`code/run_pure_oracle_hint_highsuccess100ep_20260811.sh`、`code/run_pure_oracle_hint_action_highsuccess100ep_20260812.sh`、`code/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`（本文件夹内五份脚本快照，供对照）
+- `investigations/2026-08-13-icp-return-yaw-alignment/FINDINGS.md`（第9节提到的ICP自驱动yaw对齐机制，新flag `--icp_align_return_yaw_to_anchor_segment`，已实现+冒烟测试，未跑批量）
+- `code/run_pure_oracle_hint_100ep_20260811.sh`、`code/run_pure_oracle_hint_action_100ep_20260812.sh`、`code/run_pure_oracle_hint_highsuccess100ep_20260811.sh`、`code/run_pure_oracle_hint_action_highsuccess100ep_20260812.sh`、`code/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`、`code/run_line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813.sh`（本文件夹内脚本快照，供对照）
 - `code/high_outbound_success_100ep_selection.tsv`（高成功率100集的完整选择数据：episode_id/历史尝试次数/成功次数/成功率/episode_idx/scene/neighbor等字段）
