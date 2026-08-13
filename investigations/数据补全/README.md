@@ -100,7 +100,7 @@ episode manifest 用的是 7/20 起的 canonical-100（跟 `pure_oracle_hint_100
 oracle_hint  →  oracle_hint_action(=oracle_hint + hint_action_arbiter + topdown_route_map)  →  oracle_hint_action + stop_gate
 ```
 
-`--oracle_align_return_yaw_to_anchor_segment` 目前不在这条链的计划内，暂不添加。**按第0节的新默认策略，这第三批同样应该默认使用高成功率100集，除非用户特别说明要换回 canonical-100。** 具体的第三批脚本/flag细节留到那时候再定。
+`--oracle_align_return_yaw_to_anchor_segment` 目前不在这条链的计划内，暂不添加。**按第0节的新默认策略，这第三批同样应该默认使用高成功率100集，除非用户特别说明要换回 canonical-100。** 第三批已于 2026-08-13 启动，见第8节。
 
 ## 6. canonical-100 的低 outbound 成功率是历史常态；另挑了一份高成功率的 100 集样本
 
@@ -162,12 +162,33 @@ episode manifest：跟 `pure_oracle_hint_highsuccess100ep_20260811`（第6节）
 
 **注意：这批数据因为换了 episode 样本，跟 canonical-100 系列（baseline / oracle_hint / 第4节的oracle_hint_action）不能做逐集比较**——第4节canonical-100版已产出的23/37=62.2%（98/100，未跑满）仍然是有效数据，只是样本效率低，不建议作为最终论文数字；本批（第7节）预期能在同样甚至更短GPU时间内产出远多于37个的outbound-success样本，是接下来消融链默认要用的数据来源。
 
+## 8. 第三批（消融链最后一步）：`pure_oracle_hint_action_stopgate_highsuccess100ep_20260813`，已启动
+
+脚本：`scripts/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`（`RUN_TAG=pure_oracle_hint_action_stopgate_highsuccess100ep_20260813`）。
+
+**这批 = 第7节 `pure_oracle_hint_action_highsuccess100ep_20260812`（52/86≈60.5% return-rate）的基础上只加一个变量。** 跟第7节脚本逐行 diff 确认：episode manifest（同一份高成功率100集，完全未改动）、`RUN_TAG` 之外的所有其他行为完全一致，唯一新增的是 eval 命令里的：
+
+```
+--stop_gate --stop_gate_r_in=3.0 --stop_gate_r_out=3.0 --stop_gate_confirm_steps=3 --stop_gate_min_confidence=0.5
+```
+
+四个子参数取值跟历史所有含 `--stop_gate` 的批次一致（核对自 `run_stop_gate_r3_oracle_hard_batch_20260630.sh`）。`--oracle_align_return_yaw_to_anchor_segment` 依旧不加，理由同第4/7节。
+
+**启动记录**：2026-08-13 09:10:37 BST 通过 `systemd-run --user --unit=navila-oracle-hint-action-stopgate-highsuccess100ep-20260813` 启动。启动前确认 GPU 完全空闲（0%利用率）。已核实完全独立于 SSH/对话会话：
+- `loginctl show-user teambruce -p Linger` → `Linger=yes`
+- 该 unit 的 cgroup 路径为 `/user.slice/user-1006.slice/user@1006.service/app.slice/navila-oracle-hint-action-stopgate-highsuccess100ep-20260813.service`——挂在 `user@1006.service`（该服务自身已独立运行超过2天，不依赖任何登录session）下的 `app.slice`，不是 `session-*.scope`，因此关闭 SSH 连接或结束当前对话都不会终止该批次。
+
+结果落在 `NaVILA-Bench/batch_logs/pure_oracle_hint_action_stopgate_highsuccess100ep_20260813/summary.tsv`；master log `/home/teambruce/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813_master.log`。启动后确认第一集（`episode_idx=5`）VLM server 已就绪、Isaac Sim 评估进程已起来。
+
+**这是消融链的最后一步**，完成后三批（oracle_hint → oracle_hint_action → oracle_hint_action+stop_gate）将在同一份高成功率100集manifest上构成一条完整、逐步叠加、互相可比的数据点。
+
 ## 相关文件
 
 - `scripts/run_pure_oracle_hint_100ep_20260811.sh`（第1节，canonical-100，已跑完，30/100 outbound）
 - `scripts/run_pure_oracle_hint_action_100ep_20260812.sh`（第4节，canonical-100，已手动停止于98/100，37/98 outbound，未采纳为最终数据）
-- `scripts/run_pure_oracle_hint_highsuccess100ep_20260811.sh`（第6节，高成功率100集变体，纯oracle_hint，已跑完/进行中）
-- `scripts/run_pure_oracle_hint_action_highsuccess100ep_20260812.sh`（第7节，高成功率100集 + hint_action_arbiter，**当前正在跑，往后默认应参照这批的配置模式**）
+- `scripts/run_pure_oracle_hint_highsuccess100ep_20260811.sh`（第6节，高成功率100集变体，纯oracle_hint，已跑完）
+- `scripts/run_pure_oracle_hint_action_highsuccess100ep_20260812.sh`（第7节，高成功率100集 + hint_action_arbiter，已跑完，52/86≈60.5% return-rate）
+- `scripts/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`（第8节，高成功率100集 + hint_action_arbiter + stop_gate，**当前正在跑，消融链最后一步**）
 - `investigations/2026-08-11-pure-oracle-hint-100ep-and-stopgate-audit/README.md`（oracle_hint 批次的完整背景、stop_gate审计、hint文本机制对比）
-- `code/run_pure_oracle_hint_100ep_20260811.sh`、`code/run_pure_oracle_hint_action_100ep_20260812.sh`、`code/run_pure_oracle_hint_highsuccess100ep_20260811.sh`、`code/run_pure_oracle_hint_action_highsuccess100ep_20260812.sh`（本文件夹内四份脚本快照，供对照）
+- `code/run_pure_oracle_hint_100ep_20260811.sh`、`code/run_pure_oracle_hint_action_100ep_20260812.sh`、`code/run_pure_oracle_hint_highsuccess100ep_20260811.sh`、`code/run_pure_oracle_hint_action_highsuccess100ep_20260812.sh`、`code/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`（本文件夹内五份脚本快照，供对照）
 - `code/high_outbound_success_100ep_selection.tsv`（高成功率100集的完整选择数据：episode_id/历史尝试次数/成功次数/成功率/episode_idx/scene/neighbor等字段）
