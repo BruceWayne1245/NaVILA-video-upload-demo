@@ -1,0 +1,59 @@
+{
+  "top_level": {
+    "path_length": 12.93705429512471,
+    "distance_to_goal": 1.8490545161719047,
+    "success": 0.0,
+    "spl": 0.0,
+    "oracle_navigation_error": 0.26801761910715327,
+    "oracle_success": 1.0
+  },
+  "outbound_success": true,
+  "return_success": false,
+  "round_trip_success": false,
+  "distance_to_start": 8.585250854492188,
+  "route_hint_source": "integrated",
+  "route_relocalization_backend": "sequential_pair",
+  "oracle_align_return_yaw_to_anchor_segment": false,
+  "return_yaw_alignment": null,
+  "icp_align_return_yaw_to_anchor_segment": true,
+  "icp_return_yaw_alignment": {
+    "yaw_delta_rad": 0.9889862725996525,
+    "yaw_delta_deg": 56.664739416334825,
+    "segment_anchor_indices": [
+      12,
+      11
+    ],
+    "current_candidate_matched": true,
+    "next_candidate_confidence": 1.0,
+    "next_candidate_inlier_count": 429,
+    "next_candidate_match_class": "clean_full_pose",
+    "before_yaw_deg": -151.5422344881441,
+    "after_yaw_deg": -108.78952239292279,
+    "achieved_yaw_delta_deg": 42.7527120952213
+  },
+  "trajectory_record_count": 3419,
+  "relevant_phase_events": [
+    {
+      "step": 1869,
+      "phase": "return",
+      "event": "icp_yaw_align_complete",
+      "instruction": "Go through the room past the counter and the pool. Stop at the other end before the beaded doorway.",
+      "icp_align_return_yaw_to_anchor_segment": true,
+      "icp_return_yaw_alignment": {
+        "yaw_delta_rad": 0.9889862725996525,
+        "yaw_delta_deg": 56.664739416334825,
+        "segment_anchor_indices": [
+          12,
+          11
+        ],
+        "current_candidate_matched": true,
+        "next_candidate_confidence": 1.0,
+        "next_candidate_inlier_count": 429,
+        "next_candidate_match_class": "clean_full_pose",
+        "before_yaw_deg": -151.5422344881441,
+        "after_yaw_deg": -108.78952239292279,
+        "achieved_yaw_delta_deg": 42.7527120952213
+      }
+    }
+  ]
+}

@@ -1,0 +1,285 @@
+--- a/scripts/round_trip_eval.py
++++ b/scripts/round_trip_eval.py
+@@ -151,6 +151,22 @@
+     help="At the start of return, keep position fixed but align yaw to the nearest outbound anchor segment reversed.",
+ )
+ parser.add_argument(
++    "--icp_align_return_yaw_to_anchor_segment",
++    action="store_true",
++    default=False,
++    help=(
++        "Non-oracle counterpart to --oracle_align_return_yaw_to_anchor_segment: at the "
++        "start of return, physically turn in place (scripted rotation over several sim "
++        "steps, no teleport) to face the current/next anchor pair's self-driven ICP "
++        "relocalization estimate (route_relocalization_backend=sequential_pair), instead "
++        "of a ground-truth anchor segment. If the oracle flag is also set, the oracle "
++        "snap runs first (unchanged) and this then turns almost nothing -- don't enable "
++        "both expecting an additive effect."
++    ),
++)
++parser.add_argument("--icp_align_return_yaw_turn_rate_deg_s", type=float, default=30.0)
++parser.add_argument("--icp_align_return_yaw_max_turn_seconds", type=float, default=6.0)
++parser.add_argument(
+     "--result_suffix",
+     default="",
+     help="Optional suffix for the result directory, used to preserve prior runs.",
+@@ -1818,6 +1834,99 @@
+     return alignment
+ 
+ 
++def icp_anchor_segment_return_yaw(
++    route_agent,
++    current_descriptor,
++    icp_objective,
++    voxel_size_m,
++    max_points,
++    quality_policy,
++    loftr_rear_yaw_check,
++    vision_disagreement_mode,
++    vision_disagreement_confidence_penalty,
++):
++    """Non-oracle counterpart to oracle_anchor_segment_return_yaw: estimate the
++    same "yaw to face at return start" quantity from self-driven ICP evidence
++    instead of ground-truth anchor world_pose.
++
++    Read-only / side-effect-free by construction: calls
++    relocalization.sequential_pair_anchor_relocalization directly with
++    diagnostics=None, bypassing RouteMemoryAgent.update_relocalization()'s
++    temporal-smoothing/quarantine/promotion-vote bookkeeping entirely (that
++    bookkeeping assumes one call per return-phase VLM step; calling it here,
++    before the first real VLM query, would corrupt those running stats).
++
++    route_agent.sequential_target_anchor_pair() returns (current, next) where,
++    right after finalize_outbound() (exactly when this runs), "current" is the
++    last outbound anchor -- the anchor the robot is physically standing on --
++    and "next" is the one before it, i.e. already the start-ward anchor the
++    robot should walk toward first during return. anchor_dx_m/anchor_dy_m from
++    the ICP match are each anchor's position in the robot's CURRENT body frame
++    (dx=forward, dy=left; confirmed by AnchorRelocalization.bearing_to_anchor_deg
++    = atan2(dy, dx), the same convention used by
++    oracle_true_bearing_error_to_anchor_deg elsewhere in this file). Both
++    candidates come from the same ICP call against the same current_descriptor,
++    so they share one frame/origin -- (next - current) is therefore a valid
++    body-frame vector from the current anchor's position to the next anchor's
++    position, the ICP analog of oracle_anchor_segment_return_yaw's
++    world-frame `a_xy - b_xy` (current here plays the role of that function's
++    goal-ward "b", next plays its start-ward "a", so next-current already
++    equals a-b -- no extra sign flip needed). atan2 of that vector is directly
++    the body-frame bearing to face, i.e. exactly the yaw_delta_rad the caller
++    should physically rotate by (no world-frame math involved at all).
++
++    Returns None if fewer than two anchors exist yet, or ICP fails to produce
++    a usable "next" candidate (thin/self-similar local scan right at return
++    start) -- callers must treat None as "skip the turn," mirroring how the
++    oracle path already no-ops when oracle_anchor_segment_return_yaw returns
++    None.
++    """
++    current_anchor, next_anchor = route_agent.sequential_target_anchor_pair()
++    if current_anchor is None or next_anchor is None:
++        return None
++    candidates = sequential_pair_anchor_relocalization(
++        current_descriptor,
++        current_anchor,
++        next_anchor,
++        diagnostics=None,
++        return_candidates=True,
++        icp_objective=icp_objective,
++        voxel_size_m=voxel_size_m,
++        max_points=max_points,
++        quality_policy=quality_policy,
++        loftr_rear_yaw_check=loftr_rear_yaw_check,
++        vision_disagreement_mode=vision_disagreement_mode,
++        vision_disagreement_confidence_penalty=vision_disagreement_confidence_penalty,
++    )
++    if not candidates:
++        return None
++    by_index = {candidate.anchor_index: candidate for candidate in candidates}
++    current_estimate = by_index.get(current_anchor.index)
++    next_estimate = by_index.get(next_anchor.index)
++    if next_estimate is None:
++        return None
++    # finalize_outbound() places the robot exactly on the current anchor, so a
++    # missing current-anchor match (thin scan, degenerate geometry, etc.) is
++    # expected on some episodes -- fall back to (0, 0), i.e. trust next's own
++    # bearing directly, rather than discarding the whole estimate.
++    current_dx = current_estimate.anchor_dx_m if current_estimate is not None else 0.0
++    current_dy = current_estimate.anchor_dy_m if current_estimate is not None else 0.0
++    segment_dx = next_estimate.anchor_dx_m - current_dx
++    segment_dy = next_estimate.anchor_dy_m - current_dy
++    if math.hypot(segment_dx, segment_dy) <= 1e-6:
++        return None
++    yaw_delta_rad = float(math.atan2(segment_dy, segment_dx))
++    return {
++        "yaw_delta_rad": yaw_delta_rad,
++        "yaw_delta_deg": float(math.degrees(yaw_delta_rad)),
++        "segment_anchor_indices": [int(current_anchor.index), int(next_anchor.index)],
++        "current_candidate_matched": current_estimate is not None,
++        "next_candidate_confidence": float(next_estimate.confidence),
++        "next_candidate_inlier_count": next_estimate.inlier_count,
++        "next_candidate_match_class": next_estimate.match_class,
++    }
++
++
+ def pose_yaw(pose):
+     quat = pose[3:]
+     _, _, yaw = quat2eulers(float(quat[0]), float(quat[1]), float(quat[2]), float(quat[3]))
+@@ -3803,6 +3912,8 @@
+     return_yaw_alignment = None
+     return_pose_error_before_oracle = None
+     return_pose_error_after_oracle = None
++    icp_return_yaw_alignment = None
++    icp_yaw_align_before_pose = None
+     last_vlm_step = None
+     force_capture_next_image = False
+     _gate_vlm_progress = None     # progress used at the last VLM query step
+@@ -4121,6 +4232,108 @@
+                         return_pose_after_oracle,
+                         oracle_return_pose,
+                     )
++                    # Non-oracle counterpart: unlike the oracle snap above (instantaneous,
++                    # privileged), this computes a self-driven ICP yaw estimate and, if one
++                    # was found, switches phase to a new scripted-turn sub-phase instead of
++                    # falling through to the normal "enter return" tail below -- the
++                    # icp_yaw_align phase (right below this elif branch) picks up the
++                    # baton and does that tail itself once the physical turn completes.
++                    entering_icp_yaw_align = False
++                    if args_cli.icp_align_return_yaw_to_anchor_segment:
++                        icp_yaw_estimate = icp_anchor_segment_return_yaw(
++                            route_agent,
++                            current_route_descriptor,
++                            icp_objective=args_cli.route_local_map_icp_objective,
++                            voxel_size_m=local_map_voxel_size_m,
++                            max_points=local_map_max_points,
++                            quality_policy=args_cli.route_local_map_quality_policy,
++                            loftr_rear_yaw_check=args_cli.sequential_pair_loftr_rear_yaw_check,
++                            vision_disagreement_mode=args_cli.sequential_pair_vision_disagreement_mode,
++                            vision_disagreement_confidence_penalty=(
++                                args_cli.sequential_pair_vision_disagreement_confidence_penalty
++                            ),
++                        )
++                        if icp_yaw_estimate is not None:
++                            icp_return_yaw_alignment = icp_yaw_estimate
++                            icp_yaw_align_before_pose = get_robot_pose(env)
++                            turn_rate_rad_s = math.radians(args_cli.icp_align_return_yaw_turn_rate_deg_s)
++                            turn_sign = 1.0 if icp_yaw_estimate["yaw_delta_rad"] >= 0.0 else -1.0
++                            turn_seconds = min(
++                                abs(icp_yaw_estimate["yaw_delta_rad"]) / max(turn_rate_rad_s, 1e-6),
++                                args_cli.icp_align_return_yaw_max_turn_seconds,
++                            )
++                            icp_yaw_align_turn_steps = max(1, int(turn_seconds / control_dt))
++                            phase = "icp_yaw_align"
++                            vlm_vel_commands = [0.0, 0.0, turn_sign * turn_rate_rad_s]
++                            target_steps = num_steps + icp_yaw_align_turn_steps
++                            image_observations = []
++                            entering_icp_yaw_align = True
++                        else:
++                            icp_return_yaw_alignment = {"skipped_reason": "no_icp_estimate"}
++                    if not entering_icp_yaw_align:
++                        current_instruction_text = (
++                            round_trip_instruction
++                            if args_cli.round_trip_mode == "static_long_instruction"
++                            else return_instruction
++                        )
++                        phase_events.append({
++                            "step": int(num_steps),
++                            "phase": phase,
++                            "event": "confirm_complete_to_return",
++                            "instruction": current_instruction_text,
++                            "oracle_return_pose_enabled": bool(args_cli.oracle_return_pose),
++                            "oracle_align_return_yaw_to_anchor_segment": bool(
++                                args_cli.oracle_align_return_yaw_to_anchor_segment
++                            ),
++                            "return_yaw_alignment": return_yaw_alignment,
++                            "icp_align_return_yaw_to_anchor_segment": bool(
++                                args_cli.icp_align_return_yaw_to_anchor_segment
++                            ),
++                            "icp_return_yaw_alignment": icp_return_yaw_alignment,
++                            "pose_before_oracle": [float(x) for x in return_pose_before_oracle],
++                            "pose_after_oracle": [float(x) for x in return_pose_after_oracle],
++                            "pose_error_before_oracle": return_pose_error_before_oracle,
++                            "pose_error_after_oracle": return_pose_error_after_oracle,
++                        })
++                        vlm_vel_commands = [0.0, 0.0, 0.0]
++                        target_steps = num_steps + 1
++                        image_observations = []
++                        force_capture_next_image = True
++                        stream_output = "[Return] query NaVILA with return instruction"
++                        print(
++                            f"[return] start step={num_steps}, oracle={bool(args_cli.oracle_return_pose)}, "
++                            f"pose_error_after_oracle={return_pose_error_after_oracle}",
++                            flush=True,
++                        )
++
++                elif phase == "icp_yaw_align":
++                    # Known imprecision vs. the oracle path: this phase's turn is a real,
++                    # multi-step physical rotation (unlike the oracle snap's single instant
++                    # teleport), so route_agent's dead-reckoning frame does not get
++                    # per-step updates while it runs (finalize_outbound() already closed
++                    # out outbound tracking before this phase starts, and "return" tracking
++                    # doesn't start until the transition below) -- any small translational
++                    # drift the physics sim produces during an in-place turn is not
++                    # captured, only the net yaw change is. Expected to be negligible for a
++                    # turn-in-place gait, not zero.
++                    icp_yaw_align_after_pose = get_robot_pose(env)
++                    icp_yaw_align_achieved_delta_rad = signed_angle_diff(
++                        pose_yaw(icp_yaw_align_after_pose),
++                        pose_yaw(icp_yaw_align_before_pose),
++                    )
++                    # Same call the oracle path uses after its own teleport snap (see
++                    # RouteMemoryAgent.correct_return_start_yaw's docstring: "regardless
++                    # of what caused it") -- correct the shadow dead-reckoning frame by
++                    # the ACTUALLY achieved rotation (may under/overshoot the scripted
++                    # target), not the originally intended delta.
++                    route_agent.correct_return_start_yaw(icp_yaw_align_achieved_delta_rad)
++                    if icp_return_yaw_alignment is not None:
++                        icp_return_yaw_alignment.update({
++                            "before_yaw_deg": float(math.degrees(pose_yaw(icp_yaw_align_before_pose))),
++                            "after_yaw_deg": float(math.degrees(pose_yaw(icp_yaw_align_after_pose))),
++                            "achieved_yaw_delta_deg": float(math.degrees(icp_yaw_align_achieved_delta_rad)),
++                        })
++                    phase = "return"
+                     current_instruction_text = (
+                         round_trip_instruction
+                         if args_cli.round_trip_mode == "static_long_instruction"
+@@ -4129,17 +4342,12 @@
+                     phase_events.append({
+                         "step": int(num_steps),
+                         "phase": phase,
+-                        "event": "confirm_complete_to_return",
++                        "event": "icp_yaw_align_complete",
+                         "instruction": current_instruction_text,
+-                        "oracle_return_pose_enabled": bool(args_cli.oracle_return_pose),
+-                        "oracle_align_return_yaw_to_anchor_segment": bool(
+-                            args_cli.oracle_align_return_yaw_to_anchor_segment
++                        "icp_align_return_yaw_to_anchor_segment": bool(
++                            args_cli.icp_align_return_yaw_to_anchor_segment
+                         ),
+-                        "return_yaw_alignment": return_yaw_alignment,
+-                        "pose_before_oracle": [float(x) for x in return_pose_before_oracle],
+-                        "pose_after_oracle": [float(x) for x in return_pose_after_oracle],
+-                        "pose_error_before_oracle": return_pose_error_before_oracle,
+-                        "pose_error_after_oracle": return_pose_error_after_oracle,
++                        "icp_return_yaw_alignment": icp_return_yaw_alignment,
+                     })
+                     vlm_vel_commands = [0.0, 0.0, 0.0]
+                     target_steps = num_steps + 1
+@@ -4147,8 +4355,8 @@
+                     force_capture_next_image = True
+                     stream_output = "[Return] query NaVILA with return instruction"
+                     print(
+-                        f"[return] start step={num_steps}, oracle={bool(args_cli.oracle_return_pose)}, "
+-                        f"pose_error_after_oracle={return_pose_error_after_oracle}",
++                        f"[return] start step={num_steps} (after icp_yaw_align), "
++                        f"icp_return_yaw_alignment={icp_return_yaw_alignment}",
+                         flush=True,
+                     )
+ 
+@@ -4424,6 +4632,8 @@
+         "oracle_return_pose_enabled": bool(args_cli.oracle_return_pose),
+         "oracle_align_return_yaw_to_anchor_segment": bool(args_cli.oracle_align_return_yaw_to_anchor_segment),
+         "return_yaw_alignment": return_yaw_alignment,
++        "icp_align_return_yaw_to_anchor_segment": bool(args_cli.icp_align_return_yaw_to_anchor_segment),
++        "icp_return_yaw_alignment": icp_return_yaw_alignment,
+         "return_pose_before_oracle": (
+             [float(x) for x in return_pose_before_oracle]
+             if return_pose_before_oracle is not None else None
