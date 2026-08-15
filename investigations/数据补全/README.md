@@ -219,7 +219,8 @@ episode manifest：跟 `pure_oracle_hint_highsuccess100ep_20260811`（第6节）
 
 ## 10. quarantine跳跃根因链 + 三处修复：`line2_closure_off_cooldown_kdtree_100ep_20260815`，已完成
 
-上一节`line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813`51/100时叫停后，先做了两处直接代码修复（关闭`sequential_pair_closure_check`、新增`sequential_pair_closure_cooldown_attempts`冷却机制、ICP最近邻搜索换成`scipy.spatial.cKDTree`加速），重排了同一份高成功率100集manifest（把20个高风险episode调到批次最前面，episode集合本身不变），跑出这批。之后在这批真实数据上做了一整天的逐集根因排查，详见：
+上一节`line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813`51/100时叫停后，先做了两处直接代码修复（关闭`sequential_pair_closure_check`、新增`sequential_pair_closure_cooldown_attempts`冷却机制、ICP最近邻搜索换成`scipy.spatial.cKDTree`加速），重排了同一份高成功率100集manifest（把20个高风险episode调到批次最前面，episode集合本身不变），跑出这批。之后在这批真实数据上做了一整天的逐集根因排查，**完整叙事记录（含中间弯路、被推翻的假设、全部37个失败episode分类）见
+[investigations/2026-08-15-current-next-divergence-full-investigation/README.md](../2026-08-15-current-next-divergence-full-investigation/README.md)**；三处具体修复各自的实现细节分别记录在：
 
 - `investigations/2026-08-15-v11-quarantine-veto/FINDINGS.md`
 - `investigations/2026-08-15-hint-action-turn-gate-fix/FINDINGS.md`
