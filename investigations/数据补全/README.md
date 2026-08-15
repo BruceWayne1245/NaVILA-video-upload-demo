@@ -192,7 +192,7 @@ episode manifest：跟 `pure_oracle_hint_highsuccess100ep_20260811`（第6节）
 
 已推送 `final_data/pure_oracle_hint_action_stopgate_highsuccess100ep_20260813_README.md` + `..._full_results.tsv`（含完整三步对比表）。
 
-## 9. 非oracle对照批次（Route1 70%配置）：`line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813`，正在跑
+## 9. 非oracle对照批次（Route1 70%配置）：`line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813`，已于51/100手动叫停（诊断出问题后被第10节的修复批次取代）
 
 上面三步消融链全部是 `route_hint_source=oracle` 的**oracle侧**结果。这一节是为了给整条链找一个**非oracle侧**的对照点：Route1当前主线的 hard-coded 架构（`stop_gate` v2 + `route_memory_agent` 6项修复，不依赖任何controller模型），历史上唯一一次在当前代码上验证过、且return-rate ≥55%的配置——`line2_stopgate_redesign_30ep_20260804`批次，n=10时70.0%（7/10），后来在n=29的更大样本上复测得58.6%（17/29，`line2_50ep_historical_outbound_20260805`，未曾写过报告）。完整候选调查过程见本会话对话记录，未单独写投稿folder。
 
@@ -215,6 +215,33 @@ episode manifest：跟 `pure_oracle_hint_highsuccess100ep_20260811`（第6节）
 
 **上一次尝试**（同日更早，`line2_stopgate_redesign_highsuccess100ep_20260813`，保留`--oracle_align_return_yaw_to_anchor_segment`）被用户两次叫停、从未跑完——那批脚本仍在 `NaVILA-Bench/scripts/` 下，如果之后需要"非oracle但保留yaw-oracle"这个变体做三方对比，可以直接复用。
 
+**结果（2026-08-14，用户手动叫停于51/100，未跑完，不作为最终数据）**：outbound_success=44/51，round_trip_success=12/44≈27.3%。停止原因：这批数据里出现了大量"current锚点长期卡死不动、next被quarantine跳过好几个anchor"的模式（后续第10节整条调查链的直接起点），继续跑同一份代码意义不大，于是先停下来诊断根因，再带着修复重跑。
+
+## 10. quarantine跳跃根因链 + 三处修复：`line2_closure_off_cooldown_kdtree_100ep_20260815`，已完成
+
+上一节`line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813`51/100时叫停后，先做了两处直接代码修复（关闭`sequential_pair_closure_check`、新增`sequential_pair_closure_cooldown_attempts`冷却机制、ICP最近邻搜索换成`scipy.spatial.cKDTree`加速），重排了同一份高成功率100集manifest（把20个高风险episode调到批次最前面，episode集合本身不变），跑出这批。之后在这批真实数据上做了一整天的逐集根因排查，详见：
+
+- `investigations/2026-08-15-v11-quarantine-veto/FINDINGS.md`
+- `investigations/2026-08-15-hint-action-turn-gate-fix/FINDINGS.md`
+- `investigations/2026-08-15-hint-confidence-collapse-patterns/FINDINGS.md`
+
+**配置**：脚本 `NaVILA-Bench/scripts/run_line2_closure_off_cooldown_kdtree_100ep_20260815.sh`（`RUN_TAG=line2_closure_off_cooldown_kdtree_100ep_20260815`）。与第9节`line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813`的差异：
+- 移除 `--sequential_pair_closure_check`（+ `--sequential_pair_closure_reconciliation_signal=bearing`）
+- 新增 `--sequential_pair_closure_cooldown_attempts=20`
+- ICP最近邻搜索内部实现换用 cKDTree（数值等价，仅加速，非行为改动）
+- episode顺序重排（同一份100集，20个高风险episode移到批次最前）
+
+**结果（2026-08-15 13:38 完成，100/100）**：outbound_success=67/100，return_success（分母=outbound成功）=27/67≈**40.3%**。
+
+**当天完整的根因排查链**（详见上述三份FINDINGS + 会话记录）：
+1. quarantine跳过机制在current长期卡死时会让next越跳越远，撞上`reliability_quarantine_max_chain=4`的共享预算上限，被迫落地在可能仍是坏anchor的位置——真实数据验证跳跃≥4时落地误判率明显上升（15%→57%）。
+2. 从零尝试4种自建信号（训练模型、alias_score、视觉朝向检查、corridor退化度）改善quarantine误判，全部无效（AUC卡在~0.75-0.76）。
+3. 改用路线2现成的V1.1可靠性模型（`/home/teambruce/navila-reliability-v1_1`）distance头，194条真实样本外测试：confidently-好的判断100%精确（0/54错），作为quarantine上的一层否决权（只否决不替代），offline模拟能让47%的误判quarantine被救回、0次误救坏anchor。**→ 已实现为`--sequential_pair_v11_quarantine_veto`（默认关闭），离线验证预计覆盖37个return失败中的7个。**
+4. 追"机器人为什么会走偏"发现更上游问题：`hint_action_arbiter`算出的方向本身是准的（真值验证误差<12°），但转向类override被一个只该用于前进类动作的clear-path闸门误挡，导致连续~125步不敢再纠正。**→ 已实现为`--hint_arbiter_turn_override_completes_full_angle`（默认关闭），离线确认覆盖约5-6个。**
+5. 剩余的置信度崩溃案例查出两个子病根：真实持续的ICP朝向歧义（无法通过滑动窗口解决）、以及读数其实准确但置信度噪声性低于0.90阈值（可以用滑动窗口趋势平滑解决，直接复用本会话早前给`stop_gate.py`实现的`trend_confidence`机制）。**→ 已实现为`--hint_arbiter_trend_confidence`（默认关闭），离线确认②b这一类约9个（与V1.1有2个重叠）。**
+
+三处改动合计离线确认覆盖37个return失败中的19-20个；15个完全未被触及（7个真实ICP歧义、5个尚未查明原因、1个confidently-wrong-stop、1个边缘案例、1个待查）。三处改动均默认关闭、纯加性、449个单元测试全过、无回归。**尚未做live batch验证**——下一步计划：开一个smoke测试验证这三处改动在真实运行环境下不报错、行为符合预期，再决定是否值得投入一次完整100ep批次做实测对比。
+
 ## 相关文件
 
 - `scripts/run_pure_oracle_hint_100ep_20260811.sh`（第1节，canonical-100，已跑完，30/100 outbound）
@@ -222,7 +249,8 @@ episode manifest：跟 `pure_oracle_hint_highsuccess100ep_20260811`（第6节）
 - `scripts/run_pure_oracle_hint_highsuccess100ep_20260811.sh`（第6节，高成功率100集变体，纯oracle_hint，已跑完）
 - `scripts/run_pure_oracle_hint_action_highsuccess100ep_20260812.sh`（第7节，高成功率100集 + hint_action_arbiter，已跑完，52/86≈60.5% return-rate）
 - `scripts/run_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813.sh`（第8节，高成功率100集 + hint_action_arbiter + stop_gate，消融链最后一步，**已完成，71/87≈81.6%**）
-- `scripts/run_line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813.sh`（第9节，非oracle Route1 70%配置，同一份高成功率100集，不带任何yaw对齐，**当前正在跑**）
+- `scripts/run_line2_stopgate_redesign_no_yaw_align_highsuccess100ep_20260813.sh`（第9节，非oracle Route1 70%配置，同一份高成功率100集，不带任何yaw对齐，**51/100手动叫停，12/44≈27.3%，未采纳**）
+- `scripts/run_line2_closure_off_cooldown_kdtree_100ep_20260815.sh`（第10节，第9节的修复重跑版本，**已完成，27/67≈40.3% return-rate**）
 - `scripts/run_line2_stopgate_redesign_highsuccess100ep_20260813.sh`（第9节提到的"上一次尝试"，保留oracle yaw对齐，被停止两次未跑完，留作备用）
 - `investigations/2026-08-11-pure-oracle-hint-100ep-and-stopgate-audit/README.md`（oracle_hint 批次的完整背景、stop_gate审计、hint文本机制对比）
 - `investigations/2026-08-13-icp-return-yaw-alignment/FINDINGS.md`（第9节提到的ICP自驱动yaw对齐机制，新flag `--icp_align_return_yaw_to_anchor_segment`，已实现+冒烟测试，未跑批量）
