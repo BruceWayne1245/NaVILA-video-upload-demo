@@ -79,6 +79,16 @@ task, though the two runs were not launched back-to-back (`policy_v2` ran 08-16,
 ran 08-18) so some of the gap could still reflect run-to-run environment drift rather than the
 mechanism alone — not something this single pair of runs can rule out.
 
+## Outbound vs return trajectory divergence (VLM noise floor vs hint effect)
+
+See [`TRAJECTORY_DIVERGENCE_baseline_vs_oracle_hint_20260818.md`](TRAJECTORY_DIVERGENCE_baseline_vs_oracle_hint_20260818.md)
+for a per-episode comparison of real logged trajectories (not just success/fail flags)
+between `pure_baseline` and `oracle_hint` on this same 50-episode set, split by phase.
+Outbound (VLM-only, no hint) diverges by ~0.14 m mean / 0.10 m median between the two
+runs of the same episode — the policy's own run-to-run noise floor. Return (where
+`oracle_hint` intervenes) diverges by ~1.91 m mean / 1.08 m median — roughly 10-14x the
+noise floor, concentrated in the episodes where the hint flips the return outcome.
+
 ## Caveats
 
 - Return-rate denominator is each batch's own `outbound_success` count on this 50-episode
