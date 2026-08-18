@@ -36,6 +36,14 @@ Each file is the corresponding `final_data/*_full_results.tsv` filtered to the s
 manifest, a different episode sample (only 30/100 `episode_id` overlap with the other 4), so it
 cannot be filtered to this same 50-episode set.
 
+## Code
+
+[`policy_v2_active50_replay_on_highsuccess100ep_20260816_code/`](policy_v2_active50_replay_on_highsuccess100ep_20260816_code/)
+holds the complete code that produced the `policy_v2_active50_replay` row above — both the
+episode-execution harness (as it actually stood at launch time, including then-uncommitted
+edits) and the Policy V2 / V1.1 reliability layer it loaded — plus the exact CLI launch
+configuration. See that folder's own README for the full breakdown.
+
 ## Result — same 50 episodes, 4 conditions
 
 | condition | outbound_success | round_trip_success | return-rate (on this 50-ep subset) | return-rate (full 100ep, for reference) |
