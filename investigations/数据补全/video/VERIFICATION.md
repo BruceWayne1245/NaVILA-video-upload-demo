@@ -172,3 +172,31 @@ final.mp4 has no audio track), and no attempt was made to compress the
 ~50-word raw baseline instruction text shown in Seg 1/Seg 5's left panel —
 it's legible but dense; a shorter paraphrase would read better at 3.6x-6.6x
 speed.
+
+## Trimmed cut (`final_trimmed.mp4`, `segments_trimmed/`)
+
+Built by `code/compose_final_trimmed.py`, reusing the same `_raw/*.mp4`
+overlaid pieces (no re-render of the cv2 overlay pass). Applies the cut plan
+this file already recommended above: shrink Seg 1 (40s->20s) and Seg 2
+(50s->30s) per the spec's own "cut from 1 and 2 first" guidance, leave Seg 3
+and Seg 4 untouched (spec's most valuable segments), drop Seg 5's ep1006-pair
+recap sub-part entirely (Seg 1 already establishes the baseline failure and
+Seg 5 already restates it via the ep428/ep1439 online contrast), leave the
+mandatory Closing untouched.
+
+**Result: 4m 03s (243.0s)** — 3 seconds over the nominal 4-minute ceiling,
+effectively at the spec's "3-4 minute" target. Per-segment durations (with
+title cards): seg1=23.0s, seg2=33.0s, seg3=53.0s, seg4=67.5s, seg5=37.5s (was
+94.5s in the untrimmed cut, now only the ep428/ep1439 pieces), closing=29.0s.
+Speed multipliers changed accordingly (seg1 7.2x, seg2 3.2x; seg3/seg4/closing
+unchanged from the untrimmed cut since their target lengths didn't move).
+
+Spot-checked a Seg 1 content frame at the new 7.2x speed: overlay text
+(`language-only baseline` label, `7.2x speed` badge, `(no route hint,
+language-only)` config line, `VLM: forward`, `d = 12.44 m` + radius indicator)
+all render correctly and stay legible at the higher speed.
+
+Both cuts are kept side by side for comparison — `final.mp4`/`segments/`
+(untrimmed, 5m16s, follows the spec's literal per-segment lengths) and
+`final_trimmed.mp4`/`segments_trimmed/` (4m03s, follows the spec's top-level
+minute target). Neither overwrites the other.
