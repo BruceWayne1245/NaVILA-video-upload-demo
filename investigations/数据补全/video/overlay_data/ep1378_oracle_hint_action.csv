@@ -1,0 +1,1333 @@
+frame_index,step,phase,hint,vlm_action,vlm_action_raw,arbitration,terminal_state,distance_to_start
+0,0,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.028
+1,5,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.026
+2,10,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.022
+3,15,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.021
+4,20,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.022
+5,25,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.027
+6,30,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.033
+7,35,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.038
+8,40,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.041
+9,45,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.043
+10,50,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.047
+11,55,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.053
+12,60,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.060
+13,65,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.066
+14,70,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.070
+15,75,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.072
+16,80,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.075
+17,85,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.082
+18,90,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.088
+19,95,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.095
+20,100,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.101
+21,105,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.104
+22,110,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.106
+23,115,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.111
+24,120,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.118
+25,125,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.125
+26,130,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.132
+27,135,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.136
+28,140,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.139
+29,145,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.141
+30,150,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.147
+31,155,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.154
+32,160,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.161
+33,165,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.166
+34,170,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.170
+35,175,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.171
+36,180,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.174
+37,185,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.180
+38,190,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.187
+39,195,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.192
+40,200,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.197
+41,205,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.200
+42,210,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.202
+43,215,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.206
+44,220,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,0.212
+45,225,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.219
+46,230,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.228
+47,235,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.246
+48,240,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.270
+49,245,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.297
+50,250,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.328
+51,255,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.364
+52,260,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.397
+53,265,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.431
+54,270,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.471
+55,275,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.510
+56,280,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.548
+57,285,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.588
+58,290,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.627
+59,295,outbound,,VLM: forward,The next action is move forward 75 cm.,,,0.664
+60,300,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.703
+61,305,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.737
+62,310,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.750
+63,315,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.753
+64,320,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.753
+65,325,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.757
+66,330,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.763
+67,335,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.768
+68,340,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.773
+69,345,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.777
+70,350,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.780
+71,355,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.784
+72,360,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.792
+73,365,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.799
+74,370,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.806
+75,375,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,0.810
+76,380,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,0.813
+77,385,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,0.814
+78,390,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,0.815
+79,395,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,0.817
+80,400,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.820
+81,405,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.823
+82,410,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.829
+83,415,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.835
+84,420,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.839
+85,425,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.841
+86,430,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.844
+87,435,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.843
+88,440,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.847
+89,445,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.852
+90,450,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.856
+91,455,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.859
+92,460,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.861
+93,465,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.864
+94,470,outbound,,VLM: turn right,The next action is turn right 45 degree.,,,0.868
+95,475,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.874
+96,480,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.879
+97,485,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.882
+98,490,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.883
+99,495,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.884
+100,500,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.885
+101,505,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.886
+102,510,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.885
+103,515,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.886
+104,520,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.888
+105,525,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.891
+106,530,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.893
+107,535,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.896
+108,540,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.898
+109,545,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.902
+110,550,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.905
+111,555,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.907
+112,560,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.906
+113,565,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.908
+114,570,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.914
+115,575,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.921
+116,580,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.927
+117,585,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.933
+118,590,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.939
+119,595,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.946
+120,600,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.952
+121,605,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.956
+122,610,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.961
+123,615,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.970
+124,620,outbound,,VLM: turn left,The next action is turn left 45 degree.,,,0.978
+125,625,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,0.984
+126,630,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,0.990
+127,635,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,0.996
+128,640,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.003
+129,645,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.010
+130,650,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.015
+131,655,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.020
+132,660,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.028
+133,665,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.034
+134,670,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.039
+135,675,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.044
+136,680,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.056
+137,685,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.080
+138,690,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.112
+139,695,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.148
+140,700,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.179
+141,705,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.209
+142,710,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.243
+143,715,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.277
+144,720,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.312
+145,725,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.346
+146,730,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.379
+147,735,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.412
+148,740,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.448
+149,745,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.480
+150,750,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.513
+151,755,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.540
+152,760,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.553
+153,765,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.560
+154,770,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.566
+155,775,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.574
+156,780,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.578
+157,785,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.593
+158,790,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.604
+159,795,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.612
+160,800,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.620
+161,805,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.628
+162,810,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.633
+163,815,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.639
+164,820,outbound,,VLM: turn left,The next action is turn left 15 degree.,,,1.647
+165,825,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.655
+166,830,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.662
+167,835,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.666
+168,840,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.667
+169,845,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.667
+170,850,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.665
+171,855,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.664
+172,860,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.662
+173,865,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.661
+174,870,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.659
+175,875,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.660
+176,880,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.663
+177,885,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.667
+178,890,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.671
+179,895,outbound,,VLM: turn right,The next action is turn right 15 degree.,,,1.675
+180,900,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.678
+181,905,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.690
+182,910,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.716
+183,915,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.751
+184,920,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.787
+185,925,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.827
+186,930,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.868
+187,935,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.907
+188,940,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.946
+189,945,outbound,,VLM: forward,The next action is move forward 75 cm.,,,1.988
+190,950,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.027
+191,955,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.065
+192,960,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.108
+193,965,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.150
+194,970,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.190
+195,975,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.232
+196,980,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.273
+197,985,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.314
+198,990,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.357
+199,995,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.399
+200,1000,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.440
+201,1005,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.482
+202,1010,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.527
+203,1015,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.568
+204,1020,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.609
+205,1025,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.655
+206,1030,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.699
+207,1035,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.740
+208,1040,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.784
+209,1045,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.825
+210,1050,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.866
+211,1055,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.910
+212,1060,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.953
+213,1065,outbound,,VLM: forward,The next action is move forward 75 cm.,,,2.990
+214,1070,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.035
+215,1075,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.074
+216,1080,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.108
+217,1085,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.142
+218,1090,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.185
+219,1095,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.226
+220,1100,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.266
+221,1105,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.309
+222,1110,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.347
+223,1115,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.383
+224,1120,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.423
+225,1125,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.470
+226,1130,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.513
+227,1135,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.555
+228,1140,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.599
+229,1145,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.641
+230,1150,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.685
+231,1155,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.726
+232,1160,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.764
+233,1165,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.805
+234,1170,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.848
+235,1175,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.886
+236,1180,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.925
+237,1185,outbound,,VLM: forward,The next action is move forward 75 cm.,,,3.967
+238,1190,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.009
+239,1195,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.048
+240,1200,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.091
+241,1205,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.131
+242,1210,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.171
+243,1215,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.212
+244,1220,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.251
+245,1225,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.287
+246,1230,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.328
+247,1235,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.370
+248,1240,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.408
+249,1245,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.447
+250,1250,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.490
+251,1255,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.530
+252,1260,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.571
+253,1265,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.613
+254,1270,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.652
+255,1275,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.691
+256,1280,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.733
+257,1285,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.774
+258,1290,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.811
+259,1295,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.853
+260,1300,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.892
+261,1305,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.929
+262,1310,outbound,,VLM: forward,The next action is move forward 75 cm.,,,4.969
+263,1315,outbound,,VLM: forward,The next action is move forward 75 cm.,,,5.010
+264,1320,outbound,,VLM: forward,The next action is move forward 75 cm.,,,5.049
+265,1325,outbound,,VLM: forward,The next action is move forward 75 cm.,,,5.088
+266,1330,outbound,,VLM: forward,The next action is move forward 75 cm.,,,5.130
+267,1335,outbound,,VLM: forward,The next action is move forward 75 cm.,,,5.168
+268,1340,outbound,,VLM: forward,The next action is move forward 75 cm.,,,5.205
+269,1345,outbound,,VLM: forward,The next action is move forward 75 cm.,,,5.244
+270,1350,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.285
+271,1355,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.319
+272,1360,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.341
+273,1365,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.354
+274,1370,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.361
+275,1375,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.367
+276,1380,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.373
+277,1385,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.380
+278,1390,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.386
+279,1395,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.391
+280,1400,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.401
+281,1405,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.408
+282,1410,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.412
+283,1415,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.417
+284,1420,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.424
+285,1425,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.431
+286,1430,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.439
+287,1435,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.445
+288,1440,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.451
+289,1445,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.461
+290,1450,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.468
+291,1455,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.470
+292,1460,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.474
+293,1465,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.478
+294,1470,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.484
+295,1475,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.490
+296,1480,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.494
+297,1485,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.501
+298,1490,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.505
+299,1495,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.507
+300,1500,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.508
+301,1505,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.510
+302,1510,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.513
+303,1515,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.517
+304,1520,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.522
+305,1525,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.527
+306,1530,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.534
+307,1535,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.538
+308,1540,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.540
+309,1545,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.536
+310,1550,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.533
+311,1555,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.532
+312,1560,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.533
+313,1565,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.536
+314,1570,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.540
+315,1575,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.542
+316,1580,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.541
+317,1585,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.538
+318,1590,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.532
+319,1595,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.528
+320,1600,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.525
+321,1605,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.525
+322,1610,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.527
+323,1615,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.526
+324,1620,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.522
+325,1625,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.517
+326,1630,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.513
+327,1635,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.509
+328,1640,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.505
+329,1645,confirm,,VLM: scan,[Confirm] scripted 360-degree scan,,,5.503
+330,1650,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: [Return] query NaVILA with return instru,[Return] query NaVILA with return instruction,,,5.503
+331,1655,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.498
+332,1660,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.492
+333,1665,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.487
+334,1670,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.482
+335,1675,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.478
+336,1680,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.473
+337,1685,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.469
+338,1690,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.468
+339,1695,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.468
+340,1700,return,[Hint: anchor A4 · 1.9 m · left 47°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,5.463
+341,1705,return,[Hint: anchor A4 · 1.8 m · left 27°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.458
+342,1710,return,[Hint: anchor A4 · 1.8 m · left 27°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.452
+343,1715,return,[Hint: anchor A4 · 1.8 m · left 27°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.447
+344,1720,return,[Hint: anchor A4 · 1.8 m · left 27°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.442
+345,1725,return,[Hint: anchor A4 · 1.8 m · left 27°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.436
+346,1730,return,[Hint: anchor A4 · 1.8 m · left 17°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.431
+347,1735,return,[Hint: anchor A4 · 1.8 m · left 17°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.428
+348,1740,return,[Hint: anchor A4 · 1.8 m · left 17°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.427
+349,1745,return,[Hint: anchor A4 · 1.8 m · left 17°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.420
+350,1750,return,[Hint: anchor A4 · 1.8 m · left 17°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,5.414
+351,1755,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.405
+352,1760,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.382
+353,1765,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.349
+354,1770,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.310
+355,1775,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.274
+356,1780,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.236
+357,1785,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.196
+358,1790,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.159
+359,1795,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.123
+360,1800,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.083
+361,1805,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.043
+362,1810,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,5.007
+363,1815,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.968
+364,1820,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.928
+365,1825,return,[Hint: anchor A4 · 1.8 m · forward 6°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.891
+366,1830,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.852
+367,1835,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.815
+368,1840,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.779
+369,1845,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.745
+370,1850,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.704
+371,1855,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.669
+372,1860,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.635
+373,1865,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.599
+374,1870,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.560
+375,1875,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.526
+376,1880,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.490
+377,1885,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.455
+378,1890,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.426
+379,1895,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.396
+380,1900,return,[Hint: anchor A4 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.361
+381,1905,return,[Hint: anchor A3 · 1.5 m · right 20°],VLM: turn right,The next action is turn right 15 degree.,→ EXECUTED,,4.331
+382,1910,return,[Hint: anchor A3 · 1.5 m · right 20°],VLM: turn right,The next action is turn right 15 degree.,→ EXECUTED,,4.313
+383,1915,return,[Hint: anchor A3 · 1.5 m · right 20°],VLM: turn right,The next action is turn right 15 degree.,→ EXECUTED,,4.302
+384,1920,return,[Hint: anchor A3 · 1.5 m · right 20°],VLM: turn right,The next action is turn right 15 degree.,→ EXECUTED,,4.298
+385,1925,return,[Hint: anchor A3 · 1.5 m · right 20°],VLM: turn right,The next action is turn right 15 degree.,→ EXECUTED,,4.297
+386,1930,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.291
+387,1935,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.269
+388,1940,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.234
+389,1945,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.195
+390,1950,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.158
+391,1955,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.116
+392,1960,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.078
+393,1965,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,4.039
+394,1970,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.998
+395,1975,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.955
+396,1980,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.916
+397,1985,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.872
+398,1990,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.831
+399,1995,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.791
+400,2000,return,[Hint: anchor A3 · 1.4 m · forward 13°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.749
+401,2005,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.703
+402,2010,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.660
+403,2015,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.614
+404,2020,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.572
+405,2025,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.530
+406,2030,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.490
+407,2035,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.447
+408,2040,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.405
+409,2045,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.364
+410,2050,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.319
+411,2055,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.279
+412,2060,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.240
+413,2065,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.200
+414,2070,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.161
+415,2075,return,[Hint: anchor A3 · 0.9 m · right 18°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.123
+416,2080,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.079
+417,2085,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,3.037
+418,2090,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.997
+419,2095,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.956
+420,2100,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.914
+421,2105,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.875
+422,2110,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.832
+423,2115,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.795
+424,2120,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.759
+425,2125,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.723
+426,2130,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.684
+427,2135,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.650
+428,2140,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.615
+429,2145,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.579
+430,2150,return,[Hint: anchor A2 · 1.1 m · right 25°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.546
+431,2155,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.517
+432,2160,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.505
+433,2165,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.499
+434,2170,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.497
+435,2175,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.496
+436,2180,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.495
+437,2185,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.490
+438,2190,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.486
+439,2195,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.482
+440,2200,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.478
+441,2205,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.473
+442,2210,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.469
+443,2215,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.466
+444,2220,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.459
+445,2225,return,[Hint: anchor A1 · 1.4 m · right 26°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,2.453
+446,2230,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.444
+447,2235,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.425
+448,2240,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.396
+449,2245,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.357
+450,2250,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.317
+451,2255,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.279
+452,2260,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.239
+453,2265,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.201
+454,2270,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.164
+455,2275,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.124
+456,2280,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.083
+457,2285,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.045
+458,2290,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,2.007
+459,2295,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,1.966
+460,2300,return,[Hint: anchor A1 · 1.3 m · forward 0°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,1.929
+461,2305,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.892
+462,2310,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.852
+463,2315,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.812
+464,2320,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.776
+465,2325,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.738
+466,2330,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.699
+467,2335,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.663
+468,2340,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.627
+469,2345,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.587
+470,2350,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.545
+471,2355,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.508
+472,2360,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.467
+473,2365,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.427
+474,2370,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.388
+475,2375,return,[Hint: anchor A0 · 1.9 m · forward 9°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.348
+476,2380,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.314
+477,2385,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.302
+478,2390,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.296
+479,2395,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.290
+480,2400,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.283
+481,2405,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.276
+482,2410,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.270
+483,2415,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.265
+484,2420,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.262
+485,2425,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.256
+486,2430,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.251
+487,2435,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.246
+488,2440,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.242
+489,2445,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.239
+490,2450,return,[Hint: anchor A0 · 1.4 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ OVERRIDDEN (right),,1.236
+491,2455,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.229
+492,2460,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.205
+493,2465,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.170
+494,2470,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.132
+495,2475,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.095
+496,2480,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.060
+497,2485,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,1.026
+498,2490,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.989
+499,2495,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.952
+500,2500,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.920
+501,2505,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.889
+502,2510,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.857
+503,2515,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.817
+504,2520,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.780
+505,2525,return,[Hint: anchor A0 · 1.3 m · forward 10°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.745
+506,2530,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.711
+507,2535,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.691
+508,2540,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.682
+509,2545,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.675
+510,2550,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.670
+511,2555,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.665
+512,2560,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.660
+513,2565,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.655
+514,2570,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.650
+515,2575,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.646
+516,2580,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.640
+517,2585,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.635
+518,2590,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.630
+519,2595,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.629
+520,2600,return,[Hint: anchor A0 · 0.8 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.626
+521,2605,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.617
+522,2610,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.594
+523,2615,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.562
+524,2620,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.522
+525,2625,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.482
+526,2630,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.445
+527,2635,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.404
+528,2640,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.366
+529,2645,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.331
+530,2650,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.295
+531,2655,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.260
+532,2660,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.231
+533,2665,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.202
+534,2670,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.176
+535,2675,return,[Hint: anchor A0 · 0.6 m · forward 11°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.157
+536,2680,return,[Hint: anchor A0 · 0.2 m · right 78°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.147
+537,2685,return,[Hint: anchor A0 · 0.2 m · right 84°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.140
+538,2690,return,[Hint: anchor A0 · 0.2 m · right 87°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.133
+539,2695,return,[Hint: anchor A0 · 0.2 m · right 90°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.127
+540,2700,return,[Hint: anchor A0 · 0.2 m · right 93°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.122
+541,2705,return,[Hint: anchor A0 · 0.1 m · right 96°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.118
+542,2710,return,[Hint: anchor A0 · 0.1 m · right 99°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.112
+543,2715,return,[Hint: anchor A0 · 0.1 m · right 100°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.101
+544,2720,return,[Hint: anchor A0 · 0.1 m · right 104°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.091
+545,2725,return,[Hint: anchor A0 · 0.1 m · right 107°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.085
+546,2730,return,[Hint: anchor A0 · 0.1 m · right 108°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.085
+547,2735,return,[Hint: anchor A0 · 0.1 m · right 109°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.086
+548,2740,return,[Hint: anchor A0 · 0.1 m · right 110°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.089
+549,2745,return,[Hint: anchor A0 · 0.1 m · right 111°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.091
+550,2750,return,[Hint: anchor A0 · 0.1 m · right 113°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.093
+551,2755,return,[Hint: anchor A0 · 0.1 m · right 113°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.091
+552,2760,return,[Hint: anchor A0 · 0.1 m · right 116°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.088
+553,2765,return,[Hint: anchor A0 · 0.1 m · right 118°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.085
+554,2770,return,[Hint: anchor A0 · 0.1 m · right 120°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.086
+555,2775,return,[Hint: anchor A0 · 0.1 m · right 123°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.087
+556,2780,return,[Hint: anchor A0 · 0.1 m · right 129°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.090
+557,2785,return,[Hint: anchor A0 · 0.1 m · right 140°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.111
+558,2790,return,[Hint: anchor A0 · 0.2 m · right 148°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.141
+559,2795,return,[Hint: anchor A0 · 0.2 m · right 153°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.168
+560,2800,return,[Hint: anchor A0 · 0.2 m · right 156°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.189
+561,2805,return,[Hint: anchor A0 · 0.2 m · right 158°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.208
+562,2810,return,[Hint: anchor A0 · 0.2 m · right 161°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.224
+563,2815,return,[Hint: anchor A0 · 0.3 m · right 163°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.237
+564,2820,return,[Hint: anchor A0 · 0.3 m · right 165°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.249
+565,2825,return,[Hint: anchor A0 · 0.3 m · right 167°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.263
+566,2830,return,[Hint: anchor A0 · 0.3 m · right 168°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.271
+567,2835,return,[Hint: anchor A0 · 0.3 m · right 169°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.278
+568,2840,return,[Hint: anchor A0 · 0.3 m · right 170°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.283
+569,2845,return,[Hint: anchor A0 · 0.3 m · right 170°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.287
+570,2850,return,[Hint: anchor A0 · 0.3 m · right 170°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.291
+571,2855,return,[Hint: anchor A0 · 0.3 m · right 173°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.291
+572,2860,return,[Hint: anchor A0 · 0.3 m · right 175°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.282
+573,2865,return,[Hint: anchor A0 · 0.3 m · right 179°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.271
+574,2870,return,[Hint: anchor A0 · 0.3 m · left 178°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.256
+575,2875,return,[Hint: anchor A0 · 0.3 m · left 173°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.241
+576,2880,return,[Hint: anchor A0 · 0.3 m · left 169°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.229
+577,2885,return,[Hint: anchor A0 · 0.2 m · left 166°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.223
+578,2890,return,[Hint: anchor A0 · 0.2 m · left 163°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.217
+579,2895,return,[Hint: anchor A0 · 0.2 m · left 159°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.211
+580,2900,return,[Hint: anchor A0 · 0.2 m · left 155°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.206
+581,2905,return,[Hint: anchor A0 · 0.2 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.202
+582,2910,return,[Hint: anchor A0 · 0.2 m · left 149°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.199
+583,2915,return,[Hint: anchor A0 · 0.2 m · left 146°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.199
+584,2920,return,[Hint: anchor A0 · 0.2 m · left 144°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.201
+585,2925,return,[Hint: anchor A0 · 0.2 m · left 141°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.200
+586,2930,return,[Hint: anchor A0 · 0.2 m · left 138°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.199
+587,2935,return,[Hint: anchor A0 · 0.2 m · left 136°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.199
+588,2940,return,[Hint: anchor A0 · 0.2 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.201
+589,2945,return,[Hint: anchor A0 · 0.2 m · left 133°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.206
+590,2950,return,[Hint: anchor A0 · 0.2 m · left 132°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.209
+591,2955,return,[Hint: anchor A0 · 0.2 m · left 131°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.212
+592,2960,return,[Hint: anchor A0 · 0.2 m · left 129°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.216
+593,2965,return,[Hint: anchor A0 · 0.2 m · left 127°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.220
+594,2970,return,[Hint: anchor A0 · 0.2 m · left 125°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.223
+595,2975,return,[Hint: anchor A0 · 0.2 m · left 123°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.221
+596,2980,return,[Hint: anchor A0 · 0.2 m · left 122°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.217
+597,2985,return,[Hint: anchor A0 · 0.2 m · left 121°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.217
+598,2990,return,[Hint: anchor A0 · 0.2 m · left 120°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.219
+599,2995,return,[Hint: anchor A0 · 0.2 m · left 120°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.223
+600,3000,return,[Hint: anchor A0 · 0.3 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.228
+601,3005,return,[Hint: anchor A0 · 0.3 m · left 119°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.234
+602,3010,return,[Hint: anchor A0 · 0.3 m · left 118°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.241
+603,3015,return,[Hint: anchor A0 · 0.3 m · left 115°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.247
+604,3020,return,[Hint: anchor A0 · 0.3 m · left 114°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.253
+605,3025,return,[Hint: anchor A0 · 0.3 m · left 112°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.254
+606,3030,return,[Hint: anchor A0 · 0.3 m · left 111°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.252
+607,3035,return,[Hint: anchor A0 · 0.3 m · left 110°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.248
+608,3040,return,[Hint: anchor A0 · 0.3 m · left 109°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.247
+609,3045,return,[Hint: anchor A0 · 0.3 m · left 109°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.250
+610,3050,return,[Hint: anchor A0 · 0.3 m · left 108°],VLM: turn left,The next action is turn left 30 degree.,→ EXECUTED,,0.254
+611,3055,return,[Hint: anchor A0 · 0.3 m · left 108°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.258
+612,3060,return,[Hint: anchor A0 · 0.3 m · left 107°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.264
+613,3065,return,[Hint: anchor A0 · 0.3 m · left 105°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.269
+614,3070,return,[Hint: anchor A0 · 0.3 m · left 104°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.271
+615,3075,return,[Hint: anchor A0 · 0.3 m · left 103°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.271
+616,3080,return,[Hint: anchor A0 · 0.3 m · left 104°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.272
+617,3085,return,[Hint: anchor A0 · 0.3 m · left 109°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.278
+618,3090,return,[Hint: anchor A0 · 0.3 m · left 114°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.290
+619,3095,return,[Hint: anchor A0 · 0.3 m · left 120°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.311
+620,3100,return,[Hint: anchor A0 · 0.4 m · left 125°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.334
+621,3105,return,[Hint: anchor A0 · 0.4 m · left 130°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.362
+622,3110,return,[Hint: anchor A0 · 0.4 m · left 135°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.389
+623,3115,return,[Hint: anchor A0 · 0.4 m · left 138°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.418
+624,3120,return,[Hint: anchor A0 · 0.5 m · left 141°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.450
+625,3125,return,[Hint: anchor A0 · 0.5 m · left 143°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.484
+626,3130,return,[Hint: anchor A0 · 0.5 m · left 145°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.517
+627,3135,return,[Hint: anchor A0 · 0.6 m · left 148°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.552
+628,3140,return,[Hint: anchor A0 · 0.6 m · left 150°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.590
+629,3145,return,[Hint: anchor A0 · 0.6 m · left 151°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.625
+630,3150,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: forward,The next action is move forward 75 cm.,→ EXECUTED,,0.661
+631,3155,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.694
+632,3160,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.710
+633,3165,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.716
+634,3170,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.723
+635,3175,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.730
+636,3180,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.739
+637,3185,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.750
+638,3190,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.757
+639,3195,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.763
+640,3200,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.769
+641,3205,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.775
+642,3210,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.782
+643,3215,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.788
+644,3220,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.795
+645,3225,return,[Hint: anchor A0 · 0.7 m · left 152°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.803
+646,3230,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.810
+647,3235,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.814
+648,3240,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.816
+649,3245,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.816
+650,3250,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.814
+651,3255,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.817
+652,3260,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.823
+653,3265,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.829
+654,3270,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.833
+655,3275,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.834
+656,3280,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.834
+657,3285,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.837
+658,3290,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.840
+659,3295,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.844
+660,3300,return,[Hint: anchor A0 · 0.8 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.849
+661,3305,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.857
+662,3310,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.862
+663,3315,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.866
+664,3320,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.866
+665,3325,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.864
+666,3330,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.860
+667,3335,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.856
+668,3340,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.857
+669,3345,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.861
+670,3350,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.861
+671,3355,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.861
+672,3360,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.859
+673,3365,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.858
+674,3370,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.857
+675,3375,return,[Hint: anchor A0 · 0.9 m · left 94°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.856
+676,3380,return,[Hint: anchor A0 · 0.9 m · left 65°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.857
+677,3385,return,[Hint: anchor A0 · 0.9 m · left 65°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.859
+678,3390,return,[Hint: anchor A0 · 0.9 m · left 65°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.863
+679,3395,return,[Hint: anchor A0 · 0.9 m · left 65°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.868
+680,3400,return,[Hint: anchor A0 · 0.9 m · left 65°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.869
+681,3405,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.868
+682,3410,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.865
+683,3415,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.863
+684,3420,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.859
+685,3425,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.857
+686,3430,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.856
+687,3435,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.858
+688,3440,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.861
+689,3445,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.861
+690,3450,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.859
+691,3455,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.855
+692,3460,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.851
+693,3465,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.844
+694,3470,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.838
+695,3475,return,[Hint: anchor A0 · 0.9 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.836
+696,3480,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.837
+697,3485,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.833
+698,3490,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.829
+699,3495,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.825
+700,3500,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.821
+701,3505,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.817
+702,3510,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.813
+703,3515,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.810
+704,3520,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.810
+705,3525,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.809
+706,3530,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.805
+707,3535,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.802
+708,3540,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.800
+709,3545,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.797
+710,3550,return,[Hint: anchor A0 · 0.9 m · left 26°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.793
+711,3555,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.784
+712,3560,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.756
+713,3565,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.717
+714,3570,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.679
+715,3575,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.646
+716,3580,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.611
+717,3585,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.577
+718,3590,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.543
+719,3595,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.510
+720,3600,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.473
+721,3605,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.434
+722,3610,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.403
+723,3615,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.369
+724,3620,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.333
+725,3625,return,[Hint: anchor A0 · 0.8 m · forward 8°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.299
+726,3630,return,[Hint: anchor A0 · 0.3 m · right 39°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.271
+727,3635,return,[Hint: anchor A0 · 0.3 m · right 42°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.259
+728,3640,return,[Hint: anchor A0 · 0.3 m · right 44°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.252
+729,3645,return,[Hint: anchor A0 · 0.3 m · right 46°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.245
+730,3650,return,[Hint: anchor A0 · 0.3 m · right 48°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.237
+731,3655,return,[Hint: anchor A0 · 0.2 m · right 50°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.226
+732,3660,return,[Hint: anchor A0 · 0.2 m · right 52°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.216
+733,3665,return,[Hint: anchor A0 · 0.2 m · right 53°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.204
+734,3670,return,[Hint: anchor A0 · 0.2 m · right 55°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.195
+735,3675,return,[Hint: anchor A0 · 0.2 m · right 58°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.193
+736,3680,return,[Hint: anchor A0 · 0.2 m · right 61°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.195
+737,3685,return,[Hint: anchor A0 · 0.2 m · right 64°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.199
+738,3690,return,[Hint: anchor A0 · 0.2 m · right 67°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.203
+739,3695,return,[Hint: anchor A0 · 0.2 m · right 71°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.208
+740,3700,return,[Hint: anchor A0 · 0.2 m · right 74°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.208
+741,3705,return,[Hint: anchor A0 · 0.2 m · right 75°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.206
+742,3710,return,[Hint: anchor A0 · 0.2 m · right 77°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.202
+743,3715,return,[Hint: anchor A0 · 0.2 m · right 80°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.198
+744,3720,return,[Hint: anchor A0 · 0.2 m · right 83°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.198
+745,3725,return,[Hint: anchor A0 · 0.2 m · right 85°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.199
+746,3730,return,[Hint: anchor A0 · 0.2 m · right 89°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.200
+747,3735,return,[Hint: anchor A0 · 0.2 m · right 91°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.203
+748,3740,return,[Hint: anchor A0 · 0.2 m · right 93°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.200
+749,3745,return,[Hint: anchor A0 · 0.2 m · right 95°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.198
+750,3750,return,[Hint: anchor A0 · 0.2 m · right 98°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.195
+751,3755,return,[Hint: anchor A0 · 0.2 m · right 101°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.194
+752,3760,return,[Hint: anchor A0 · 0.2 m · right 104°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.189
+753,3765,return,[Hint: anchor A0 · 0.2 m · right 106°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.185
+754,3770,return,[Hint: anchor A0 · 0.2 m · right 108°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.181
+755,3775,return,[Hint: anchor A0 · 0.2 m · right 110°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.179
+756,3780,return,[Hint: anchor A0 · 0.2 m · right 114°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.177
+757,3785,return,[Hint: anchor A0 · 0.2 m · right 116°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.175
+758,3790,return,[Hint: anchor A0 · 0.2 m · right 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.172
+759,3795,return,[Hint: anchor A0 · 0.2 m · right 123°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.172
+760,3800,return,[Hint: anchor A0 · 0.2 m · right 126°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.173
+761,3805,return,[Hint: anchor A0 · 0.2 m · right 129°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.174
+762,3810,return,[Hint: anchor A0 · 0.2 m · right 132°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.174
+763,3815,return,[Hint: anchor A0 · 0.2 m · right 136°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.175
+764,3820,return,[Hint: anchor A0 · 0.2 m · right 139°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.175
+765,3825,return,[Hint: anchor A0 · 0.2 m · right 143°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.175
+766,3830,return,[Hint: anchor A0 · 0.2 m · right 146°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.173
+767,3835,return,[Hint: anchor A0 · 0.2 m · right 151°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.177
+768,3840,return,[Hint: anchor A0 · 0.2 m · right 155°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.180
+769,3845,return,[Hint: anchor A0 · 0.2 m · right 158°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.184
+770,3850,return,[Hint: anchor A0 · 0.2 m · right 160°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.189
+771,3855,return,[Hint: anchor A0 · 0.2 m · right 162°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.194
+772,3860,return,[Hint: anchor A0 · 0.2 m · right 165°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.200
+773,3865,return,[Hint: anchor A0 · 0.2 m · right 168°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.205
+774,3870,return,[Hint: anchor A0 · 0.2 m · right 171°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.209
+775,3875,return,[Hint: anchor A0 · 0.2 m · right 175°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.212
+776,3880,return,[Hint: anchor A0 · 0.2 m · right 179°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.217
+777,3885,return,[Hint: anchor A0 · 0.2 m · left 178°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.222
+778,3890,return,[Hint: anchor A0 · 0.3 m · left 176°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.227
+779,3895,return,[Hint: anchor A0 · 0.3 m · left 175°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.232
+780,3900,return,[Hint: anchor A0 · 0.3 m · left 173°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.238
+781,3905,return,[Hint: anchor A0 · 0.3 m · left 171°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.245
+782,3910,return,[Hint: anchor A0 · 0.3 m · left 169°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.253
+783,3915,return,[Hint: anchor A0 · 0.3 m · left 167°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.261
+784,3920,return,[Hint: anchor A0 · 0.3 m · left 164°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.265
+785,3925,return,[Hint: anchor A0 · 0.3 m · left 162°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.272
+786,3930,return,[Hint: anchor A0 · 0.3 m · left 160°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.278
+787,3935,return,[Hint: anchor A0 · 0.3 m · left 158°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.284
+788,3940,return,[Hint: anchor A0 · 0.3 m · left 156°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.289
+789,3945,return,[Hint: anchor A0 · 0.3 m · left 155°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.296
+790,3950,return,[Hint: anchor A0 · 0.3 m · left 153°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.304
+791,3955,return,[Hint: anchor A0 · 0.3 m · left 152°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.313
+792,3960,return,[Hint: anchor A0 · 0.3 m · left 150°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.321
+793,3965,return,[Hint: anchor A0 · 0.4 m · left 148°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.327
+794,3970,return,[Hint: anchor A0 · 0.4 m · left 145°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.333
+795,3975,return,[Hint: anchor A0 · 0.4 m · left 143°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.340
+796,3980,return,[Hint: anchor A0 · 0.4 m · left 143°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.346
+797,3985,return,[Hint: anchor A0 · 0.4 m · left 143°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.350
+798,3990,return,[Hint: anchor A0 · 0.4 m · left 143°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.355
+799,3995,return,[Hint: anchor A0 · 0.4 m · left 143°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.360
+800,4000,return,[Hint: anchor A0 · 0.4 m · left 143°],VLM: turn left,The next action is turn left 15 degree.,→ EXECUTED,,0.367
+801,4005,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.374
+802,4010,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.380
+803,4015,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.385
+804,4020,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.392
+805,4025,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.397
+806,4030,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.401
+807,4035,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.404
+808,4040,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.408
+809,4045,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.414
+810,4050,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.420
+811,4055,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.425
+812,4060,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.431
+813,4065,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.438
+814,4070,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.443
+815,4075,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.447
+816,4080,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.448
+817,4085,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.450
+818,4090,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.453
+819,4095,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.458
+820,4100,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.462
+821,4105,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.467
+822,4110,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.474
+823,4115,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.480
+824,4120,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.483
+825,4125,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.483
+826,4130,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.482
+827,4135,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.483
+828,4140,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.485
+829,4145,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.488
+830,4150,return,[Hint: anchor A0 · 0.5 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.493
+831,4155,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.499
+832,4160,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.502
+833,4165,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.502
+834,4170,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.500
+835,4175,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.499
+836,4180,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.499
+837,4185,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.500
+838,4190,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.502
+839,4195,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.506
+840,4200,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.511
+841,4205,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.511
+842,4210,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.510
+843,4215,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.509
+844,4220,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.508
+845,4225,return,[Hint: anchor A0 · 0.5 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.507
+846,4230,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.507
+847,4235,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.507
+848,4240,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.509
+849,4245,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.514
+850,4250,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.514
+851,4255,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.512
+852,4260,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.508
+853,4265,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.504
+854,4270,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.502
+855,4275,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.500
+856,4280,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.499
+857,4285,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.502
+858,4290,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.506
+859,4295,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.504
+860,4300,return,[Hint: anchor A0 · 0.5 m · left 59°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.502
+861,4305,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.499
+862,4310,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.496
+863,4315,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.492
+864,4320,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.486
+865,4325,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.485
+866,4330,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.482
+867,4335,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.477
+868,4340,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.471
+869,4345,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.465
+870,4350,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.460
+871,4355,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.455
+872,4360,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.451
+873,4365,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.451
+874,4370,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.448
+875,4375,return,[Hint: anchor A0 · 0.5 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.444
+876,4380,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.437
+877,4385,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.415
+878,4390,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.384
+879,4395,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.344
+880,4400,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.306
+881,4405,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.271
+882,4410,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.235
+883,4415,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.202
+884,4420,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.172
+885,4425,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.143
+886,4430,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.118
+887,4435,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.097
+888,4440,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.081
+889,4445,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.071
+890,4450,return,[Hint: anchor A0 · 0.5 m · forward 3°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.053
+891,4455,return,[Hint: anchor A0 · 0.1 m · right 23°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.038
+892,4460,return,[Hint: anchor A0 · 0.0 m · right 27°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.032
+893,4465,return,[Hint: anchor A0 · 0.0 m · right 31°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.028
+894,4470,return,[Hint: anchor A0 · 0.0 m · right 32°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.028
+895,4475,return,[Hint: anchor A0 · 0.0 m · right 31°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.027
+896,4480,return,[Hint: anchor A0 · 0.0 m · right 29°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.026
+897,4485,return,[Hint: anchor A0 · 0.0 m · right 27°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.028
+898,4490,return,[Hint: anchor A0 · 0.0 m · right 26°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.030
+899,4495,return,[Hint: anchor A0 · 0.0 m · right 24°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.032
+900,4500,return,[Hint: anchor A0 · 0.0 m · right 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.035
+901,4505,return,[Hint: anchor A0 · 0.0 m · right 11°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.038
+902,4510,return,[Hint: anchor A0 · 0.0 m · right 0°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.043
+903,4515,return,[Hint: anchor A0 · 0.0 m · left 10°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.046
+904,4520,return,[Hint: anchor A0 · 0.0 m · left 14°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.048
+905,4525,return,[Hint: anchor A0 · 0.0 m · left 9°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.046
+906,4530,return,[Hint: anchor A0 · 0.0 m · left 1°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.042
+907,4535,return,[Hint: anchor A0 · 0.0 m · right 4°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.039
+908,4540,return,[Hint: anchor A0 · 0.0 m · right 13°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.035
+909,4545,return,[Hint: anchor A0 · 0.0 m · right 23°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.032
+910,4550,return,[Hint: anchor A0 · 0.0 m · right 27°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.030
+911,4555,return,[Hint: anchor A0 · 0.0 m · right 29°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.029
+912,4560,return,[Hint: anchor A0 · 0.0 m · right 31°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.027
+913,4565,return,[Hint: anchor A0 · 0.0 m · right 33°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.026
+914,4570,return,[Hint: anchor A0 · 0.0 m · right 34°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.024
+915,4575,return,[Hint: anchor A0 · 0.0 m · right 34°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.023
+916,4580,return,[Hint: anchor A0 · 0.0 m · right 33°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.023
+917,4585,return,[Hint: anchor A0 · 0.0 m · right 22°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.029
+918,4590,return,[Hint: anchor A0 · 0.0 m · right 19°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.033
+919,4595,return,[Hint: anchor A0 · 0.0 m · right 29°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.034
+920,4600,return,[Hint: anchor A0 · 0.0 m · right 33°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.035
+921,4605,return,[Hint: anchor A0 · 0.0 m · right 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.035
+922,4610,return,[Hint: anchor A0 · 0.0 m · right 36°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.036
+923,4615,return,[Hint: anchor A0 · 0.0 m · right 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.036
+924,4620,return,[Hint: anchor A0 · 0.0 m · right 36°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.034
+925,4625,return,[Hint: anchor A0 · 0.0 m · right 48°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.028
+926,4630,return,[Hint: anchor A0 · 0.0 m · right 57°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.022
+927,4635,return,[Hint: anchor A0 · 0.0 m · right 55°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.022
+928,4640,return,[Hint: anchor A0 · 0.0 m · right 56°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.021
+929,4645,return,[Hint: anchor A0 · 0.0 m · right 61°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.019
+930,4650,return,[Hint: anchor A0 · 0.0 m · right 66°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.016
+931,4655,return,[Hint: anchor A0 · 0.0 m · right 72°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.014
+932,4660,return,[Hint: anchor A0 · 0.0 m · right 80°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.013
+933,4665,return,[Hint: anchor A0 · 0.0 m · right 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.012
+934,4670,return,[Hint: anchor A0 · 0.0 m · right 108°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.014
+935,4675,return,[Hint: anchor A0 · 0.0 m · right 116°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.020
+936,4680,return,[Hint: anchor A0 · 0.0 m · left 161°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.028
+937,4685,return,[Hint: anchor A0 · 0.0 m · left 130°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.032
+938,4690,return,[Hint: anchor A0 · 0.0 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.031
+939,4695,return,[Hint: anchor A0 · 0.0 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.029
+940,4700,return,[Hint: anchor A0 · 0.0 m · right 118°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.026
+941,4705,return,[Hint: anchor A0 · 0.0 m · right 104°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.022
+942,4710,return,[Hint: anchor A0 · 0.0 m · right 106°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.018
+943,4715,return,[Hint: anchor A0 · 0.0 m · right 116°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.019
+944,4720,return,[Hint: anchor A0 · 0.0 m · right 144°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.020
+945,4725,return,[Hint: anchor A0 · 0.0 m · right 163°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.019
+946,4730,return,[Hint: anchor A0 · 0.0 m · right 165°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.016
+947,4735,return,[Hint: anchor A0 · 0.0 m · right 161°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.011
+948,4740,return,[Hint: anchor A0 · 0.0 m · right 167°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.011
+949,4745,return,[Hint: anchor A0 · 0.0 m · right 177°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.016
+950,4750,return,[Hint: anchor A0 · 0.0 m · left 173°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.022
+951,4755,return,[Hint: anchor A0 · 0.0 m · left 164°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.027
+952,4760,return,[Hint: anchor A0 · 0.0 m · left 157°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.034
+953,4765,return,[Hint: anchor A0 · 0.0 m · left 154°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.037
+954,4770,return,[Hint: anchor A0 · 0.0 m · left 154°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.037
+955,4775,return,[Hint: anchor A0 · 0.1 m · left 153°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.039
+956,4780,return,[Hint: anchor A0 · 0.1 m · left 151°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.043
+957,4785,return,[Hint: anchor A0 · 0.1 m · left 149°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.048
+958,4790,return,[Hint: anchor A0 · 0.1 m · left 147°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.053
+959,4795,return,[Hint: anchor A0 · 0.1 m · left 144°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.057
+960,4800,return,[Hint: anchor A0 · 0.1 m · left 140°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.064
+961,4805,return,[Hint: anchor A0 · 0.1 m · left 137°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.071
+962,4810,return,[Hint: anchor A0 · 0.1 m · left 135°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.075
+963,4815,return,[Hint: anchor A0 · 0.1 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.075
+964,4820,return,[Hint: anchor A0 · 0.1 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.077
+965,4825,return,[Hint: anchor A0 · 0.1 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.080
+966,4830,return,[Hint: anchor A0 · 0.1 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.085
+967,4835,return,[Hint: anchor A0 · 0.1 m · left 133°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.090
+968,4840,return,[Hint: anchor A0 · 0.1 m · left 131°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.096
+969,4845,return,[Hint: anchor A0 · 0.1 m · left 128°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.101
+970,4850,return,[Hint: anchor A0 · 0.1 m · left 126°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.109
+971,4855,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.113
+972,4860,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.113
+973,4865,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.111
+974,4870,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.111
+975,4875,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.115
+976,4880,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.120
+977,4885,return,[Hint: anchor A0 · 0.2 m · left 125°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.127
+978,4890,return,[Hint: anchor A0 · 0.2 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.133
+979,4895,return,[Hint: anchor A0 · 0.2 m · left 122°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.139
+980,4900,return,[Hint: anchor A0 · 0.2 m · left 121°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.145
+981,4905,return,[Hint: anchor A0 · 0.2 m · left 120°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.147
+982,4910,return,[Hint: anchor A0 · 0.2 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.147
+983,4915,return,[Hint: anchor A0 · 0.2 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.146
+984,4920,return,[Hint: anchor A0 · 0.2 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.149
+985,4925,return,[Hint: anchor A0 · 0.2 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.153
+986,4930,return,[Hint: anchor A0 · 0.2 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.159
+987,4935,return,[Hint: anchor A0 · 0.2 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.165
+988,4940,return,[Hint: anchor A0 · 0.2 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.171
+989,4945,return,[Hint: anchor A0 · 0.2 m · left 116°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.178
+990,4950,return,[Hint: anchor A0 · 0.2 m · left 115°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.184
+991,4955,return,[Hint: anchor A0 · 0.2 m · left 114°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.187
+992,4960,return,[Hint: anchor A0 · 0.2 m · left 114°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.188
+993,4965,return,[Hint: anchor A0 · 0.2 m · left 113°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.191
+994,4970,return,[Hint: anchor A0 · 0.2 m · left 113°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.195
+995,4975,return,[Hint: anchor A0 · 0.2 m · left 112°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.201
+996,4980,return,[Hint: anchor A0 · 0.2 m · left 111°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.206
+997,4985,return,[Hint: anchor A0 · 0.2 m · left 110°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.212
+998,4990,return,[Hint: anchor A0 · 0.2 m · left 108°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.218
+999,4995,return,[Hint: anchor A0 · 0.3 m · left 107°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.225
+1000,5000,return,[Hint: anchor A0 · 0.3 m · left 106°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.228
+1001,5005,return,[Hint: anchor A0 · 0.3 m · left 104°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.230
+1002,5010,return,[Hint: anchor A0 · 0.3 m · left 103°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.233
+1003,5015,return,[Hint: anchor A0 · 0.3 m · left 103°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.236
+1004,5020,return,[Hint: anchor A0 · 0.3 m · left 102°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.239
+1005,5025,return,[Hint: anchor A0 · 0.3 m · left 102°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.244
+1006,5030,return,[Hint: anchor A0 · 0.3 m · left 101°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.249
+1007,5035,return,[Hint: anchor A0 · 0.3 m · left 99°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.254
+1008,5040,return,[Hint: anchor A0 · 0.3 m · left 98°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.262
+1009,5045,return,[Hint: anchor A0 · 0.3 m · left 97°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.267
+1010,5050,return,[Hint: anchor A0 · 0.3 m · left 95°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.269
+1011,5055,return,[Hint: anchor A0 · 0.3 m · left 97°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.271
+1012,5060,return,[Hint: anchor A0 · 0.3 m · left 100°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.272
+1013,5065,return,[Hint: anchor A0 · 0.3 m · left 104°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.271
+1014,5070,return,[Hint: anchor A0 · 0.3 m · left 107°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.270
+1015,5075,return,[Hint: anchor A0 · 0.3 m · left 109°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.271
+1016,5080,return,[Hint: anchor A0 · 0.3 m · left 112°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.274
+1017,5085,return,[Hint: anchor A0 · 0.3 m · left 116°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.278
+1018,5090,return,[Hint: anchor A0 · 0.3 m · left 119°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.279
+1019,5095,return,[Hint: anchor A0 · 0.3 m · left 122°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.281
+1020,5100,return,[Hint: anchor A0 · 0.3 m · left 124°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.282
+1021,5105,return,[Hint: anchor A0 · 0.3 m · left 127°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.284
+1022,5110,return,[Hint: anchor A0 · 0.3 m · left 129°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.285
+1023,5115,return,[Hint: anchor A0 · 0.3 m · left 132°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.291
+1024,5120,return,[Hint: anchor A0 · 0.3 m · left 136°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.295
+1025,5125,return,[Hint: anchor A0 · 0.3 m · left 139°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.299
+1026,5130,return,[Hint: anchor A0 · 0.3 m · left 139°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.303
+1027,5135,return,[Hint: anchor A0 · 0.3 m · left 138°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.308
+1028,5140,return,[Hint: anchor A0 · 0.3 m · left 137°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.316
+1029,5145,return,[Hint: anchor A0 · 0.3 m · left 135°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.325
+1030,5150,return,[Hint: anchor A0 · 0.4 m · left 134°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.334
+1031,5155,return,[Hint: anchor A0 · 0.4 m · left 133°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.342
+1032,5160,return,[Hint: anchor A0 · 0.4 m · left 131°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.350
+1033,5165,return,[Hint: anchor A0 · 0.4 m · left 129°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.355
+1034,5170,return,[Hint: anchor A0 · 0.4 m · left 127°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.363
+1035,5175,return,[Hint: anchor A0 · 0.4 m · left 125°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.371
+1036,5180,return,[Hint: anchor A0 · 0.4 m · left 123°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.375
+1037,5185,return,[Hint: anchor A0 · 0.4 m · left 121°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.377
+1038,5190,return,[Hint: anchor A0 · 0.4 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.381
+1039,5195,return,[Hint: anchor A0 · 0.4 m · left 118°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.385
+1040,5200,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.391
+1041,5205,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.397
+1042,5210,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.403
+1043,5215,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.410
+1044,5220,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.416
+1045,5225,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.420
+1046,5230,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.420
+1047,5235,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.422
+1048,5240,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.425
+1049,5245,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.429
+1050,5250,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.433
+1051,5255,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.438
+1052,5260,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.445
+1053,5265,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.450
+1054,5270,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.454
+1055,5275,return,[Hint: anchor A0 · 0.4 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.454
+1056,5280,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.452
+1057,5285,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.452
+1058,5290,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.454
+1059,5295,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.457
+1060,5300,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.462
+1061,5305,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.467
+1062,5310,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.470
+1063,5315,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.470
+1064,5320,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.468
+1065,5325,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.468
+1066,5330,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.469
+1067,5335,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.470
+1068,5340,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.472
+1069,5345,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.476
+1070,5350,return,[Hint: anchor A0 · 0.5 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.482
+1071,5355,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.483
+1072,5360,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.482
+1073,5365,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.480
+1074,5370,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.478
+1075,5375,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.476
+1076,5380,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.476
+1077,5385,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.476
+1078,5390,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.480
+1079,5395,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.484
+1080,5400,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.484
+1081,5405,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.483
+1082,5410,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.480
+1083,5415,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.475
+1084,5420,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.470
+1085,5425,return,[Hint: anchor A0 · 0.5 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ OVERRIDDEN (left),,0.468
+1086,5430,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.469
+1087,5435,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.469
+1088,5440,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.466
+1089,5445,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.461
+1090,5450,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.457
+1091,5455,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.453
+1092,5460,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.449
+1093,5465,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.445
+1094,5470,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.445
+1095,5475,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.446
+1096,5480,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.443
+1097,5485,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.439
+1098,5490,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.435
+1099,5495,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.430
+1100,5500,return,[Hint: anchor A0 · 0.5 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.426
+1101,5505,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.417
+1102,5510,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.398
+1103,5515,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.370
+1104,5520,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.331
+1105,5525,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.300
+1106,5530,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.270
+1107,5535,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.239
+1108,5540,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.210
+1109,5545,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.184
+1110,5550,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.166
+1111,5555,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.154
+1112,5560,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.145
+1113,5565,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.136
+1114,5570,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.130
+1115,5575,return,[Hint: anchor A0 · 0.4 m · forward 14°],VLM: forward,The next action is move forward 75 cm.,→ OVERRIDDEN (forward),,0.124
+1116,5580,return,[Hint: anchor A0 · 0.1 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.115
+1117,5585,return,[Hint: anchor A0 · 0.1 m · left 34°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.110
+1118,5590,return,[Hint: anchor A0 · 0.1 m · left 34°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.105
+1119,5595,return,[Hint: anchor A0 · 0.1 m · left 33°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.105
+1120,5600,return,[Hint: anchor A0 · 0.1 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.108
+1121,5605,return,[Hint: anchor A0 · 0.1 m · left 38°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.112
+1122,5610,return,[Hint: anchor A0 · 0.1 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.117
+1123,5615,return,[Hint: anchor A0 · 0.1 m · left 38°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.118
+1124,5620,return,[Hint: anchor A0 · 0.1 m · left 36°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.117
+1125,5625,return,[Hint: anchor A0 · 0.1 m · left 34°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.117
+1126,5630,return,[Hint: anchor A0 · 0.1 m · left 34°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.118
+1127,5635,return,[Hint: anchor A0 · 0.1 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.120
+1128,5640,return,[Hint: anchor A0 · 0.1 m · left 36°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.122
+1129,5645,return,[Hint: anchor A0 · 0.1 m · left 37°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.127
+1130,5650,return,[Hint: anchor A0 · 0.1 m · left 39°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.131
+1131,5655,return,[Hint: anchor A0 · 0.1 m · left 42°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.133
+1132,5660,return,[Hint: anchor A0 · 0.1 m · left 44°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.133
+1133,5665,return,[Hint: anchor A0 · 0.1 m · left 45°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.131
+1134,5670,return,[Hint: anchor A0 · 0.1 m · left 44°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.128
+1135,5675,return,[Hint: anchor A0 · 0.1 m · left 42°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.124
+1136,5680,return,[Hint: anchor A0 · 0.1 m · left 42°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.123
+1137,5685,return,[Hint: anchor A0 · 0.1 m · left 43°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.124
+1138,5690,return,[Hint: anchor A0 · 0.1 m · left 46°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.123
+1139,5695,return,[Hint: anchor A0 · 0.1 m · left 46°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.121
+1140,5700,return,[Hint: anchor A0 · 0.1 m · left 46°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.119
+1141,5705,return,[Hint: anchor A0 · 0.1 m · left 47°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.118
+1142,5710,return,[Hint: anchor A0 · 0.1 m · left 48°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.117
+1143,5715,return,[Hint: anchor A0 · 0.1 m · left 49°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.116
+1144,5720,return,[Hint: anchor A0 · 0.1 m · left 50°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.116
+1145,5725,return,[Hint: anchor A0 · 0.1 m · left 50°],VLM: turn right,The next action is turn right 45 degree.,→ EXECUTED,,0.116
+1146,5730,return,[Hint: anchor A0 · 0.1 m · left 49°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.116
+1147,5735,return,[Hint: anchor A0 · 0.1 m · left 47°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.117
+1148,5740,return,[Hint: anchor A0 · 0.1 m · left 45°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.118
+1149,5745,return,[Hint: anchor A0 · 0.1 m · left 44°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.118
+1150,5750,return,[Hint: anchor A0 · 0.1 m · left 43°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.117
+1151,5755,return,[Hint: anchor A0 · 0.1 m · left 42°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.117
+1152,5760,return,[Hint: anchor A0 · 0.1 m · left 41°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.117
+1153,5765,return,[Hint: anchor A0 · 0.1 m · left 42°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.119
+1154,5770,return,[Hint: anchor A0 · 0.1 m · left 43°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.122
+1155,5775,return,[Hint: anchor A0 · 0.1 m · left 45°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.126
+1156,5780,return,[Hint: anchor A0 · 0.1 m · left 45°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.127
+1157,5785,return,[Hint: anchor A0 · 0.1 m · left 42°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.125
+1158,5790,return,[Hint: anchor A0 · 0.1 m · left 38°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.119
+1159,5795,return,[Hint: anchor A0 · 0.1 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.115
+1160,5800,return,[Hint: anchor A0 · 0.1 m · left 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.112
+1161,5805,return,[Hint: anchor A0 · 0.1 m · left 36°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.111
+1162,5810,return,[Hint: anchor A0 · 0.1 m · left 38°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.111
+1163,5815,return,[Hint: anchor A0 · 0.1 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.114
+1164,5820,return,[Hint: anchor A0 · 0.1 m · left 41°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.120
+1165,5825,return,[Hint: anchor A0 · 0.1 m · left 42°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.120
+1166,5830,return,[Hint: anchor A0 · 0.1 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.120
+1167,5835,return,[Hint: anchor A0 · 0.1 m · left 37°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.120
+1168,5840,return,[Hint: anchor A0 · 0.1 m · left 32°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.118
+1169,5845,return,[Hint: anchor A0 · 0.1 m · left 27°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.116
+1170,5850,return,[Hint: anchor A0 · 0.1 m · left 22°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.113
+1171,5855,return,[Hint: anchor A0 · 0.1 m · left 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.110
+1172,5860,return,[Hint: anchor A0 · 0.1 m · left 17°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.106
+1173,5865,return,[Hint: anchor A0 · 0.1 m · left 15°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.102
+1174,5870,return,[Hint: anchor A0 · 0.1 m · left 11°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.097
+1175,5875,return,[Hint: anchor A0 · 0.1 m · left 9°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.093
+1176,5880,return,[Hint: anchor A0 · 0.1 m · left 9°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.089
+1177,5885,return,[Hint: anchor A0 · 0.1 m · left 11°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.085
+1178,5890,return,[Hint: anchor A0 · 0.1 m · left 15°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.081
+1179,5895,return,[Hint: anchor A0 · 0.0 m · left 19°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.076
+1180,5900,return,[Hint: anchor A0 · 0.0 m · left 25°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.074
+1181,5905,return,[Hint: anchor A0 · 0.0 m · left 30°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.076
+1182,5910,return,[Hint: anchor A0 · 0.0 m · left 38°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.074
+1183,5915,return,[Hint: anchor A0 · 0.0 m · left 42°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.072
+1184,5920,return,[Hint: anchor A0 · 0.0 m · left 43°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.067
+1185,5925,return,[Hint: anchor A0 · 0.0 m · left 42°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.063
+1186,5930,return,[Hint: anchor A0 · 0.0 m · left 45°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.058
+1187,5935,return,[Hint: anchor A0 · 0.0 m · left 53°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.053
+1188,5940,return,[Hint: anchor A0 · 0.0 m · left 64°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.049
+1189,5945,return,[Hint: anchor A0 · 0.0 m · left 75°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.046
+1190,5950,return,[Hint: anchor A0 · 0.0 m · left 79°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.048
+1191,5955,return,[Hint: anchor A0 · 0.0 m · left 86°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.049
+1192,5960,return,[Hint: anchor A0 · 0.0 m · left 91°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.048
+1193,5965,return,[Hint: anchor A0 · 0.0 m · left 96°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.045
+1194,5970,return,[Hint: anchor A0 · 0.0 m · left 99°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.041
+1195,5975,return,[Hint: anchor A0 · 0.0 m · left 104°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.038
+1196,5980,return,[Hint: anchor A0 · 0.0 m · left 110°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.036
+1197,5985,return,[Hint: anchor A0 · 0.1 m · left 115°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.037
+1198,5990,return,[Hint: anchor A0 · 0.1 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.039
+1199,5995,return,[Hint: anchor A0 · 0.1 m · left 120°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.044
+1200,6000,return,[Hint: anchor A0 · 0.1 m · left 118°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.050
+1201,6005,return,[Hint: anchor A0 · 0.1 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.056
+1202,6010,return,[Hint: anchor A0 · 0.1 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.058
+1203,6015,return,[Hint: anchor A0 · 0.1 m · left 121°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.057
+1204,6020,return,[Hint: anchor A0 · 0.1 m · left 122°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.058
+1205,6025,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.061
+1206,6030,return,[Hint: anchor A0 · 0.1 m · left 126°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.066
+1207,6035,return,[Hint: anchor A0 · 0.1 m · left 127°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.072
+1208,6040,return,[Hint: anchor A0 · 0.1 m · left 127°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.078
+1209,6045,return,[Hint: anchor A0 · 0.1 m · left 125°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.085
+1210,6050,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.092
+1211,6055,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.097
+1212,6060,return,[Hint: anchor A0 · 0.1 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.100
+1213,6065,return,[Hint: anchor A0 · 0.1 m · left 125°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.102
+1214,6070,return,[Hint: anchor A0 · 0.1 m · left 125°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.106
+1215,6075,return,[Hint: anchor A0 · 0.1 m · left 125°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.112
+1216,6080,return,[Hint: anchor A0 · 0.1 m · left 125°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.118
+1217,6085,return,[Hint: anchor A0 · 0.2 m · left 124°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.125
+1218,6090,return,[Hint: anchor A0 · 0.2 m · left 122°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.131
+1219,6095,return,[Hint: anchor A0 · 0.2 m · left 120°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.138
+1220,6100,return,[Hint: anchor A0 · 0.2 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.145
+1221,6105,return,[Hint: anchor A0 · 0.2 m · left 119°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.150
+1222,6110,return,[Hint: anchor A0 · 0.2 m · left 118°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.153
+1223,6115,return,[Hint: anchor A0 · 0.2 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.157
+1224,6120,return,[Hint: anchor A0 · 0.2 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.161
+1225,6125,return,[Hint: anchor A0 · 0.2 m · left 117°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.167
+1226,6130,return,[Hint: anchor A0 · 0.2 m · left 116°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.173
+1227,6135,return,[Hint: anchor A0 · 0.2 m · left 115°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.180
+1228,6140,return,[Hint: anchor A0 · 0.2 m · left 113°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.186
+1229,6145,return,[Hint: anchor A0 · 0.2 m · left 112°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.193
+1230,6150,return,[Hint: anchor A0 · 0.2 m · left 110°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.198
+1231,6155,return,[Hint: anchor A0 · 0.2 m · left 109°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.200
+1232,6160,return,[Hint: anchor A0 · 0.2 m · left 108°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.203
+1233,6165,return,[Hint: anchor A0 · 0.2 m · left 107°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.205
+1234,6170,return,[Hint: anchor A0 · 0.2 m · left 107°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.209
+1235,6175,return,[Hint: anchor A0 · 0.2 m · left 106°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.214
+1236,6180,return,[Hint: anchor A0 · 0.2 m · left 105°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.220
+1237,6185,return,[Hint: anchor A0 · 0.2 m · left 103°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.225
+1238,6190,return,[Hint: anchor A0 · 0.3 m · left 102°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.233
+1239,6195,return,[Hint: anchor A0 · 0.3 m · left 101°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.237
+1240,6200,return,[Hint: anchor A0 · 0.3 m · left 100°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.240
+1241,6205,return,[Hint: anchor A0 · 0.3 m · left 99°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.242
+1242,6210,return,[Hint: anchor A0 · 0.3 m · left 98°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.244
+1243,6215,return,[Hint: anchor A0 · 0.3 m · left 97°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.248
+1244,6220,return,[Hint: anchor A0 · 0.3 m · left 97°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.253
+1245,6225,return,[Hint: anchor A0 · 0.3 m · left 96°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.258
+1246,6230,return,[Hint: anchor A0 · 0.3 m · left 95°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.263
+1247,6235,return,[Hint: anchor A0 · 0.3 m · left 93°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.270
+1248,6240,return,[Hint: anchor A0 · 0.3 m · left 92°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.274
+1249,6245,return,[Hint: anchor A0 · 0.3 m · left 90°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.276
+1250,6250,return,[Hint: anchor A0 · 0.3 m · left 89°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.276
+1251,6255,return,[Hint: anchor A0 · 0.3 m · left 87°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.276
+1252,6260,return,[Hint: anchor A0 · 0.3 m · left 86°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.276
+1253,6265,return,[Hint: anchor A0 · 0.3 m · left 85°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.279
+1254,6270,return,[Hint: anchor A0 · 0.3 m · left 84°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.282
+1255,6275,return,[Hint: anchor A0 · 0.3 m · left 83°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.286
+1256,6280,return,[Hint: anchor A0 · 0.3 m · left 82°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.292
+1257,6285,return,[Hint: anchor A0 · 0.3 m · left 81°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.295
+1258,6290,return,[Hint: anchor A0 · 0.3 m · left 79°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.296
+1259,6295,return,[Hint: anchor A0 · 0.3 m · left 77°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.294
+1260,6300,return,[Hint: anchor A0 · 0.3 m · left 76°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.293
+1261,6305,return,[Hint: anchor A0 · 0.3 m · left 75°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.293
+1262,6310,return,[Hint: anchor A0 · 0.3 m · left 74°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.295
+1263,6315,return,[Hint: anchor A0 · 0.3 m · left 73°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.298
+1264,6320,return,[Hint: anchor A0 · 0.3 m · left 72°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.303
+1265,6325,return,[Hint: anchor A0 · 0.3 m · left 71°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.308
+1266,6330,return,[Hint: anchor A0 · 0.3 m · left 70°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.309
+1267,6335,return,[Hint: anchor A0 · 0.3 m · left 68°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.307
+1268,6340,return,[Hint: anchor A0 · 0.3 m · left 67°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.306
+1269,6345,return,[Hint: anchor A0 · 0.3 m · left 65°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.306
+1270,6350,return,[Hint: anchor A0 · 0.3 m · left 65°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.307
+1271,6355,return,[Hint: anchor A0 · 0.3 m · left 64°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.308
+1272,6360,return,[Hint: anchor A0 · 0.3 m · left 63°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.309
+1273,6365,return,[Hint: anchor A0 · 0.3 m · left 62°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.312
+1274,6370,return,[Hint: anchor A0 · 0.3 m · left 62°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.317
+1275,6375,return,[Hint: anchor A0 · 0.3 m · left 61°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.319
+1276,6380,return,[Hint: anchor A0 · 0.3 m · left 60°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.318
+1277,6385,return,[Hint: anchor A0 · 0.3 m · left 58°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.316
+1278,6390,return,[Hint: anchor A0 · 0.3 m · left 57°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.313
+1279,6395,return,[Hint: anchor A0 · 0.3 m · left 56°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.312
+1280,6400,return,[Hint: anchor A0 · 0.3 m · left 55°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.310
+1281,6405,return,[Hint: anchor A0 · 0.3 m · left 54°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.310
+1282,6410,return,[Hint: anchor A0 · 0.3 m · left 53°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.311
+1283,6415,return,[Hint: anchor A0 · 0.3 m · left 52°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.317
+1284,6420,return,[Hint: anchor A0 · 0.3 m · left 52°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.317
+1285,6425,return,[Hint: anchor A0 · 0.3 m · left 50°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.317
+1286,6430,return,[Hint: anchor A0 · 0.3 m · left 47°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.315
+1287,6435,return,[Hint: anchor A0 · 0.3 m · left 45°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.313
+1288,6440,return,[Hint: anchor A0 · 0.3 m · left 43°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.312
+1289,6445,return,[Hint: anchor A0 · 0.3 m · left 41°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.312
+1290,6450,return,[Hint: anchor A0 · 0.3 m · left 40°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.316
+1291,6455,return,[Hint: anchor A0 · 0.3 m · left 38°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.320
+1292,6460,return,[Hint: anchor A0 · 0.3 m · left 36°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.322
+1293,6465,return,[Hint: anchor A0 · 0.3 m · left 33°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.322
+1294,6470,return,[Hint: anchor A0 · 0.3 m · left 31°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.321
+1295,6475,return,[Hint: anchor A0 · 0.3 m · left 28°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.320
+1296,6480,return,[Hint: anchor A0 · 0.3 m · left 27°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.319
+1297,6485,return,[Hint: anchor A0 · 0.3 m · left 25°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.318
+1298,6490,return,[Hint: anchor A0 · 0.3 m · left 22°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.316
+1299,6495,return,[Hint: anchor A0 · 0.3 m · left 19°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.313
+1300,6500,return,[Hint: anchor A0 · 0.3 m · left 16°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.310
+1301,6505,return,[Hint: anchor A0 · 0.3 m · left 13°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.306
+1302,6510,return,[Hint: anchor A0 · 0.3 m · left 12°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.305
+1303,6515,return,[Hint: anchor A0 · 0.3 m · left 11°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.302
+1304,6520,return,[Hint: anchor A0 · 0.3 m · left 9°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.298
+1305,6525,return,[Hint: anchor A0 · 0.3 m · left 7°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.293
+1306,6530,return,[Hint: anchor A0 · 0.3 m · left 3°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.289
+1307,6535,return,[Hint: anchor A0 · 0.3 m · left 0°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.284
+1308,6540,return,[Hint: anchor A0 · 0.3 m · right 1°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.278
+1309,6545,return,[Hint: anchor A0 · 0.3 m · right 3°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.273
+1310,6550,return,[Hint: anchor A0 · 0.3 m · right 4°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.270
+1311,6555,return,[Hint: anchor A0 · 0.3 m · right 4°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.270
+1312,6560,return,[Hint: anchor A0 · 0.3 m · right 5°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.266
+1313,6565,return,[Hint: anchor A0 · 0.3 m · right 8°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.263
+1314,6570,return,[Hint: anchor A0 · 0.3 m · right 11°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.262
+1315,6575,return,[Hint: anchor A0 · 0.3 m · right 14°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.261
+1316,6580,return,[Hint: anchor A0 · 0.3 m · right 18°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.259
+1317,6585,return,[Hint: anchor A0 · 0.3 m · right 22°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.256
+1318,6590,return,[Hint: anchor A0 · 0.3 m · right 25°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.253
+1319,6595,return,[Hint: anchor A0 · 0.2 m · right 26°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.251
+1320,6600,return,[Hint: anchor A0 · 0.2 m · right 29°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.245
+1321,6605,return,[Hint: anchor A0 · 0.2 m · right 32°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.241
+1322,6610,return,[Hint: anchor A0 · 0.2 m · right 35°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.239
+1323,6615,return,[Hint: anchor A0 · 0.2 m · right 38°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.236
+1324,6620,return,[Hint: anchor A0 · 0.2 m · right 41°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.233
+1325,6625,return,[Hint: anchor A0 · 0.2 m · right 44°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.227
+1326,6630,return,[Hint: anchor A0 · 0.2 m · right 46°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.221
+1327,6635,return,[Hint: anchor A0 · 0.2 m · right 48°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.217
+1328,6640,return,[Hint: anchor A0 · 0.2 m · right 50°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.211
+1329,6645,return,[Hint: anchor A0 · 0.2 m · right 53°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.207
+1330,6650,return,[Hint: anchor A0 · 0.2 m · right 57°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.205
+1331,6651,return,[Hint: anchor A0 · 0.2 m · right 58°],VLM: turn left,The next action is turn left 45 degree.,→ EXECUTED,,0.205
