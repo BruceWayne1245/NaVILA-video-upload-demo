@@ -350,3 +350,57 @@ Two more requests:
 Frame counts and segment durations are unchanged from the previous pass
 (217.6s total) — both features are pure overlay drawing, no new pause events
 or timing changes.
+
+### v2 third follow-up: trim pauses, cut a dead tail, drop the closing clip, fix labels (same day)
+
+Four more requests after watching the mini-map/arrows cut:
+
+1. **Removed one specific seg3 pause.** The user flagged the pause at ~34s
+   as not worth stopping for. Tracing it down: seg3's actual kept pause set
+   was never "4 override events" as an earlier ad-hoc check had assumed —
+   the real selection (2 terminal events kept unconditionally + override
+   slots filled by even-spread slicing of 4 candidates) kept steps
+   `[2305 (override), 2855 (override), 3230 (terminal), 4801 (terminal)]`,
+   and the ~34s pause was the **2855** override, not 2455. Confirmed by
+   re-simulating the exact selection logic against the candidate list before
+   touching any render call — the earlier assumption from before pause
+   captions/mini-maps existed no longer matched the code's actual behavior.
+   New `render_pair_side_by_side(..., exclude_steps=(2855,), max_events=3)`
+   drops it without a different candidate backfilling the freed slot (the
+   first attempt, at `max_events=4` with exclusion, just let another
+   override event slide into the same time slot — not what "remove this
+   pause" meant).
+2. **Cut seg5 part1's dead tail.** Once the online (right) side finishes
+   around 2:04 and the baseline (left) side is just wandering with nothing
+   new to show, the clip used to keep running another ~10s to 2:17. New
+   `stop_after_last_event_buffer_frames` param on `render_pair_side_by_side`
+   truncates the render to end ~3s (real output time) after the last kept
+   pause event, computed via the same real-seconds-to-raw-frames math as the
+   pause durations themselves (same fixed 4.773x factor). Content now ends
+   around 2:05.
+3. **Dropped "Closing: regression"** (ep1154 baseline vs online) entirely.
+   `closing.mp4` now opens straight on the results text card, followed by
+   the two figure cards. The ep1154 rendering call and its now-unused
+   `RESULT_DIRS`/`VIDEO_OUTPUT_ID`/`MAP_KEY` entries were removed from
+   `render_segments_v2.py` (and `build_topdown_maps.py`'s `EPISODES` dict),
+   not just left unused.
+4. **Fixed the vanishing per-side config labels** — the actual root cause of
+   "can't tell which side is which," and a real bug that had been present
+   since the very first v2 pass. `draw_overlay`'s config-label text was
+   drawn at y=20, which sits inside the same up-to-92px region
+   `compose_final_v2.py`'s scale-up+crop removes from the top of every
+   paired piece's frame to fill 1920x1080 with no bars — it had been
+   silently cropped off-screen in every v2 render since that crop was added,
+   not something the mini-map's placement (added later, already fixed to
+   y=100 for the same reason) newly broke. Moved to y=264, clearing both the
+   crop and the mini-map with margin.
+
+Verified all four by extracting frames from the actual composed
+`final_v2.mp4` (not just raw pieces) at the relevant timestamps, plus a
+yellow-pixel pause-detector scan across the whole video to confirm exactly
+which pauses remain and where.
+
+**Result**: 2m 58s (177.9s) — down from 3m 38s. Segment durations: seg3
+(now missing one pause) = 57.5s (was 59.0s), seg4 unchanged 42.0s, seg5 =
+63.4s (was 73.0s), closing = 15.0s (was 43.5s, now just the results +
+figure cards).

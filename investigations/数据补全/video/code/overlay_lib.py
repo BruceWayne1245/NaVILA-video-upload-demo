@@ -120,8 +120,15 @@ def draw_overlay(frame, row, rows, idx, config_label, speed_label):
     out[:h] = frame
     out[h:] = panel
 
-    _put(out, config_label, (8, 20), fs, (255, 255, 0), thickness=1)
-    _put(out, speed_label, (w - int(w * 0.156), 20), fs, (255, 255, 0), thickness=1)
+    # y=264, not the more natural-looking y=20: compose_final_v2.py's
+    # scale-up+crop (added to fill 1920x1080 with no black bars) crops up to
+    # 92px off the TOP of a paired piece's frame, and the mini-map (see
+    # composite_minimap) occupies y=[100,250] -- a label at y=20 silently
+    # vanished off the top of every final rendered clip until this was
+    # caught (2026-08-21 follow-up: viewers couldn't tell which side was
+    # which). y=264 clears both the crop and the map with margin.
+    _put(out, config_label, (8, 264), fs, (255, 255, 0), thickness=1)
+    _put(out, speed_label, (w - int(w * 0.156), 264), fs, (255, 255, 0), thickness=1)
     return out
 
 
@@ -389,7 +396,8 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
                               video_path_r, csv_path_r, label_r,
                               out_path, crop_third_person=True,
                               pause_raw_frames=0, max_events=3,
-                              minimap_l=None, minimap_r=None, arrow_min_diff_deg=12.0):
+                              minimap_l=None, minimap_r=None, arrow_min_diff_deg=12.0,
+                              exclude_steps=(), stop_after_last_event_buffer_frames=None):
     """Sync by `step`: walk the LONGER clip's own frame timeline; for each of
     its frames, look up the nearest-step frame on the other side. Once the
     shorter side's clip ends, hold its last frame.
@@ -414,7 +422,18 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
     accumulating its own trail independently even if both share the same
     background map), composited into the top-left corner every frame,
     including through pauses (it's part of `out_l`/`out_r`, drawn before the
-    caption band is appended, so it persists into the frozen copies too)."""
+    caption band is appended, so it persists into the frozen copies too).
+
+    exclude_steps: raw CSV `step` values (either side) to drop from the
+    detected-event list even if they'd otherwise qualify -- for dropping one
+    specific pause the auto-detection picked up that turned out not to be
+    worth a stop, without disabling detection for the rest of the clip.
+
+    stop_after_last_event_buffer_frames: if set, truncates the render to end
+    this many raw frames after the LAST kept pause event -- for a clip whose
+    tail (after every event of interest has already happened) just repeats
+    the same "nothing new is happening" state for a long time with nothing
+    to show for it."""
     rows_l = load_csv(csv_path_l)
     rows_r = load_csv(csv_path_r)
 
@@ -488,8 +507,10 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
             elif (arb_l and not prev_arb_l) or (arb_r and not prev_arb_r):
                 kind = "override"
             if kind and i - last_event_i >= min_gap:
-                pending.append((i, kind))
-                last_event_i = i
+                step_here = int(rows_l[il]["step"]) if longer_is_l else int(rows_r[ir]["step"])
+                if not any(abs(step_here - s) <= min_gap for s in exclude_steps):
+                    pending.append((i, kind))
+                    last_event_i = i
             prev_arb_l, prev_arb_r = arb_l, arb_r
             prev_term_l, prev_term_r = term_l or prev_term_l, term_r or prev_term_r
         # prefer terminal events, then spread remaining override slots evenly
@@ -502,6 +523,9 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
             keep += overs[::gap][:slots]
         for i, kind in keep:
             events_by_i[i] = kind
+
+    if stop_after_last_event_buffer_frames is not None and events_by_i:
+        n_steps = min(n_steps, max(events_by_i.keys()) + 1 + stop_after_last_event_buffer_frames)
 
     caption_h = CAPTION_H if pause_raw_frames > 0 else 0
     writer = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*"mp4v"), fps,

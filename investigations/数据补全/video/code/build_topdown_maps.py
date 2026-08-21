@@ -57,10 +57,6 @@ EPISODES = {
         "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_pure_baseline_highsuccess100ep_chronological_first50_20260818_ep579",
         "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_policy_v2_active50_replay_on_highsuccess100ep_20260816_ep579",
     ]),
-    "ep1154": ("X7HyMhZNoso", [
-        "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_pure_baseline_highsuccess100ep_chronological_first50_20260818_ep670",
-        "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_policy_v2_active50_replay_on_highsuccess100ep_20260816_ep670",
-    ]),
     "ep428": ("QUCTc6BB5sX", [
         "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_policy_v2_active50_replay_on_highsuccess100ep_20260816_ep271",
     ]),

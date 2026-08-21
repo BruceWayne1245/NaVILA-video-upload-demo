@@ -31,6 +31,21 @@ Seg1 (ep1006 baseline alone) and Seg2 (ep1256 oracle-hint alone) are dropped
 entirely per the user's 2026-08-21 request: a single failing episode with no
 comparison reads as unclear on its own.
 
+Third 2026-08-21 follow-up (after watching the mini-map/arrows cut):
+- Seg3's second pause (step 2455, ~34s into the final cut) is excluded --
+  the user watched it and found nothing worth stopping for at that specific
+  moment (its 3 sibling override pauses stay).
+- Seg5 part1 (ep1006 baseline vs online) now stops ~3s after its last pause
+  instead of running another ~10s with the online side already finished and
+  the baseline side just wandering with nothing new to show.
+- The "Closing: regression" clip (ep1154 baseline vs online) is dropped
+  entirely -- closing.mp4 (built in compose_final_v2.py) now opens straight
+  on the results text card + the two figure cards.
+- draw_overlay's config-label text moved from y=20 to y=264 (see
+  overlay_lib.py) -- it had been silently cropped off the top of every
+  final rendered clip since the very first v2 pass' scale-up+crop change,
+  unnoticed until the user pointed out neither side of a pair was labeled.
+
 Run with the vlnce-isaac conda python (needs cv2). topdown_maps/ must already
 exist -- run build_topdown_maps.py first (needs the system miniconda `base`
 env instead, for USD/pxr access).
@@ -54,8 +69,6 @@ RESULT_DIRS = {
     "ep33_oracle_hint_action_stopgate": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_pure_oracle_hint_action_stopgate_highsuccess100ep_20260813_ep20",
     "ep1006_baseline": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_pure_baseline_highsuccess100ep_chronological_first50_20260818_ep579",
     "ep1006_online": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_policy_v2_active50_replay_on_highsuccess100ep_20260816_ep579",
-    "ep1154_baseline": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_pure_baseline_highsuccess100ep_chronological_first50_20260818_ep670",
-    "ep1154_online": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_policy_v2_active50_replay_on_highsuccess100ep_20260816_ep670",
     "ep428_online": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_policy_v2_active50_replay_on_highsuccess100ep_20260816_ep271",
     "ep1439_online": "round_trip_phase_prompt_go2_matterport_vision_loco_2024-09-25_23-22-02_policy_v2_active50_replay_on_highsuccess100ep_20260816_ep844",
 }
@@ -63,7 +76,6 @@ VIDEO_OUTPUT_ID = {
     "ep1256_oracle_hint": 1255, "ep1256_oracle_hint_action": 1255,
     "ep33_oracle_hint_action": 32, "ep33_oracle_hint_action_stopgate": 32,
     "ep1006_baseline": 1005, "ep1006_online": 1005,
-    "ep1154_baseline": 1153, "ep1154_online": 1153,
     "ep428_online": 427, "ep1439_online": 1438,
 }
 V = {k: f"{BENCH}/{RESULT_DIRS[k]}/videos/output_{VIDEO_OUTPUT_ID[k]}.mp4" for k in RESULT_DIRS}
@@ -75,7 +87,6 @@ MAP_KEY = {
     "ep1256_oracle_hint": "ep1256", "ep1256_oracle_hint_action": "ep1256",
     "ep33_oracle_hint_action": "ep33", "ep33_oracle_hint_action_stopgate": "ep33",
     "ep1006_baseline": "ep1006", "ep1006_online": "ep1006",
-    "ep1154_baseline": "ep1154", "ep1154_online": "ep1154",
     "ep428_online": "ep428", "ep1439_online": "ep1439",
 }
 
@@ -97,8 +108,11 @@ PAUSE_FRAMES = {
     "seg3": round(PAUSE_S * (962 / 10 / 50.0) * 10),   # 29
     "seg4_main": round(PAUSE_S * (584 / 10 / 35.0) * 10),   # 25
     "seg5_part1": round(PAUSE_S * (1432 / 10 / 30.0) * 10),  # 72
-    "closing": round(PAUSE_S * (1312 / 10 / 20.0) * 10),  # 98
 }
+# seg5 part1: stop ~3s (real output time) after the last pause instead of
+# running out its full native length -- same real-seconds-to-raw-frames
+# math as PAUSE_FRAMES, at the same fixed 4.773x factor (1432/10/30.0).
+SEG5_PART1_STOP_BUFFER_FRAMES = round(3.0 * (1432 / 10 / 30.0) * 10)  # 143
 
 
 def main():
@@ -108,7 +122,7 @@ def main():
         V["ep1256_oracle_hint"], C["ep1256_oracle_hint"], "Oracle hint -- ground-truth pose",
         V["ep1256_oracle_hint_action"], C["ep1256_oracle_hint_action"], "Oracle hint-action -- ground-truth pose",
         os.path.join(RAW_DIR, "seg3_ep1256_pair_v2.mp4"),
-        pause_raw_frames=PAUSE_FRAMES["seg3"], max_events=4,
+        pause_raw_frames=PAUSE_FRAMES["seg3"], max_events=3, exclude_steps=(2855,),
         minimap_l=make_minimap("ep1256_oracle_hint"), minimap_r=make_minimap("ep1256_oracle_hint_action"),
     )
     report["seg3"] = n
@@ -127,6 +141,7 @@ def main():
         V["ep1006_online"], C["ep1006_online"], "online (proposed)",
         os.path.join(RAW_DIR, "seg5_part1_ep1006_pair_v2.mp4"),
         pause_raw_frames=PAUSE_FRAMES["seg5_part1"], max_events=2,
+        stop_after_last_event_buffer_frames=SEG5_PART1_STOP_BUFFER_FRAMES,
         minimap_l=make_minimap("ep1006_baseline"), minimap_r=make_minimap("ep1006_online"),
     )
     report["seg5_part1"] = n
@@ -144,15 +159,6 @@ def main():
         minimap=make_minimap("ep1439_online"),
     )
     report["seg5_part3"] = n
-
-    n = render_pair_side_by_side(
-        V["ep1154_baseline"], C["ep1154_baseline"], "language-only baseline",
-        V["ep1154_online"], C["ep1154_online"], "online (proposed)",
-        os.path.join(RAW_DIR, "closing_ep1154_pair_v2.mp4"),
-        pause_raw_frames=PAUSE_FRAMES["closing"], max_events=3,
-        minimap_l=make_minimap("ep1154_baseline"), minimap_r=make_minimap("ep1154_online"),
-    )
-    report["closing"] = n
 
     for k, v in report.items():
         print(f"{k}: {v} synced steps (excludes inserted pause frames)")

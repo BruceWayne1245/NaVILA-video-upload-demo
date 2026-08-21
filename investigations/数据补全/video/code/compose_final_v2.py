@@ -15,17 +15,17 @@
        completely, cropping only the excess -- and only ever from the TOP of
        the frame via the explicit crop y-offset below, so the text panel at
        the bottom is never clipped).
-3. Key-moment pauses: seg3/seg4-main/seg5-part1/closing now hold a 1.5s
-   freeze with a growing highlight oval at each detected left/right
-   divergence (an arbitration override firing, or a terminal state --
-   STOP proposed -> vetoed vs -> executed -- newly appearing), built into
-   the _raw/*_v2.mp4 pieces by render_segments_v2.py. This script's speed
-   factors for those four pieces are UNCHANGED from compose_final.py's
-   original NATIVE/TARGET values on purpose: the factor is a pure playback
-   multiplier, decoupled from the actual (now larger, with pause frames)
-   raw file it's applied to -- see render_segments_v2.py's PAUSE_FRAMES
-   derivation for why reusing the original factor makes each pause land at
-   ~1.5 real seconds regardless of the segment's speed-up.
+3. Key-moment pauses: seg3/seg4-main/seg5-part1 now hold a 1.5s freeze with
+   a growing highlight oval at each detected left/right divergence (an
+   arbitration override firing, or a terminal state -- STOP proposed ->
+   vetoed vs -> executed -- newly appearing), built into the _raw/*_v2.mp4
+   pieces by render_segments_v2.py. This script's speed factors for those
+   pieces are UNCHANGED from compose_final.py's original NATIVE/TARGET
+   values on purpose: the factor is a pure playback multiplier, decoupled
+   from the actual (now larger, with pause frames) raw file it's applied to
+   -- see render_segments_v2.py's PAUSE_FRAMES derivation for why reusing
+   the original factor makes each pause land at ~1.5 real seconds
+   regardless of the segment's speed-up.
 
 Single-clip pieces (seg5 part2 ep428, seg5 part3 ep1439) are untouched,
 reused from the original _raw/ render. The ep1378 insert (previously
@@ -34,9 +34,10 @@ second, different failure mode (timeout, not veto) that diluted Seg 4's
 single point rather than reinforcing it.
 
 Two closing figure cards (rasterized from final_data2/figures/*.pdf, see
-figures_raster/) are appended after the results text card, per the same
-follow-up request, giving the closing segment an at-a-glance quantitative
-summary beyond the text-only results line.
+figures_raster/) are appended after the results text card. The "Closing:
+regression" clip (ep1154 baseline vs online) that used to precede them was
+dropped per a later 2026-08-21 follow-up -- closing.mp4 now opens straight
+on the results card.
 
 Run with system python3 (only shells out to ffmpeg, no cv2 needed).
 """
@@ -63,7 +64,6 @@ NATIVE = {
     "seg5_part1_ep1006_pair_v2.mp4": 1432,
     "seg5_part2_ep428_v2.mp4": 692,
     "seg5_part3_ep1439_v2.mp4": 492,
-    "closing_ep1154_pair_v2.mp4": 1312,
 }
 
 TARGET = {
@@ -72,7 +72,6 @@ TARGET = {
     "seg5_part1_ep1006_pair_v2.mp4": 30.0,
     "seg5_part2_ep428_v2.mp4": 15.0,
     "seg5_part3_ep1439_v2.mp4": 15.0,
-    "closing_ep1154_pair_v2.mp4": 20.0,
 }
 
 # High-DPI rasters of final_data2/figures/*.pdf (see figures_raster/), shown
@@ -243,12 +242,8 @@ def main():
         os.path.join(TMP, "title_seg5c.mp4"), s5c,
     ], os.path.join(SEG, "seg5.mp4"))
 
-    # --- Closing ---
-    fc, sc = scale_and_speed("closing_ep1154_pair_v2.mp4")
-    factors["closing"] = fc
-    title_card(["Closing: regression", "ep1154 -- baseline succeeds, proposed system fails",
-                "4 of 49 episodes regressed this way", f"{fc:.1f}x speed"],
-               os.path.join(TMP, "title_closing.mp4"), duration=4.0)
+    # --- Closing --- (the ep1154 "regression" clip was dropped per 2026-08-21
+    # follow-up feedback -- closing.mp4 now opens straight on the results card)
     results_card = os.path.join(TMP, "results_card.mp4")
     title_card([
         "Results", "language-only 22.0%  ->  Oracle ladder 37.2 / 71.1 / 86.0%  ->  online 55.1%",
@@ -262,7 +257,7 @@ def main():
         figure_cards.append(card_path)
 
     concat([
-        os.path.join(TMP, "title_closing.mp4"), sc, results_card, *figure_cards,
+        results_card, *figure_cards,
     ], os.path.join(SEG, "closing.mp4"))
 
     # --- Final assembled cut ---
