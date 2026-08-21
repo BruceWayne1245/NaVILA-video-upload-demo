@@ -200,3 +200,64 @@ Both cuts are kept side by side for comparison — `final.mp4`/`segments/`
 (untrimmed, 5m16s, follows the spec's literal per-segment lengths) and
 `final_trimmed.mp4`/`segments_trimmed/` (4m03s, follows the spec's top-level
 minute target). Neither overwrites the other.
+
+## v2 revision (`final_v2.mp4`, `segments_v2/`, 2026-08-21)
+
+Three fixes requested by the user after watching the original cuts:
+
+1. **Dropped Seg 1 and Seg 2** (ep1006 baseline alone, ep1256 oracle-hint
+   alone). A single failing episode with nothing to compare against reads as
+   unclear on its own; the video now opens on the old Seg 3 (renumbered to
+   Segment 1). Segment numbering in title cards was shifted accordingly:
+   old Seg3→"Segment 1", Seg4→"Segment 2", Seg5→"Segment 3", Closing
+   unchanged.
+2. **Fixed the canvas fill.** The original pair segments concatenated two
+   full 1024-wide (ego+third-person) panels into a 2048-wide frame, which
+   padded to huge black bars top/bottom once fit into 1920x1080 (aspect
+   3.29:1 vs the 16:9 canvas). `render_segments_v2.py` now crops each side of
+   a pair to third-person-only (512 wide) before pairing, bringing the
+   combined frame back to 1024 wide — the same aspect as a single-clip
+   segment. `compose_final_v2.py` also switched the ffmpeg scale/pad step to
+   scale-up-then-crop (`force_original_aspect_ratio=increase` +
+   `crop=1920:1080:0:in_h-1080`), filling the canvas completely with zero
+   black bars, cropping only off the top of the frame so the bottom overlay
+   text panel is never clipped.
+3. **Added pause + highlight at divergence moments.** The four pair segments
+   (ep1256 hint/hint-action, ep33 hint-action/stopgate, ep1006
+   baseline/online, ep1154 closing) now freeze both sides for ~1.5s with a
+   growing yellow highlight oval drawn over whichever side's overlay text row
+   just changed, at each detected divergence: an arbitration override firing,
+   or a terminal state (STOP proposed → vetoed / executed) newly appearing.
+   Detection and pause insertion happen in `overlay_lib.render_pair_side_by_side`
+   (see its docstring); events are found on the *resolved* per-frame sequence
+   actually shown to the viewer, not on raw CSV steps, since the two sides'
+   CSVs sit on only-approximately-aligned step grids and mapping an event
+   step from one side onto the other can land one row short of where its own
+   text actually changes (hit this bug once during development on ep33's
+   STOP/veto moment — the second pause fired but drew no circle until fixed).
+   Each piece's ffmpeg speed-up factor is intentionally left unchanged from
+   the original NATIVE/TARGET values, decoupled from the fact that the raw
+   file is now longer — this is what makes each freeze land at ~1.5 real
+   seconds regardless of the segment's own speed multiplier (1.7x-6.6x); see
+   `render_segments_v2.py`'s module docstring for the derivation. Single-clip
+   segments (ep1378 insert, ep428, ep1439) are unchanged — there is no
+   left/right divergence to flag on a clip with only one side.
+
+The circle is drawn over the overlay text row that changed (arbitration or
+terminal-state line), not over the robot's on-screen position — the frame
+overlay data doesn't track the robot's screen-space pixel coordinates, and
+guessing at that would risk pointing at the wrong spot; circling the exact,
+known text location keeps the highlight honest.
+
+**Result: 3m 56s (236.1s)** — shorter than either prior cut, within the
+spec's original 3-4 minute target without needing any explicit length
+trimming (dropping Seg 1/2 alone did it). Per-segment durations (with title
+cards): seg3(now "Segment 1")=59.0s, seg4("Segment 2")=70.5s,
+seg5("Segment 3")=73.0s, closing=33.5s — each ~1.5-4.5s longer than the v1
+cut's own TARGET value for that piece, accounted for entirely by the new
+pause events (1 pause on seg4, 1 on seg5, 3 on closing, 4 on seg3 — capped
+per-segment via `max_events` in `render_segments_v2.py`).
+
+`final.mp4`/`segments/` and `final_trimmed.mp4`/`segments_trimmed/` are left
+untouched on disk and in git history — `final_v2.mp4`/`segments_v2/` is a
+third, separate cut, not a replacement.

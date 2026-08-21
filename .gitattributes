@@ -2,3 +2,5 @@ investigations/数据补全/video/segments/*.mp4 filter=lfs diff=lfs merge=lfs -
 investigations/数据补全/video/final.mp4 filter=lfs diff=lfs merge=lfs -text
 investigations/数据补全/video/segments_trimmed/*.mp4 filter=lfs diff=lfs merge=lfs -text
 investigations/数据补全/video/final_trimmed.mp4 filter=lfs diff=lfs merge=lfs -text
+investigations/数据补全/video/segments_v2/*.mp4 filter=lfs diff=lfs merge=lfs -text
+investigations/数据补全/video/final_v2.mp4 filter=lfs diff=lfs merge=lfs -text

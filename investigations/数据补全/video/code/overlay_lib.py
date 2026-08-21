@@ -48,10 +48,22 @@ def _put(img, text, org, scale, color, thickness=1, shadow=True):
     cv2.putText(img, text, org, FONT, scale, color, thickness, cv2.LINE_AA)
 
 
+def _fit_text(text, max_chars):
+    if len(text) <= max_chars:
+        return text
+    return text[: max_chars - 1].rstrip() + "…"
+
+
 def draw_overlay(frame, row, rows, idx, config_label, speed_label):
-    """frame: HxWx3 BGR uint8 (H=512, W=1024). Returns a taller frame with a
-    text panel appended at the bottom (H+PANEL_H)."""
+    """frame: HxWx3 BGR uint8 (H=512, W=1024 or 512). Returns a taller frame
+    with a text panel appended at the bottom (H+PANEL_H). Text size/position
+    scale with the panel width so this also works for the narrower
+    third-person-only panels used in side-by-side pair mode (w=512)."""
     h, w = frame.shape[:2]
+    narrow = w < 900
+    fs = 0.36 if narrow else 0.5
+    fs_bold = 0.4 if narrow else 0.55
+    max_chars = 34 if narrow else 70
     panel = np.zeros((PANEL_H, w, 3), dtype=np.uint8)
     panel[:] = (18, 18, 18)
 
@@ -69,8 +81,9 @@ def draw_overlay(frame, row, rows, idx, config_label, speed_label):
     distance = row.get("distance_to_start", "")
 
     hint_color = (140, 140, 255) if hint.startswith("—") or "withheld" in hint else (255, 255, 255)
-    _put(panel, hint if hint else "(no route hint — language-only)", (10, 24), 0.5, hint_color)
-    _put(panel, vlm_action, (10, 48), 0.5, (255, 255, 255))
+    _put(panel, _fit_text(hint if hint else "(no route hint — language-only)", max_chars),
+         (10, 24), fs, hint_color)
+    _put(panel, _fit_text(vlm_action, max_chars), (10, 48), fs, (255, 255, 255))
 
     # flash arbitration red for ~4 frames (~0.4s @ 10fps source) around an override
     override_recent = False
@@ -80,20 +93,23 @@ def draw_overlay(frame, row, rows, idx, config_label, speed_label):
             break
     if arbitration:
         color = (0, 0, 255) if override_recent else (120, 220, 120)
-        _put(panel, arbitration, (10, 72), 0.5, color)
+        _put(panel, _fit_text(arbitration, max_chars), (10, 72), fs, color)
 
     if terminal_state:
         color = (0, 0, 255) if "VETO" in terminal_state or "EXECUTED" in terminal_state else (0, 200, 255)
-        _put(panel, terminal_state, (10, 96), 0.55, color, thickness=2)
+        _put(panel, _fit_text(terminal_state, max_chars), (10, 96), fs_bold, color, thickness=2)
 
     if distance not in ("", None):
         try:
             d = float(distance)
             dcolor = (120, 220, 120) if d <= 3.0 else (0, 165, 255)
-            _put(panel, f"d = {d:.2f} m", (w - 200, 24), 0.55, dcolor, thickness=2)
-            cv2.circle(panel, (w - 30, 55), 14, dcolor, 2)
+            dx = w - int(w * 0.195)
+            cx = w - int(w * 0.03)
+            r = max(9, int(14 * w / 1024))
+            _put(panel, f"d = {d:.2f} m", (dx, 24), fs_bold, dcolor, thickness=2)
+            cv2.circle(panel, (cx, 55), r, dcolor, 2)
             if d <= 3.0:
-                cv2.circle(panel, (w - 30, 55), 4, dcolor, -1)
+                cv2.circle(panel, (cx, 55), max(3, r // 3), dcolor, -1)
         except ValueError:
             pass
 
@@ -101,8 +117,24 @@ def draw_overlay(frame, row, rows, idx, config_label, speed_label):
     out[:h] = frame
     out[h:] = panel
 
-    _put(out, config_label, (8, 20), 0.5, (255, 255, 0), thickness=1)
-    _put(out, speed_label, (w - 160, 20), 0.5, (255, 255, 0), thickness=1)
+    _put(out, config_label, (8, 20), fs, (255, 255, 0), thickness=1)
+    _put(out, speed_label, (w - int(w * 0.156), 20), fs, (255, 255, 0), thickness=1)
+    return out
+
+
+def draw_attention_circle(out, w, h, row_y, progress):
+    """Draws a growing yellow oval hugging the panel row at row_y (panel-
+    local y, i.e. add h to get full-frame y) to flag a divergence moment
+    without covering the text it circles. progress in [0, 1] animates the
+    oval growing in from the center, matching the freeze-frame hold."""
+    cx = int(w * 0.5)
+    cy = h + row_y - 6
+    max_a = int(w * 0.47)
+    a = max(20, int(max_a * min(1.0, progress * 1.3)))
+    b = int(0.15 * w * (max(20, min(a, max_a)) / max_a)) if max_a else 16
+    b = max(14, min(b, 20))
+    thickness = 3 if w >= 900 else 2
+    cv2.ellipse(out, (cx, cy), (a, b), 0, 0, 360, (0, 255, 255), thickness, cv2.LINE_AA)
     return out
 
 
@@ -141,31 +173,50 @@ def render_single(video_path, csv_path, out_path, config_label, native_frames=No
 
 def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
                               video_path_r, csv_path_r, label_r,
-                              out_path):
+                              out_path, crop_third_person=True,
+                              pause_raw_frames=0, max_events=3):
     """Sync by `step`: walk the LONGER clip's own frame timeline; for each of
     its frames, look up the nearest-step frame on the other side. Once the
-    shorter side's clip ends, hold its last frame."""
+    shorter side's clip ends, hold its last frame.
+
+    crop_third_person: source frames are ego(left half)+third-person(right
+    half) concatenated, 1024 wide; two of those side by side make a 2048-wide
+    frame that pads to mostly-black bars once fit into a 1920x1080 canvas.
+    Cropping each side down to just its third-person half (512 wide) before
+    pairing keeps the combined frame at 1024 wide, matching a single-clip
+    segment's aspect ratio and filling the output canvas properly.
+
+    pause_raw_frames: if >0, freezes both sides for this many raw (10fps)
+    frames at each detected divergence moment (see detect_pair_events),
+    drawing a growing highlight ring over the row of overlay text that
+    diverged. The caller picks pause_raw_frames so that, once this piece's
+    fixed ffmpeg speed-up factor is applied later, the freeze lasts the
+    intended real-time seconds."""
     rows_l = load_csv(csv_path_l)
     rows_r = load_csv(csv_path_r)
 
     cap_l = cv2.VideoCapture(video_path_l)
     cap_r = cv2.VideoCapture(video_path_r)
     fps = cap_l.get(cv2.CAP_PROP_FPS) or 10.0
-    w = int(cap_l.get(cv2.CAP_PROP_FRAME_WIDTH))
+    w_full = int(cap_l.get(cv2.CAP_PROP_FRAME_WIDTH))
     h = int(cap_l.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    w = w_full // 2 if crop_third_person else w_full
+
+    def crop(f):
+        return f[:, w_full // 2:] if crop_third_person else f
 
     frames_l = []
     while True:
         ok, f = cap_l.read()
         if not ok:
             break
-        frames_l.append(f)
+        frames_l.append(crop(f))
     frames_r = []
     while True:
         ok, f = cap_r.read()
         if not ok:
             break
-        frames_r.append(f)
+        frames_r.append(crop(f))
     cap_l.release()
     cap_r.release()
 
@@ -173,26 +224,90 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
     longer_is_l = n_l >= n_r
     n_steps = max(n_l, n_r)
 
+    # Resolve idx_l/idx_r for every i up front, then detect divergence edges
+    # directly on the RESOLVED per-frame sequence (not on raw CSV steps): the
+    # two CSVs sit on different, only-approximately-aligned step grids, so
+    # mapping an event step from one side onto the other via nearest_row_idx
+    # can land one row short of where its own terminal_state/arbitration
+    # text actually turns on. Detecting on what each frame will actually show
+    # avoids that off-by-one class of bug entirely.
+    idx_pairs = []
+    for i in range(n_steps):
+        if longer_is_l:
+            il = min(i, n_l - 1)
+            target_step = int(rows_l[min(i, len(rows_l) - 1)]["step"])
+            ir = nearest_row_idx(rows_r, target_step) if rows_r else 0
+            ir = min(ir, n_r - 1)
+        else:
+            ir = min(i, n_r - 1)
+            target_step = int(rows_r[min(i, len(rows_r) - 1)]["step"])
+            il = nearest_row_idx(rows_l, target_step) if rows_l else 0
+            il = min(il, n_l - 1)
+        idx_pairs.append((min(il, len(rows_l) - 1), min(ir, len(rows_r) - 1)))
+
+    events_by_i = {}
+    if pause_raw_frames > 0:
+        min_gap = 15
+        prev_arb_l = prev_arb_r = False
+        prev_term_l = prev_term_r = ""
+        last_event_i = -10**9
+        pending = []
+        for i, (il, ir) in enumerate(idx_pairs):
+            arb_l = "OVERRIDDEN" in (rows_l[il].get("arbitration") or "")
+            arb_r = "OVERRIDDEN" in (rows_r[ir].get("arbitration") or "")
+            term_l = rows_l[il].get("terminal_state") or ""
+            term_r = rows_r[ir].get("terminal_state") or ""
+            kind = None
+            if term_l != prev_term_l and term_l:
+                kind = "terminal"
+            elif term_r != prev_term_r and term_r:
+                kind = "terminal"
+            elif (arb_l and not prev_arb_l) or (arb_r and not prev_arb_r):
+                kind = "override"
+            if kind and i - last_event_i >= min_gap:
+                pending.append((i, kind))
+                last_event_i = i
+            prev_arb_l, prev_arb_r = arb_l, arb_r
+            prev_term_l, prev_term_r = term_l or prev_term_l, term_r or prev_term_r
+        # prefer terminal events, then spread remaining override slots evenly
+        terms = [e for e in pending if e[1] == "terminal"]
+        overs = [e for e in pending if e[1] == "override"]
+        keep = terms[:]
+        slots = max_events - len(keep)
+        if slots > 0 and overs:
+            gap = max(1, len(overs) // slots)
+            keep += overs[::gap][:slots]
+        for i, kind in keep:
+            events_by_i[i] = kind
+
     writer = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (2 * w, h + PANEL_H))
 
     for i in range(n_steps):
-        if longer_is_l:
-            idx_l = min(i, n_l - 1)
-            target_step = int(rows_l[min(i, len(rows_l) - 1)]["step"])
-            idx_r = nearest_row_idx(rows_r, target_step) if rows_r else 0
-            idx_r = min(idx_r, n_r - 1)
-        else:
-            idx_r = min(i, n_r - 1)
-            target_step = int(rows_r[min(i, len(rows_r) - 1)]["step"])
-            idx_l = nearest_row_idx(rows_l, target_step) if rows_l else 0
-            idx_l = min(idx_l, n_l - 1)
-
-        row_l = rows_l[min(idx_l, len(rows_l) - 1)]
-        row_r = rows_r[min(idx_r, len(rows_r) - 1)]
-        out_l = draw_overlay(frames_l[idx_l], row_l, rows_l, min(idx_l, len(rows_l) - 1), label_l, "")
-        out_r = draw_overlay(frames_r[idx_r], row_r, rows_r, min(idx_r, len(rows_r) - 1), label_r, "")
+        idx_l, idx_r = idx_pairs[i]
+        row_l, row_r = rows_l[idx_l], rows_r[idx_r]
+        out_l = draw_overlay(frames_l[idx_l], row_l, rows_l, idx_l, label_l, "")
+        out_r = draw_overlay(frames_r[idx_r], row_r, rows_r, idx_r, label_r, "")
         combined = np.concatenate([out_l, out_r], axis=1)
         writer.write(combined)
+
+        if i in events_by_i:
+            kind = events_by_i[i]
+            row_y = 96 if kind == "terminal" else 72
+            arb_l = "OVERRIDDEN" in (row_l.get("arbitration") or "")
+            arb_r = "OVERRIDDEN" in (row_r.get("arbitration") or "")
+            term_l = bool(row_l.get("terminal_state"))
+            term_r = bool(row_r.get("terminal_state"))
+            circle_l = arb_l if kind == "override" else term_l
+            circle_r = arb_r if kind == "override" else term_r
+            for k in range(pause_raw_frames):
+                progress = (k + 1) / max(1, pause_raw_frames)
+                frame_l = out_l.copy()
+                frame_r = out_r.copy()
+                if circle_l:
+                    draw_attention_circle(frame_l, w, h, row_y, progress)
+                if circle_r:
+                    draw_attention_circle(frame_r, w, h, row_y, progress)
+                writer.write(np.concatenate([frame_l, frame_r], axis=1))
 
     writer.release()
     return n_steps
