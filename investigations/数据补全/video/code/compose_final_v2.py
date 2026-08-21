@@ -61,8 +61,8 @@ NATIVE = {
     "seg3_ep1256_pair_v2.mp4": 962,
     "seg4_ep33_pair_v2.mp4": 584,
     "seg5_part1_ep1006_pair_v2.mp4": 1432,
-    "seg5_part2_ep428.mp4": 692,
-    "seg5_part3_ep1439.mp4": 492,
+    "seg5_part2_ep428_v2.mp4": 692,
+    "seg5_part3_ep1439_v2.mp4": 492,
     "closing_ep1154_pair_v2.mp4": 1312,
 }
 
@@ -70,8 +70,8 @@ TARGET = {
     "seg3_ep1256_pair_v2.mp4": 50.0,
     "seg4_ep33_pair_v2.mp4": 35.0,
     "seg5_part1_ep1006_pair_v2.mp4": 30.0,
-    "seg5_part2_ep428.mp4": 15.0,
-    "seg5_part3_ep1439.mp4": 15.0,
+    "seg5_part2_ep428_v2.mp4": 15.0,
+    "seg5_part3_ep1439_v2.mp4": 15.0,
     "closing_ep1154_pair_v2.mp4": 20.0,
 }
 
@@ -223,8 +223,8 @@ def main():
 
     # --- Seg 5 (three parts) ---
     f5a, s5a = scale_and_speed("seg5_part1_ep1006_pair_v2.mp4")
-    f5b, s5b = scale_and_speed("seg5_part2_ep428.mp4")
-    f5c, s5c = scale_and_speed("seg5_part3_ep1439.mp4")
+    f5b, s5b = scale_and_speed("seg5_part2_ep428_v2.mp4")
+    f5c, s5c = scale_and_speed("seg5_part3_ep1439_v2.mp4")
     factors["seg5_part1"] = f5a
     factors["seg5_part2"] = f5b
     factors["seg5_part3"] = f5c

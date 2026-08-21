@@ -7,7 +7,10 @@ burned in by the original capture. This module adds a second overlay layer
 sourced from the Phase 3 CSVs, as a text panel at the bottom of the frame.
 """
 import csv
+import json
+import math
 import os
+import re
 
 import cv2
 import numpy as np
@@ -194,6 +197,155 @@ def draw_caption_band(w, caption_h, text):
     return band
 
 
+def load_positions_by_step(traj_jsonl_path):
+    """trajectories/output_<id>.jsonl -> {step: (x, y, phase)}, for the
+    top-down mini-map trail. One record per control step, exhaustive (see
+    build_topdown_maps.py's docstring), so a direct dict lookup by the
+    overlay CSV's own `step` column always hits."""
+    out = {}
+    with open(traj_jsonl_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rec = json.loads(line)
+            x, y, _ = rec["position"]
+            out[int(rec["step"])] = (x, y, rec.get("phase", ""))
+    return out
+
+
+class Minimap:
+    """Renders a small top-down occupancy map with an incrementally-drawn
+    trajectory trail, composited into a corner of each frame. Built once per
+    episode (see build_topdown_maps.py) and reused every frame -- the trail
+    is drawn onto a persistent canvas one new segment at a time (O(1) per
+    frame) rather than replotting the whole path from scratch."""
+
+    def __init__(self, occupancy_path, meta_path, positions_by_step, size=150):
+        occ = cv2.imread(occupancy_path)
+        with open(meta_path) as f:
+            meta = json.load(f)
+        h, w = occ.shape[:2]
+        scale = size / max(h, w)
+        new_w, new_h = max(1, int(round(w * scale))), max(1, int(round(h * scale)))
+        thumb = cv2.resize(occ, (new_w, new_h), interpolation=cv2.INTER_AREA)
+        canvas = np.full((size, size, 3), 255, dtype=np.uint8)
+        self.x0, self.y0 = (size - new_w) // 2, (size - new_h) // 2
+        canvas[self.y0:self.y0 + new_h, self.x0:self.x0 + new_w] = thumb
+        cv2.rectangle(canvas, (0, 0), (size - 1, size - 1), (0, 0, 0), 1)
+        self.base = canvas
+        self.trail = canvas.copy()
+        self.size = size
+        self.meta = meta
+        self.new_w, self.new_h = new_w, new_h
+        self.positions_by_step = positions_by_step
+        self.last_xy = None
+
+    def _world_to_thumb(self, x, y):
+        px = (x - self.meta["min_x"]) / self.meta["resolution_m_per_px"]
+        py = (self.meta["max_y"] - y) / self.meta["resolution_m_per_px"]
+        tx = self.x0 + px * (self.new_w / self.meta["width_px"])
+        ty = self.y0 + py * (self.new_h / self.meta["height_px"])
+        return int(round(tx)), int(round(ty))
+
+    def frame(self, step):
+        pos = self.positions_by_step.get(step)
+        if pos is not None:
+            x, y, phase = pos
+            xy = self._world_to_thumb(x, y)
+            if self.last_xy is not None:
+                color = (230, 105, 35) if phase == "outbound" else (35, 75, 230)  # BGR: blue out, orange/red return
+                cv2.line(self.trail, self.last_xy, xy, color, 2, cv2.LINE_AA)
+            self.last_xy = xy
+        out = self.trail.copy()
+        if self.last_xy is not None:
+            cv2.circle(out, self.last_xy, 4, (0, 0, 255), -1, cv2.LINE_AA)
+            cv2.circle(out, self.last_xy, 4, (255, 255, 255), 1, cv2.LINE_AA)
+        return out
+
+
+def composite_minimap(frame, minimap, step, x_offset=8, y_offset=100):
+    """Pastes the mini-map's current frame into the top-left corner of
+    `frame`'s camera region (x_offset from that region's own left edge, e.g.
+    512 for the third-person half of a single-clip segment, 0 for a
+    cropped-to-third-person pair segment).
+
+    y_offset defaults to 100, not just below the config-label text
+    draw_overlay puts at (8, 20): compose_final_v2.py's scale-up+crop (to
+    fill 1920x1080 with no bars) crops up to 92px off the TOP of a pair
+    piece's frame (paired pieces are tallest -- camera + data panel +
+    caption band) to fit the 16:9 canvas. Anything placed above that line
+    gets clipped. 100px clears the worst case (pairs, 92px) with a small
+    margin; singles only lose 46px off the top, so the same offset is safely
+    conservative there too."""
+    thumb = minimap.frame(step)
+    s = minimap.size
+    frame[y_offset:y_offset + s, x_offset:x_offset + s] = thumb
+    return frame
+
+
+_HINT_BEARING_RE = re.compile(r"(left|right|forward)\s+(-?\d+(?:\.\d+)?)")
+_VLM_TURN_RE = re.compile(r"turn (left|right) (-?\d+(?:\.\d+)?) degree")
+
+
+def parse_hint_bearing(hint_text):
+    """'[Hint: anchor A6 - 0.9 m - right 47 deg]' -> signed degrees, 0 =
+    straight ahead, positive = right. None if unparseable (hint withheld/
+    empty)."""
+    if not hint_text:
+        return None
+    m = _HINT_BEARING_RE.search(hint_text)
+    if not m:
+        return None
+    word, deg = m.group(1), float(m.group(2))
+    if word == "forward":
+        return 0.0
+    return deg if word == "right" else -deg
+
+
+def parse_vlm_bearing(vlm_action_raw):
+    """'The next action is turn right 45 degree.' -> +45; 'turn left 15
+    degree.' -> -15; 'move forward 75 cm.' -> 0.0; stop/unparseable -> None
+    (no arrow drawn for a stop proposal -- it isn't a direction)."""
+    if not vlm_action_raw:
+        return None
+    t = vlm_action_raw.lower()
+    m = _VLM_TURN_RE.search(t)
+    if m:
+        word, deg = m.group(1), float(m.group(2))
+        return deg if word == "right" else -deg
+    if "forward" in t:
+        return 0.0
+    return None
+
+
+def draw_direction_arrows(out, w, h, hint_deg, vlm_deg, progress):
+    """Draws two short arrows from near the bottom of the camera region (not
+    the text panel): green = the hint's bearing (the 2026-08-21 user-chosen
+    'correct' reference direction), red = the VLM's own proposed action (what
+    it chose instead, before the arbiter overrode it). 0 deg = straight up
+    (away from camera), matching the chase camera's forward-is-away framing.
+    progress in [0, 1] extends both arrows outward, matching the freeze."""
+    length = int(h * 0.16 * min(1.0, progress * 1.3))
+    if length < 6:
+        return out
+    base_y = int(h * 0.86)
+
+    def endpoint(cx, deg):
+        rad = math.radians(deg)
+        return (int(cx + length * math.sin(rad)), int(base_y - length * math.cos(rad)))
+
+    if hint_deg is not None:
+        cx = int(w * 0.42)
+        cv2.arrowedLine(out, (cx, base_y), endpoint(cx, hint_deg), (60, 200, 60), 3,
+                         cv2.LINE_AA, tipLength=0.3)
+    if vlm_deg is not None:
+        cx = int(w * 0.58)
+        cv2.arrowedLine(out, (cx, base_y), endpoint(cx, vlm_deg), (50, 50, 230), 3,
+                         cv2.LINE_AA, tipLength=0.3)
+    return out
+
+
 def nearest_row_idx(rows, target_step):
     # rows are step-monotonic; linear scan is fine at this scale (<1500 rows)
     best_i, best_d = 0, abs(int(rows[0]["step"]) - target_step)
@@ -204,7 +356,12 @@ def nearest_row_idx(rows, target_step):
     return best_i
 
 
-def render_single(video_path, csv_path, out_path, config_label, native_frames=None):
+def render_single(video_path, csv_path, out_path, config_label, native_frames=None,
+                   minimap=None, minimap_x_offset=512):
+    """minimap: an optional Minimap, composited into the top-left corner of
+    the THIRD-PERSON half (x_offset=512 by default -- source frames are
+    ego(0:512)+third-person(512:1024)) rather than literal pixel (0,0), so it
+    doesn't sit on top of the egocentric feed."""
     rows = load_csv(csv_path)
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 10.0
@@ -213,13 +370,14 @@ def render_single(video_path, csv_path, out_path, config_label, native_frames=No
     writer = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (w, h + PANEL_H))
     idx = 0
     n = len(rows)
-    speed_label = ""  # filled in by caller via config_label if desired
     while True:
         ok, frame = cap.read()
         if not ok or idx >= n:
             break
         row = rows[idx]
         out = draw_overlay(frame, row, rows, idx, config_label, "")
+        if minimap is not None:
+            composite_minimap(out, minimap, int(row["step"]), x_offset=minimap_x_offset)
         writer.write(out)
         idx += 1
     cap.release()
@@ -230,7 +388,8 @@ def render_single(video_path, csv_path, out_path, config_label, native_frames=No
 def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
                               video_path_r, csv_path_r, label_r,
                               out_path, crop_third_person=True,
-                              pause_raw_frames=0, max_events=3):
+                              pause_raw_frames=0, max_events=3,
+                              minimap_l=None, minimap_r=None, arrow_min_diff_deg=12.0):
     """Sync by `step`: walk the LONGER clip's own frame timeline; for each of
     its frames, look up the nearest-step frame on the other side. Once the
     shorter side's clip ends, hold its last frame.
@@ -243,11 +402,19 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
     segment's aspect ratio and filling the output canvas properly.
 
     pause_raw_frames: if >0, freezes both sides for this many raw (10fps)
-    frames at each detected divergence moment (see detect_pair_events),
-    drawing a growing highlight ring over the row of overlay text that
-    diverged. The caller picks pause_raw_frames so that, once this piece's
+    frames at each detected divergence moment, drawing a growing highlight
+    ring (+ a short caption) over the row of overlay text that diverged, and
+    -- for override events where the hint direction and the VLM's own
+    proposal genuinely disagree -- two direction arrows (green = hint,
+    red = VLM). The caller picks pause_raw_frames so that, once this piece's
     fixed ffmpeg speed-up factor is applied later, the freeze lasts the
-    intended real-time seconds."""
+    intended real-time seconds.
+
+    minimap_l/minimap_r: optional Minimap instances (one per side, each
+    accumulating its own trail independently even if both share the same
+    background map), composited into the top-left corner every frame,
+    including through pauses (it's part of `out_l`/`out_r`, drawn before the
+    caption band is appended, so it persists into the frozen copies too)."""
     rows_l = load_csv(csv_path_l)
     rows_r = load_csv(csv_path_r)
 
@@ -346,6 +513,10 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
         row_l, row_r = rows_l[idx_l], rows_r[idx_r]
         out_l = draw_overlay(frames_l[idx_l], row_l, rows_l, idx_l, label_l, "")
         out_r = draw_overlay(frames_r[idx_r], row_r, rows_r, idx_r, label_r, "")
+        if minimap_l is not None:
+            composite_minimap(out_l, minimap_l, int(row_l["step"]), x_offset=0)
+        if minimap_r is not None:
+            composite_minimap(out_r, minimap_r, int(row_r["step"]), x_offset=0)
         if caption_h:
             out_l = np.concatenate([out_l, blank_band], axis=0)
             out_r = np.concatenate([out_r, blank_band], axis=0)
@@ -363,6 +534,18 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
             circle_r = arb_r if kind == "override" else term_r
             caption_l = draw_caption_band(w, caption_h, event_caption(kind, row_l)) if circle_l else blank_band
             caption_r = draw_caption_band(w, caption_h, event_caption(kind, row_r)) if circle_r else blank_band
+            # Direction arrows: only for override events, and only when the
+            # hint's bearing and the VLM's own proposal genuinely disagree --
+            # many overrides share the same coarse direction (the arbiter is
+            # substituting a more precise turn, not reversing the robot), and
+            # arrows for near-identical angles would just clutter the frame
+            # without showing anything.
+            arrows_l = arrows_r = None
+            if kind == "override":
+                hint_deg = parse_hint_bearing(row_l.get("hint") or row_r.get("hint"))
+                vlm_deg = parse_vlm_bearing(row_l.get("vlm_action_raw") or row_r.get("vlm_action_raw"))
+                if hint_deg is not None and vlm_deg is not None and abs(hint_deg - vlm_deg) >= arrow_min_diff_deg:
+                    arrows_l, arrows_r = (hint_deg, vlm_deg), (hint_deg, vlm_deg)
             for k in range(pause_raw_frames):
                 progress = (k + 1) / max(1, pause_raw_frames)
                 frame_l = np.concatenate([out_l[:h + PANEL_H], caption_l], axis=0)
@@ -371,6 +554,10 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
                     draw_attention_circle(frame_l, w, h, row_y, progress)
                 if circle_r:
                     draw_attention_circle(frame_r, w, h, row_y, progress)
+                if arrows_l:
+                    draw_direction_arrows(frame_l, w, h, *arrows_l, progress)
+                if arrows_r:
+                    draw_direction_arrows(frame_r, w, h, *arrows_r, progress)
                 writer.write(np.concatenate([frame_l, frame_r], axis=1))
 
     writer.release()

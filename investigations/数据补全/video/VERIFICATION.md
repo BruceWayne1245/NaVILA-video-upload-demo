@@ -298,3 +298,55 @@ ep1378 insert outweighed the ~1.5s pauses and the two 5s figure cards added
 elsewhere). Segment durations (with title/figure cards): seg3="Segment
 1"=59.0s, seg4="Segment 2"=42.0s (was 70.5s with the insert), seg5="Segment
 3"=73.0s, closing=43.5s (was 33.5s, +10s for the two figure cards).
+
+### v2 second follow-up: mini-map + direction arrows (same day, same files)
+
+Two more requests:
+
+1. **Top-down mini-map**, top-left corner of every segment (all 4 pairs plus
+   the 2 remaining singles, ep428/ep1439), trailing the robot's real
+   trajectory as the episode plays (blue = outbound, orange/red = return,
+   red dot = current position). Built by reusing the exact USD-mesh
+   occupancy extraction from `final_data2/code/plot_figure2_hint_trajectory_effect_20260818.py`
+   (`scene_world_triangles`/`triangle_is_floor`/`build_occupancy`), factored
+   into a new offline script `code/build_topdown_maps.py` — needs `pxr`
+   (USD), only available in the system miniconda `base` env, not the
+   `vlnce-isaac` env the rest of the render pipeline uses. Run it first:
+   `/home/teambruce/miniconda3/bin/python build_topdown_maps.py`, writing
+   `video/topdown_maps/ep<N>_{occupancy.png,meta.json}` (gitignored,
+   regenerate from source — same convention as `_raw/`/`figures_raster/`;
+   takes ~7s total for all 6 episodes, no GPU/Isaac Sim needed). For a
+   paired episode (e.g. ep1256 hint vs hint-action) both sides render onto
+   an *identical* background map — crop bounds are the union of both
+   configs' trajectories — for a fair side-by-side comparison; each side
+   still gets its own `Minimap` instance so the two trails accumulate
+   independently. `overlay_lib.Minimap` draws the trail incrementally onto a
+   persistent canvas (one new line segment per frame) rather than replotting
+   the whole path every frame.
+
+   **Real bug hit and fixed**: the map was placed too close to the top edge
+   (y=34) and got up to 39% cropped off in the final 1920x1080 output —
+   `compose_final_v2.py`'s scale-up+crop (added in the first v2 pass to kill
+   the black bars) crops up to 92px off the top of a paired piece's frame
+   (the tallest case: camera + data panel + caption band). Fixed by moving
+   the mini-map's default placement to y=100, clearing the worst case with
+   margin — verified by computing the exact crop math for both frame heights
+   (668px pairs / 622px singles) and re-checking extracted frames from the
+   final composed output, not just the pre-crop raw render.
+
+2. **Direction arrows** during override-event pauses, when the hint's own
+   bearing and the VLM's proposed action genuinely disagree (>=12 degrees
+   apart — many overrides share the same coarse direction, the arbiter is
+   substituting a more precise turn rather than reversing the robot, and
+   arrows for near-identical angles would just clutter the frame). Per user
+   direction (2026-08-21): the hint's bearing is the "correct" reference
+   direction, the VLM's own proposal is what it chose instead. Green arrow =
+   hint bearing, red arrow = VLM's proposal, both drawn from the bottom of
+   the camera region (0 deg = straight up/away from the chase camera).
+   Verified correct by measuring the actual rendered arrow pixel spans on a
+   frame where hint=137 deg (right/behind) vs VLM=45 deg (right/ahead) — both
+   arrows landed within 1 degree of their intended angle.
+
+Frame counts and segment durations are unchanged from the previous pass
+(217.6s total) — both features are pure overlay drawing, no new pause events
+or timing changes.
