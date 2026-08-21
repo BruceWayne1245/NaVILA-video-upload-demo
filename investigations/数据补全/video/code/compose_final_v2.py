@@ -27,8 +27,16 @@
    derivation for why reusing the original factor makes each pause land at
    ~1.5 real seconds regardless of the segment's speed-up.
 
-Single-clip pieces (seg4 insert ep1378, seg5 part2 ep428, seg5 part3 ep1439)
-are untouched, reused from the original _raw/ render.
+Single-clip pieces (seg5 part2 ep428, seg5 part3 ep1439) are untouched,
+reused from the original _raw/ render. The ep1378 insert (previously
+appended to Seg 4) is dropped per 2026-08-21 follow-up feedback -- it was a
+second, different failure mode (timeout, not veto) that diluted Seg 4's
+single point rather than reinforcing it.
+
+Two closing figure cards (rasterized from final_data2/figures/*.pdf, see
+figures_raster/) are appended after the results text card, per the same
+follow-up request, giving the closing segment an at-a-glance quantitative
+summary beyond the text-only results line.
 
 Run with system python3 (only shells out to ffmpeg, no cv2 needed).
 """
@@ -52,7 +60,6 @@ CANVAS = "1920x1080"
 NATIVE = {
     "seg3_ep1256_pair_v2.mp4": 962,
     "seg4_ep33_pair_v2.mp4": 584,
-    "seg4_ep1378_insert.mp4": 1332,
     "seg5_part1_ep1006_pair_v2.mp4": 1432,
     "seg5_part2_ep428.mp4": 692,
     "seg5_part3_ep1439.mp4": 492,
@@ -62,12 +69,23 @@ NATIVE = {
 TARGET = {
     "seg3_ep1256_pair_v2.mp4": 50.0,
     "seg4_ep33_pair_v2.mp4": 35.0,
-    "seg4_ep1378_insert.mp4": 25.0,
     "seg5_part1_ep1006_pair_v2.mp4": 30.0,
     "seg5_part2_ep428.mp4": 15.0,
     "seg5_part3_ep1439.mp4": 15.0,
     "closing_ep1154_pair_v2.mp4": 20.0,
 }
+
+# High-DPI rasters of final_data2/figures/*.pdf (see figures_raster/), shown
+# as closing image cards per the user's 2026-08-21 request.
+FIGURES_DIR = os.path.join(REPO, "figures_raster")
+CLOSING_FIGURES = [
+    ("arrival_vs_success-1.png",
+     ["Return arrival rate vs. success rate, every configuration",
+      "the Oracle ladder isolates what each mechanism contributes"]),
+    ("failure_distance_distribution-1.png",
+     ["Where returns fall short: distance to start at episode end",
+      "dashed line = the 3 m success radius"]),
+]
 
 
 def run(cmd):
@@ -102,6 +120,43 @@ def scale_and_speed(raw_name):
         "-an", dst,
     ])
     return factor, dst
+
+
+def image_card(image_path, text_lines, out_path, duration=5.0):
+    """A white-background card showing a figure (scaled to fit, centered,
+    with headroom at the top) with a short caption below it -- visually
+    distinct from the black title cards, matching the figure's own white
+    background instead of pasting it onto black."""
+    drawtext_filters = []
+    for i, line in enumerate(text_lines):
+        escaped = (
+            line.replace("%", " percent").replace("\\", "\\\\")
+            .replace(":", "\\:").replace("'", "\\'")
+        )
+        size = 34 if i == 0 else 26
+        color = "black" if i == 0 else "0x333333"
+        y = f"h-160+{i * 34}"
+        drawtext_filters.append(
+            f"drawtext=fontfile={FONT}:text='{escaped}':fontcolor={color}:fontsize={size}:"
+            f"x=(w-text_w)/2:y={y}"
+        )
+    vf = (
+        f"scale=1700:820:force_original_aspect_ratio=decrease,format=yuv420p"
+    )
+    overlay_filters = ",".join(drawtext_filters)
+    filter_complex = (
+        f"[1:v]{vf}[fig];"
+        f"[0:v][fig]overlay=(W-w)/2:60[base];"
+        f"[base]{overlay_filters}"
+    )
+    run([
+        "ffmpeg", "-y", "-v", "error",
+        "-f", "lavfi", "-i", f"color=c=white:s={CANVAS}:d={duration}:r={OUT_FPS}",
+        "-i", image_path,
+        "-filter_complex", filter_complex,
+        "-c:v", "libx264", "-crf", "18", "-preset", "medium", "-an", "-t", str(duration),
+        out_path,
+    ])
 
 
 def title_card(text_lines, out_path, duration=3.0):
@@ -156,20 +211,14 @@ def main():
                 "ground-truth pose, both sides", f"{f3:.1f}x speed"], os.path.join(TMP, "title_seg3.mp4"))
     concat([os.path.join(TMP, "title_seg3.mp4"), s3], os.path.join(SEG, "seg3.mp4"))
 
-    # --- Seg 4 (main pair + insert) ---
+    # --- Seg 4 ---
     f4a, s4a = scale_and_speed("seg4_ep33_pair_v2.mp4")
-    f4b, s4b = scale_and_speed("seg4_ep1378_insert.mp4")
     factors["seg4_main"] = f4a
-    factors["seg4_insert"] = f4b
     title_card(["Segment 2", "Premature termination presents as trajectory failure",
                 "ep33: hint-action vs hint-action-stopgate (ground-truth pose)",
                 f"{f4a:.1f}x speed"], os.path.join(TMP, "title_seg4.mp4"), duration=4.0)
-    title_card(["Insert: ep1378", "No STOP is ever proposed -- step budget runs out",
-                "0.205 m from home, still judged a failure",
-                f"{f4b:.1f}x speed"], os.path.join(TMP, "title_seg4_insert.mp4"), duration=3.5)
     concat([
         os.path.join(TMP, "title_seg4.mp4"), s4a,
-        os.path.join(TMP, "title_seg4_insert.mp4"), s4b,
     ], os.path.join(SEG, "seg4.mp4"))
 
     # --- Seg 5 (three parts) ---
@@ -205,8 +254,15 @@ def main():
         "Results", "language-only 22.0%  ->  Oracle ladder 37.2 / 71.1 / 86.0%  ->  online 55.1%",
         "Oracle rows use ground-truth pose",
     ], results_card, duration=5.0)
+
+    figure_cards = []
+    for i, (fname, caption_lines) in enumerate(CLOSING_FIGURES):
+        card_path = os.path.join(TMP, f"figure_card_{i}.mp4")
+        image_card(os.path.join(FIGURES_DIR, fname), caption_lines, card_path)
+        figure_cards.append(card_path)
+
     concat([
-        os.path.join(TMP, "title_closing.mp4"), sc, results_card,
+        os.path.join(TMP, "title_closing.mp4"), sc, results_card, *figure_cards,
     ], os.path.join(SEG, "closing.mp4"))
 
     # --- Final assembled cut ---

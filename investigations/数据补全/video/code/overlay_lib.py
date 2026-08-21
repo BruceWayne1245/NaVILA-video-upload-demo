@@ -138,6 +138,62 @@ def draw_attention_circle(out, w, h, row_y, progress):
     return out
 
 
+CAPTION_H = 46  # px, extra band below the data panel, used only when pausing
+
+
+def event_caption(kind, row):
+    """Short, data-driven one-liner explaining a divergence event -- derived
+    from the same logged fields the panel already shows, not hand-authored
+    per segment, so it stays accurate if the underlying run changes."""
+    if kind == "terminal":
+        term = row.get("terminal_state") or ""
+        d = row.get("distance_to_start")
+        try:
+            dd, ok = f"{float(d):.1f}m", float(d) <= 3.0
+        except (TypeError, ValueError):
+            dd, ok = "?", None
+        if "VETO" in term:
+            return "Stop-gate vetoes the STOP -- the robot keeps moving"
+        if "EXECUTED" in term:
+            tag = " -- success" if ok else (" -- still short" if ok is False else "")
+            return f"Episode ends here, {dd} from home{tag}"
+        return term or "Episode ends here"
+    arb = row.get("arbitration") or ""
+    vlm = (row.get("vlm_action") or "").replace("VLM: ", "").strip()
+    direction = arb.split("(")[-1].rstrip(")") if "(" in arb else ""
+    if direction and vlm:
+        return f"VLM wanted '{vlm}' -- arbiter executes '{direction}' instead"
+    return "The arbiter overrides the VLM here"
+
+
+def draw_caption_band(w, caption_h, text):
+    band = np.zeros((caption_h, w, 3), dtype=np.uint8)
+    band[:] = (40, 40, 40)
+    if text:
+        fs = 0.42 if w < 900 else 0.6
+        budget = w - 16
+        safe = _ascii_safe(text)
+        (tw, th), _ = cv2.getTextSize(safe, FONT, fs, 1)
+        if tw > budget:
+            # shrink char-by-char (measuring actual rendered width, not a
+            # guessed char count -- Hershey glyph widths vary enough that a
+            # fixed chars-per-panel-width budget overflows narrow panels)
+            lo, hi = 0, len(safe)
+            while lo < hi:
+                mid = (lo + hi + 1) // 2
+                cand = safe[:mid].rstrip() + "..."
+                cw, _ = cv2.getTextSize(cand, FONT, fs, 1)[0]
+                if cw <= budget:
+                    lo = mid
+                else:
+                    hi = mid - 1
+            safe = safe[:lo].rstrip() + "..."
+            (tw, th), _ = cv2.getTextSize(safe, FONT, fs, 1)
+        x = max(6, (w - tw) // 2)
+        _put(band, safe, (x, caption_h // 2 + th // 2), fs, (255, 255, 255), thickness=1)
+    return band
+
+
 def nearest_row_idx(rows, target_step):
     # rows are step-monotonic; linear scan is fine at this scale (<1500 rows)
     best_i, best_d = 0, abs(int(rows[0]["step"]) - target_step)
@@ -280,13 +336,19 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
         for i, kind in keep:
             events_by_i[i] = kind
 
-    writer = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*"mp4v"), fps, (2 * w, h + PANEL_H))
+    caption_h = CAPTION_H if pause_raw_frames > 0 else 0
+    writer = cv2.VideoWriter(out_path, cv2.VideoWriter_fourcc(*"mp4v"), fps,
+                              (2 * w, h + PANEL_H + caption_h))
+    blank_band = draw_caption_band(w, caption_h, "") if caption_h else None
 
     for i in range(n_steps):
         idx_l, idx_r = idx_pairs[i]
         row_l, row_r = rows_l[idx_l], rows_r[idx_r]
         out_l = draw_overlay(frames_l[idx_l], row_l, rows_l, idx_l, label_l, "")
         out_r = draw_overlay(frames_r[idx_r], row_r, rows_r, idx_r, label_r, "")
+        if caption_h:
+            out_l = np.concatenate([out_l, blank_band], axis=0)
+            out_r = np.concatenate([out_r, blank_band], axis=0)
         combined = np.concatenate([out_l, out_r], axis=1)
         writer.write(combined)
 
@@ -299,10 +361,12 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
             term_r = bool(row_r.get("terminal_state"))
             circle_l = arb_l if kind == "override" else term_l
             circle_r = arb_r if kind == "override" else term_r
+            caption_l = draw_caption_band(w, caption_h, event_caption(kind, row_l)) if circle_l else blank_band
+            caption_r = draw_caption_band(w, caption_h, event_caption(kind, row_r)) if circle_r else blank_band
             for k in range(pause_raw_frames):
                 progress = (k + 1) / max(1, pause_raw_frames)
-                frame_l = out_l.copy()
-                frame_r = out_r.copy()
+                frame_l = np.concatenate([out_l[:h + PANEL_H], caption_l], axis=0)
+                frame_r = np.concatenate([out_r[:h + PANEL_H], caption_r], axis=0)
                 if circle_l:
                     draw_attention_circle(frame_l, w, h, row_y, progress)
                 if circle_r:

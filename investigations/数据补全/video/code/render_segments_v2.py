@@ -6,9 +6,15 @@ growing highlight ring at each detected left/right divergence moment
 (arbitration override firing, or a terminal state -- STOP proposed -> vetoed
 vs -> executed -- newly appearing).
 
-Single-clip pieces (seg4 insert ep1378, seg5 part2 ep428, seg5 part3 ep1439)
-are unchanged and reused as-is from the original _raw/ render -- no aspect
-problem (they were already 1024 wide) and no left/right divergence to flag.
+Each pause also carries a short, data-driven caption (drawn in a band below
+the data panel -- see overlay_lib.event_caption) explaining the divergence in
+plain language, e.g. "Stop-gate vetoes the STOP -- the robot keeps moving".
+
+Single-clip pieces (seg5 part2 ep428, seg5 part3 ep1439) are unchanged and
+reused as-is from the original _raw/ render -- no aspect problem (they were
+already 1024 wide) and no left/right divergence to flag. The ep1378 insert
+(seg4) is dropped entirely per 2026-08-21 follow-up feedback -- it added a
+second failure mode (timeout, not veto) that diluted Seg4's main point.
 
 Seg1 (ep1006 baseline alone) and Seg2 (ep1256 oracle-hint alone) are dropped
 entirely per the user's 2026-08-21 request: a single failing episode with no
