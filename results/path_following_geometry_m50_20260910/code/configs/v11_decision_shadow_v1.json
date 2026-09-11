@@ -1,0 +1,14 @@
+{
+  "schema": "navila-v11-decision-shadow-policy-v1",
+  "name": "role-safe-precontroller-joint-trust-v1",
+  "mode": "shadow",
+  "enforcement_approved": false,
+  "identity_override_authorized": false,
+  "candidate_gate": "jointly_trusted",
+  "alternate_rank_field": "p_pose_bad",
+  "missing_current_action": "would_defer_entire_relocalization_update_current_missing",
+  "untrusted_current_action": "would_defer_entire_relocalization_update_current_untrusted",
+  "trusted_current_untrusted_next_action": "would_forward_trusted_current_only",
+  "trusted_pair_action": "would_forward_trusted_current_and_next",
+  "notes": "Counterfactual role-safe input filter over raw ICP candidates before RouteMemoryAgent closure/fusion. Current must be jointly trusted; next is forwarded only when jointly trusted. No next candidate may replace a missing or untrusted current candidate."
+}

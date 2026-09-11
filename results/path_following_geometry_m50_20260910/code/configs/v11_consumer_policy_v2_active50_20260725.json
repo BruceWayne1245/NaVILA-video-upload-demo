@@ -1,0 +1,23 @@
+{
+  "schema": "navila-v11-consumer-policy-v2",
+  "name": "irreversible-consumer-guard-v2-active50-20260725",
+  "mode": "active",
+  "enforcement_approved": true,
+  "identity_override_authorized": false,
+  "candidate_flow": "preserve_baseline_candidates",
+  "trust_field": "jointly_trusted",
+  "guarded_operations": [
+    "anchor_promotion",
+    "route_hint",
+    "hint_action_override",
+    "forced_stop",
+    "vlm_stop_veto"
+  ],
+  "untrusted_action": "veto_guarded_operation",
+  "bootstrap_action": "preserve_baseline_until_first_score",
+  "missing_assessment_action": "veto_guarded_operation",
+  "model_exception_action": "fail_open_disable_episode",
+  "promotion_veto_warning_streak": 10,
+  "promotion_veto_fallback_streak": 30,
+  "notes": "Explicitly approved 2026-07-25 for the selected 50-episode active cohort. Policy V2 preserves all raw ICP candidates, reversible relocalization updates, anchor identity, and model thresholds. Missing authoritative-anchor assessment vetoes only the guarded operation. Untrusted or missing anchor evidence may cancel a Route-1 VLM-stop veto. Route-hint guarding occurs only after baseline freshness suppression produces a real hint proposal."
+}
