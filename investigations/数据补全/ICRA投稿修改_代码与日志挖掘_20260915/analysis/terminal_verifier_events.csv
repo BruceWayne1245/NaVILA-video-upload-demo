@@ -1,0 +1,180 @@
+episode_id,episode_idx,step,decision,true_distance_to_s0_m,gate_authority_d,gate_conf,gate_anchor_route_remaining_m,gate_anchor_close_streak,vlm_output
+798,470,3201,forced,1.6073697805404663,1.5945898127981655,1.0,,,The next action is move forward 75 cm.
+1118,646,3876,vetoed,2.8439576625823975,3.207499936468658,1.0,,,I think I should stop because I have finished the instruction.
+1118,646,3886,vetoed,2.7758116722106934,3.1357352502220577,1.0,,,I think I should stop because I have finished the instruction.
+1118,646,3896,vetoed,2.7290916442871094,3.0865192323396133,1.0,,,I think I should stop because I have finished the instruction.
+1118,646,3906,vetoed,2.6831860542297363,3.0414163204864773,1.0,,,I think I should stop because I have finished the instruction.
+1118,646,3916,accepted,2.634938955307007,2.9917992806217404,1.0,,,I think I should stop because I have finished the instruction.
+141,95,3976,forced,1.6654144525527954,1.9014473630289008,1.0,,,The next action is move forward 75 cm.
+523,324,3851,forced,1.2914395332336426,1.239756610804401,1.0,,,The next action is turn left 45 degree.
+1643,961,2676,forced,1.518427848815918,1.5297277835753282,1.0,,,The next action is turn left 45 degree.
+1644,962,2551,forced,1.2891936302185059,1.2999738651636243,1.0,,,The next action is turn left 45 degree.
+1439,844,2326,forced,2.5410172939300537,2.7198592624138938,1.0,,,The next action is turn right 15 degree.
+958,555,3026,forced,1.3252965211868286,1.3326732398983767,1.0,,,The next action is move forward 25 cm.
+1153,669,2601,forced,2.2564966678619385,2.4571933143530034,1.0,,,The next action is move forward 75 cm.
+1154,670,2951,forced,2.1865408420562744,2.3932349654619713,1.0,,,The next action is turn right 15 degree.
+1006,579,3876,accepted,2.0200932025909424,2.267339212722696,1.0,,,I think I should stop because I have finished the instruction.
+827,484,3326,forced,1.0528074502944946,1.0415091804896441,1.0,,,The next action is move forward 75 cm.
+1189,696,3026,vetoed,4.0345330238342285,4.624559218444505,1.0,,,I think I should stop because I have finished the instruction.
+1189,696,3561,forced,0.9594758152961731,0.9633949870640764,1.0,,,The next action is move forward 75 cm.
+128,88,5351,forced,2.607029676437378,2.531420567004753,1.0,,,The next action is turn right 15 degree.
+922,534,3301,vetoed,4.7392120361328125,6.3174149044309935,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3311,vetoed,4.694874286651611,6.299373861377729,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3321,vetoed,4.680720329284668,6.301012432669177,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3331,vetoed,4.658742427825928,6.294139919421653,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3341,vetoed,4.636650085449219,6.280753075560427,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3351,vetoed,4.612859725952148,6.270907856880538,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3361,vetoed,4.5927300453186035,6.2610677197793825,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3371,vetoed,4.571890354156494,6.245087031082981,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3381,vetoed,4.53582239151001,6.22082674271449,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3391,vetoed,4.490057945251465,5.570166806532155,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3401,vetoed,4.4483537673950195,5.534279288821244,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3411,vetoed,4.406048774719238,5.500251048720644,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3421,vetoed,4.354843616485596,5.454407740325856,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3431,vetoed,4.316996097564697,5.421823265314165,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3441,vetoed,4.277498245239258,5.391498867193343,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3451,vetoed,4.245859622955322,5.3676135450710465,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3461,vetoed,4.214765548706055,5.347474214752953,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3471,vetoed,4.183475494384766,5.325921909696321,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3481,vetoed,4.15671968460083,5.310320022779926,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3491,vetoed,4.1335978507995605,5.2964486222036165,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3501,vetoed,4.112766265869141,5.287678063208785,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3511,vetoed,4.089348316192627,5.280251547620123,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3521,vetoed,4.067455291748047,5.275692765581229,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3531,vetoed,4.04155969619751,5.260941803824732,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3541,vetoed,4.019487380981445,5.250719126229409,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3551,vetoed,3.9957821369171143,5.245047961710769,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3561,vetoed,3.9651038646698,5.241905361210728,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3571,vetoed,3.931746482849121,5.227684844277341,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3581,vetoed,3.9007163047790527,5.213728227251619,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3591,vetoed,3.866248607635498,4.641239437611086,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3601,vetoed,3.8323097229003906,4.618159096258001,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3611,vetoed,3.7950732707977295,4.589623781037149,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3621,vetoed,3.7545063495635986,4.562206844992501,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3631,vetoed,3.713866949081421,4.534964570719198,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3641,vetoed,3.6792168617248535,4.510066053780829,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3651,vetoed,3.6449050903320312,4.4853249181770884,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3661,vetoed,3.604686975479126,4.458153512716862,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3671,vetoed,3.5639986991882324,4.432795919738367,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3681,vetoed,3.524898052215576,4.4060501950896445,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3691,vetoed,3.481781005859375,4.378383994402158,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3701,vetoed,3.440553903579712,4.35333207211425,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3711,vetoed,3.4016451835632324,4.326510256743729,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3721,vetoed,3.3683574199676514,4.303318924573923,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3731,vetoed,3.32780385017395,4.273307398790489,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3741,vetoed,3.299170732498169,4.254846232236372,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3776,vetoed,3.251380443572998,4.216721374159479,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3786,vetoed,3.2310428619384766,4.202752850988935,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3796,vetoed,3.2074875831604004,4.192035936228715,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3881,vetoed,3.0006682872772217,3.5546055124522553,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3891,vetoed,2.991528034210205,3.5585538178754863,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3901,vetoed,2.991274356842041,3.570571674175935,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3911,vetoed,2.990478992462158,3.580652804679292,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3921,vetoed,2.9913766384124756,3.5952687829775565,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3931,vetoed,2.980433225631714,3.5966121894995178,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3941,vetoed,2.973318338394165,3.6021870770011413,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3951,vetoed,2.961199998855591,3.604497520876701,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3961,vetoed,2.9477756023406982,3.603972523364873,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3971,vetoed,2.9348511695861816,3.604354293835237,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3981,vetoed,2.916368007659912,3.5986530586653593,1.0,,,I think I should stop because I have finished the instruction.
+922,534,3991,vetoed,2.8982129096984863,3.593600597861884,1.0,,,I think I should stop because I have finished the instruction.
+922,534,4001,vetoed,2.882545232772827,3.591377969267847,1.0,,,I think I should stop because I have finished the instruction.
+922,534,4011,vetoed,2.8607187271118164,3.5817034515783392,1.0,,,I think I should stop because I have finished the instruction.
+922,534,4021,accepted,2.8419930934906006,2.8591334529832237,1.0,,,I think I should stop because I have finished the instruction.
+1119,647,1976,forced,1.328049659729004,1.332115049821234,1.0,,,The next action is move forward 75 cm.
+422,268,3701,forced,1.2254106998443604,1.208299194133729,1.0,,,The next action is turn right 15 degree.
+1759,1038,4176,forced,2.2109460830688477,2.344398672462296,1.0,,,The next action is turn right 15 degree.
+1155,671,2601,forced,2.2564966678619385,2.4571933143530034,1.0,,,The next action is move forward 75 cm.
+1178,688,1726,forced,2.0812456607818604,2.3372577285726353,1.0,,,The next action is move forward 75 cm.
+418,264,3526,forced,1.3219281435012817,1.3161429674482799,1.0,,,The next action is move forward 75 cm.
+1139,658,2401,forced,1.438501238822937,1.4595633894417968,1.0,,,The next action is move forward 75 cm.
+500,310,2851,forced,0.946733295917511,0.9463721769239869,1.0,,,The next action is turn right 15 degree.
+577,351,4776,forced,1.6394877433776855,1.6314119395486115,1.0,,,The next action is move forward 75 cm.
+1008,581,4226,accepted,2.060330629348755,2.3218122335413582,1.0,,,I think I should stop because I have finished the instruction.
+601,366,3751,forced,1.9084011316299438,2.072552525506297,1.0,,,The next action is move forward 75 cm.
+854,490,3476,accepted,2.315098762512207,2.463544336984012,1.0,,,I think I should stop because I have finished the instruction.
+1516,888,2626,accepted,1.984579086303711,2.3426583445849465,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2176,vetoed,3.9930498600006104,4.838062930910141,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2186,vetoed,3.960073471069336,4.831046015372853,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2196,vetoed,3.9394006729125977,4.830554837513206,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2206,vetoed,3.918123960494995,4.821983247208737,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2216,vetoed,3.903442621231079,4.8190444242851065,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2226,vetoed,3.890591621398926,4.818281282578099,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2236,vetoed,3.8691394329071045,4.81372584955658,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2246,vetoed,3.8471288681030273,4.803890635597082,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2256,vetoed,3.811819314956665,4.298159138475692,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2266,vetoed,3.770632028579712,4.263365945351402,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2276,vetoed,3.7216858863830566,4.222679636871068,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2286,vetoed,3.679717779159546,4.1855626468729605,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2296,vetoed,3.6446030139923096,4.155874483580542,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2306,vetoed,3.606541395187378,4.1260678166986615,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2316,vetoed,3.569249391555786,4.095386321721996,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2401,vetoed,3.4969136714935303,4.0251221256324685,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2411,vetoed,3.4803314208984375,4.014167827925796,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2421,vetoed,3.452086925506592,3.994946957837869,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2431,vetoed,3.428851842880249,3.980824593148077,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2441,vetoed,3.4059550762176514,3.9684634984374543,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2451,vetoed,3.3792471885681152,3.952436052950849,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2461,vetoed,3.3470141887664795,3.928375979574378,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2471,vetoed,3.3269267082214355,3.9145461863154205,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2481,vetoed,3.3120641708374023,3.907498134264226,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2641,vetoed,3.1967990398406982,3.8311295620464376,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2651,vetoed,3.191049337387085,3.4161273788500566,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2661,vetoed,3.193793535232544,3.4220162319449683,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2671,vetoed,3.197462558746338,3.4283417030028023,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2681,vetoed,3.202005624771118,3.434517081243359,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2716,vetoed,3.2077090740203857,3.4477491789332335,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2751,vetoed,3.19353985786438,3.4404735572888674,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2761,vetoed,3.188141345977783,3.436882179338296,1.0,,,I think I should stop because I have finished the instruction.
+1380,815,2771,vetoed,3.1923696994781494,3.4447800715359493,1.0,,,I think I should stop because I have finished the instruction.
+33,20,2476,vetoed,3.872931718826294,4.3654407821108,1.0,,,I think I should stop because I have finished the instruction.
+33,20,2486,vetoed,3.788686513900757,4.2814056805378895,1.0,,,I think I should stop because I have finished the instruction.
+33,20,2496,vetoed,3.720543384552002,4.21133534847157,1.0,,,I think I should stop because I have finished the instruction.
+33,20,2506,vetoed,3.6644973754882812,4.154902203398786,1.0,,,I think I should stop because I have finished the instruction.
+33,20,2516,vetoed,3.610543966293335,4.101840616755981,1.0,,,I think I should stop because I have finished the instruction.
+33,20,2526,vetoed,3.565185546875,4.056562875260919,1.0,,,I think I should stop because I have finished the instruction.
+33,20,2911,forced,1.6908979415893555,1.8391559599013654,1.0,,,The next action is turn right 45 degree.
+1378,813,1876,forced,1.6416070461273193,1.6637244076564237,1.0,,,The next action is move forward 75 cm.
+286,189,2926,forced,1.6626631021499634,1.6486873655889083,1.0,,,The next action is move forward 75 cm.
+1336,783,2076,vetoed,4.343575477600098,5.278763302634874,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2086,vetoed,4.28865385055542,5.214724357912029,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2096,vetoed,4.249068737030029,5.169473779863756,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2106,vetoed,4.213324069976807,5.128666661965279,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2116,vetoed,4.177448272705078,5.089637031469785,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2126,vetoed,4.142579078674316,5.050876124557137,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2136,vetoed,4.106430530548096,5.013507932690417,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2146,vetoed,4.0603108406066895,4.9665876196580925,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2156,vetoed,4.021005153656006,4.9256180297430365,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2166,vetoed,3.974329710006714,4.878906795237847,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2176,vetoed,3.9191086292266846,4.825017949799157,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2186,vetoed,3.86533260345459,4.770273530700472,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2196,vetoed,3.8171539306640625,4.434048062527925,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2206,vetoed,3.761093854904175,4.395963008068511,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2216,vetoed,3.6979730129241943,4.345719248979155,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2226,vetoed,3.641976833343506,4.30403321715986,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2236,vetoed,3.579786539077759,4.255402479942692,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2246,vetoed,3.5271546840667725,4.214058326832103,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2256,vetoed,3.4724972248077393,4.171755580511334,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2266,vetoed,3.4200804233551025,4.126350223421966,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2276,vetoed,3.377617597579956,4.088110652463992,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2286,vetoed,3.337693214416504,4.05256479204699,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2296,vetoed,3.290278434753418,4.010080183661048,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2306,vetoed,3.24792742729187,3.9674708188208028,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2316,vetoed,3.2126402854919434,3.9329527323030495,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2476,vetoed,2.716580867767334,3.046895760426141,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2486,vetoed,2.694547176361084,3.0159201155572815,1.0,,,I think I should stop because I have finished the instruction.
+1336,783,2496,accepted,2.669855833053589,2.9875326472894517,1.0,,,I think I should stop because I have finished the instruction.
+1713,1004,2826,forced,2.154391050338745,2.221597412397971,1.0,,,The next action is move forward 75 cm.
+1801,1062,3201,forced,1.095144510269165,1.0843423314261438,1.0,,,The next action is move forward 75 cm.
+126,86,5326,vetoed,2.6380598545074463,3.408356601212957,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5336,vetoed,2.5748720169067383,3.3374142819999113,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5346,vetoed,2.531611204147339,3.291249176977896,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5356,vetoed,2.4897968769073486,3.248136462229831,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5366,vetoed,2.4402081966400146,3.196095376937178,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5376,vetoed,2.400960683822632,3.152155231291841,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5386,vetoed,2.362412691116333,3.1062159690927107,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5396,vetoed,2.331831932067871,3.0701563333797486,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5406,vetoed,2.302885055541992,3.0371537264606268,1.0,,,I think I should stop because I have finished the instruction.
+126,86,5416,accepted,2.2637839317321777,2.992768204296869,1.0,,,I think I should stop because I have finished the instruction.
+810,479,2751,accepted,1.304521083831787,1.3221344393499699,1.0,,,I think I should stop because I have finished the instruction.
+1137,656,3426,forced,1.003830075263977,1.0273996117576967,1.0,,,The next action is move forward 75 cm.

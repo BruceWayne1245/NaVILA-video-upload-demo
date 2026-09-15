@@ -1,0 +1,7 @@
+config,episodes,total_triggers,episodes_triggered,episode_trigger_fraction,median_triggers_per_episode,successful_episodes,successful_episodes_triggered
+L,50,0,0,0.0,0.0,11,0
+OH,50,0,0,0.0,0.0,16,0
+OHA,50,0,0,0.0,0.0,31,0
+FO,50,0,0,0.0,0.0,37,0
+ON,50,15,11,0.22,0.0,27,2
+GEO,50,0,0,0.0,0.0,11,0

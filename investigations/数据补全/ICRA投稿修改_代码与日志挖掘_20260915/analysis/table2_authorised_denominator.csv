@@ -1,0 +1,17 @@
+config,total_return_decisions,denominator,denominator_n,category,count,percent
+ON,1579,authorised_all,600,action-consistent,236,39.333333333333336
+ON,1579,authorised_all,600,conflict-not-traversable,126,21.0
+ON,1579,authorised_all,600,conflict-overridden,130,21.666666666666668
+ON,1579,authorised_all,600,target-anchor-too-close,108,18.0
+ON,1579,authorised_not_close,492,action-consistent,236,47.96747967479675
+ON,1579,authorised_not_close,492,conflict-not-traversable,126,25.609756097560975
+ON,1579,authorised_not_close,492,conflict-overridden,130,26.422764227642276
+ON,1579,authorised_not_close,492,target-anchor-too-close,excluded,n/a
+OHA,1604,authorised_all,1604,action-consistent,976,60.84788029925187
+OHA,1604,authorised_all,1604,conflict-not-traversable,250,15.586034912718205
+OHA,1604,authorised_all,1604,conflict-overridden,277,17.26932668329177
+OHA,1604,authorised_all,1604,target-anchor-too-close,101,6.296758104738155
+OHA,1604,authorised_not_close,1503,action-consistent,976,64.93679308050565
+OHA,1604,authorised_not_close,1503,conflict-not-traversable,250,16.633399866932802
+OHA,1604,authorised_not_close,1503,conflict-overridden,277,18.429807052561543
+OHA,1604,authorised_not_close,1503,target-anchor-too-close,excluded,n/a
