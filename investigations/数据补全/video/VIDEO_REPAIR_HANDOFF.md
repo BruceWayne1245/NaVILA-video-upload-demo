@@ -4,6 +4,20 @@
 
 这份文档用于在另一台电脑上继续修复并重新生成 supplementary video。目标是从原始视频和 CSV 数据重新渲染，不能在已有 MP4 上用颜色遮罩或像素涂抹修补。
 
+## 第二次修订（2026-09-20）
+
+最新视频：`investigations/数据补全/video/final_v2_source_render_fix_20260920_r2.mp4`。它从原始评估视频和 CSV 重新渲染，未在现有 MP4 上涂抹；第一次生成的 `final_v2_source_render_fix_20260920.mp4` 保留供对照。
+
+- SHA-256：`a92ee2be6d80c467db9b7a934903c5be1b28bdb376d3feb31a29bd1c4e3ec467`。
+- `ffprobe`：H.264、1920×1080、25 fps、176.36 秒、116,842,504 字节。
+- 小地图下的蓝色配置标签关闭了偏移阴影。对四组代表性原始帧直接比较新旧 `draw_overlay()`，差异仅在标签的 y=254–267 像素行，其他文字与画面像素一致。
+- 约 28 秒 / Segment 1 / step 2305：左侧只显示绿色向前箭头；右侧显示绿色向前箭头和红色右前方箭头。
+- Segment 2 / step 2005（旧片约 1:26）的暂停、圆圈、箭头和字幕动画全部移除。该段原始分段帧数从 634 减少到 609，只保留 step 2480 的终止暂停。
+- Segment 3 / step 2155（旧片约 1:52）：左侧只显示绿色右前方箭头；右侧显示绿色右前方箭头和红色向前箭头。
+- 两处保留的 override 暂停都按同一语义绘制：原始方向为绿色，overridden 后的方向为红色。已抽帧核对新成片；没有改变其他暂停、状态文字、地图或转场的绘制规则。
+
+对应的版本化渲染代码与复现说明在 [`code/repair_r2/`](code/repair_r2/README.md)。这次版本使用独立的中间目录和新成片文件名，旧视频与旧脚本均保留。下方首次修订的记录仅描述旧版 `final_v2_source_render_fix_20260920.mp4`。
+
 ## 完成记录（2026-09-20）
 
 已在装有 `/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/` 的电脑上找到本片所需的 8 组原始评估视频，以及匹配的轨迹 JSONL、overlay CSV 和 5 组地图。已从这些原始输入重新渲染并合成：
