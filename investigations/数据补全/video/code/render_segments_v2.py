@@ -132,6 +132,11 @@ def main():
         V["ep33_oracle_hint_action_stopgate"], C["ep33_oracle_hint_action_stopgate"], "Oracle hint-action-stopgate -- ground-truth pose",
         os.path.join(RAW_DIR, "seg4_ep33_pair_v2.mp4"),
         pause_raw_frames=PAUSE_FRAMES["seg4_main"], max_events=2,
+        # The first automatically detected ep33 divergence (step 1905) is
+        # not informative enough to justify freezing the video.  Excluding
+        # the event here removes its pause, circle, caption, and arrows at
+        # the source-render stage.
+        exclude_steps=(1905,),
         minimap_l=make_minimap("ep33_oracle_hint_action"), minimap_r=make_minimap("ep33_oracle_hint_action_stopgate"),
     )
     report["seg4_main"] = n
@@ -142,6 +147,10 @@ def main():
         os.path.join(RAW_DIR, "seg5_part1_ep1006_pair_v2.mp4"),
         pause_raw_frames=PAUSE_FRAMES["seg5_part1"], max_events=2,
         stop_after_last_event_buffer_frames=SEG5_PART1_STOP_BUFFER_FRAMES,
+        # At the first Segment 3 pause the VLM's forward arrow is the one to
+        # retain on the right.  Swap the semantic colors and suppress the
+        # redundant forward arrow on the left at the source-render stage.
+        arrow_overrides={2155: {"force": True, "swap_colors": True, "hide_left": True}},
         minimap_l=make_minimap("ep1006_baseline"), minimap_r=make_minimap("ep1006_online"),
     )
     report["seg5_part1"] = n

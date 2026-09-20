@@ -18,6 +18,13 @@ import numpy as np
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 PANEL_H = 110  # px, text panel height added at the bottom of each 512-tall half
 
+# Stable y positions for the four status rows.  Keep these explicit so the
+# pause annotations can circle the same rows as the normal overlay.
+HINT_ROW_Y = 24
+VLM_ROW_Y = 48
+ARBITRATION_ROW_Y = 72
+TERMINAL_ROW_Y = 96
+
 
 def load_csv(path):
     rows = []
@@ -57,6 +64,20 @@ def _fit_text(text, max_chars):
     return text[: max_chars - 1].rstrip() + "…"
 
 
+def _fit_text_to_width(text, font, scale, thickness, max_width):
+    """Keep the complete meaning where possible, shrinking only when the
+    rendered string cannot fit in the status panel."""
+    text = _ascii_safe(text)
+    if not text:
+        return text, scale
+    while scale > 0.22:
+        width = cv2.getTextSize(text, font, scale, thickness)[0][0]
+        if width <= max_width:
+            return text, scale
+        scale -= 0.01
+    return text, scale
+
+
 def draw_overlay(frame, row, rows, idx, config_label, speed_label):
     """frame: HxWx3 BGR uint8 (H=512, W=1024 or 512). Returns a taller frame
     with a text panel appended at the bottom (H+PANEL_H). Text size/position
@@ -65,13 +86,21 @@ def draw_overlay(frame, row, rows, idx, config_label, speed_label):
     h, w = frame.shape[:2]
     narrow = w < 900
     fs = 0.36 if narrow else 0.5
-    fs_bold = 0.4 if narrow else 0.55
+    # The previous terminal/distance rendering used thickness=2 plus a
+    # shadow, which merged neighbouring red glyph strokes after the final
+    # scale-up and H.264 encode.  Use the same lighter stroke family as the
+    # readable regular text and reserve "bold" for a modest size increase.
+    fs_bold = 0.38 if narrow else 0.50
     max_chars = 34 if narrow else 70
     panel = np.zeros((PANEL_H, w, 3), dtype=np.uint8)
     panel[:] = (18, 18, 18)
 
     hint = row.get("hint", "") or ""
-    vlm_action = row.get("vlm_action", "") or ""
+    # vlm_action is a compact, post-processed label (e.g. "VLM: turn right")
+    # and is not the model's emitted text.  The video must show the original
+    # VLM output from vlm_action_raw.
+    vlm_action_raw = row.get("vlm_action_raw", "") or ""
+    vlm_action = f"VLM: {vlm_action_raw}" if vlm_action_raw else (row.get("vlm_action", "") or "")
     arbitration = row.get("arbitration", "") or ""
     terminal_state = ""
     # sticky terminal_state: once it appears, keep showing it through the
@@ -85,8 +114,9 @@ def draw_overlay(frame, row, rows, idx, config_label, speed_label):
 
     hint_color = (140, 140, 255) if hint.startswith("—") or "withheld" in hint else (255, 255, 255)
     _put(panel, _fit_text(hint if hint else "(no route hint — language-only)", max_chars),
-         (10, 24), fs, hint_color)
-    _put(panel, _fit_text(vlm_action, max_chars), (10, 48), fs, (255, 255, 255))
+         (10, HINT_ROW_Y), fs, hint_color)
+    vlm_text, vlm_scale = _fit_text_to_width(vlm_action, FONT, fs, 1, w - 20)
+    _put(panel, vlm_text, (10, VLM_ROW_Y), vlm_scale, (255, 255, 255))
 
     # flash arbitration red for ~4 frames (~0.4s @ 10fps source) around an override
     override_recent = False
@@ -96,11 +126,11 @@ def draw_overlay(frame, row, rows, idx, config_label, speed_label):
             break
     if arbitration:
         color = (0, 0, 255) if override_recent else (120, 220, 120)
-        _put(panel, _fit_text(arbitration, max_chars), (10, 72), fs, color)
+        _put(panel, _fit_text(arbitration, max_chars), (10, ARBITRATION_ROW_Y), fs, color)
 
     if terminal_state:
         color = (0, 0, 255) if "VETO" in terminal_state or "EXECUTED" in terminal_state else (0, 200, 255)
-        _put(panel, _fit_text(terminal_state, max_chars), (10, 96), fs_bold, color, thickness=2)
+        _put(panel, _fit_text(terminal_state, max_chars), (10, TERMINAL_ROW_Y), fs_bold, color, thickness=1)
 
     if distance not in ("", None):
         try:
@@ -109,8 +139,8 @@ def draw_overlay(frame, row, rows, idx, config_label, speed_label):
             dx = w - int(w * 0.195)
             cx = w - int(w * 0.03)
             r = max(9, int(14 * w / 1024))
-            _put(panel, f"d = {d:.2f} m", (dx, 24), fs_bold, dcolor, thickness=2)
-            cv2.circle(panel, (cx, 55), r, dcolor, 2)
+            _put(panel, f"d = {d:.2f} m", (dx, HINT_ROW_Y), fs_bold, dcolor, thickness=1)
+            cv2.circle(panel, (cx, 55), r, dcolor, 1, cv2.LINE_AA)
             if d <= 3.0:
                 cv2.circle(panel, (cx, 55), max(3, r // 3), dcolor, -1)
         except ValueError:
@@ -326,7 +356,8 @@ def parse_vlm_bearing(vlm_action_raw):
     return None
 
 
-def draw_direction_arrows(out, w, h, hint_deg, vlm_deg, progress):
+def draw_direction_arrows(out, w, h, hint_deg, vlm_deg, progress,
+                          swap_colors=False, hide_left=False):
     """Draws two short arrows from near the bottom of the camera region (not
     the text panel): green = the hint's bearing (the 2026-08-21 user-chosen
     'correct' reference direction), red = the VLM's own proposed action (what
@@ -342,13 +373,18 @@ def draw_direction_arrows(out, w, h, hint_deg, vlm_deg, progress):
         rad = math.radians(deg)
         return (int(cx + length * math.sin(rad)), int(base_y - length * math.cos(rad)))
 
-    if hint_deg is not None:
+    hint_color = (60, 200, 60)
+    vlm_color = (50, 50, 230)
+    if swap_colors:
+        hint_color, vlm_color = vlm_color, hint_color
+
+    if hint_deg is not None and not hide_left:
         cx = int(w * 0.42)
-        cv2.arrowedLine(out, (cx, base_y), endpoint(cx, hint_deg), (60, 200, 60), 3,
+        cv2.arrowedLine(out, (cx, base_y), endpoint(cx, hint_deg), hint_color, 3,
                          cv2.LINE_AA, tipLength=0.3)
     if vlm_deg is not None:
         cx = int(w * 0.58)
-        cv2.arrowedLine(out, (cx, base_y), endpoint(cx, vlm_deg), (50, 50, 230), 3,
+        cv2.arrowedLine(out, (cx, base_y), endpoint(cx, vlm_deg), vlm_color, 3,
                          cv2.LINE_AA, tipLength=0.3)
     return out
 
@@ -397,7 +433,8 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
                               out_path, crop_third_person=True,
                               pause_raw_frames=0, max_events=3,
                               minimap_l=None, minimap_r=None, arrow_min_diff_deg=12.0,
-                              exclude_steps=(), stop_after_last_event_buffer_frames=None):
+                              exclude_steps=(), stop_after_last_event_buffer_frames=None,
+                              arrow_overrides=None):
     """Sync by `step`: walk the LONGER clip's own frame timeline; for each of
     its frames, look up the nearest-step frame on the other side. Once the
     shorter side's clip ends, hold its last frame.
@@ -549,7 +586,7 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
 
         if i in events_by_i:
             kind = events_by_i[i]
-            row_y = 96 if kind == "terminal" else 72
+            row_y = TERMINAL_ROW_Y if kind == "terminal" else ARBITRATION_ROW_Y
             arb_l = "OVERRIDDEN" in (row_l.get("arbitration") or "")
             arb_r = "OVERRIDDEN" in (row_r.get("arbitration") or "")
             term_l = bool(row_l.get("terminal_state"))
@@ -565,10 +602,14 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
             # arrows for near-identical angles would just clutter the frame
             # without showing anything.
             arrows_l = arrows_r = None
+            arrow_policy = {}
             if kind == "override":
+                step_here = int(row_l["step"]) if longer_is_l else int(row_r["step"])
+                arrow_policy = (arrow_overrides or {}).get(step_here, {})
                 hint_deg = parse_hint_bearing(row_l.get("hint") or row_r.get("hint"))
                 vlm_deg = parse_vlm_bearing(row_l.get("vlm_action_raw") or row_r.get("vlm_action_raw"))
-                if hint_deg is not None and vlm_deg is not None and abs(hint_deg - vlm_deg) >= arrow_min_diff_deg:
+                if (hint_deg is not None and vlm_deg is not None and
+                        (arrow_policy.get("force") or abs(hint_deg - vlm_deg) >= arrow_min_diff_deg)):
                     arrows_l, arrows_r = (hint_deg, vlm_deg), (hint_deg, vlm_deg)
             for k in range(pause_raw_frames):
                 progress = (k + 1) / max(1, pause_raw_frames)
@@ -579,9 +620,16 @@ def render_pair_side_by_side(video_path_l, csv_path_l, label_l,
                 if circle_r:
                     draw_attention_circle(frame_r, w, h, row_y, progress)
                 if arrows_l:
-                    draw_direction_arrows(frame_l, w, h, *arrows_l, progress)
+                    draw_direction_arrows(
+                        frame_l, w, h, *arrows_l, progress,
+                        swap_colors=arrow_policy.get("swap_colors", False),
+                        hide_left=arrow_policy.get("hide_left", False),
+                    )
                 if arrows_r:
-                    draw_direction_arrows(frame_r, w, h, *arrows_r, progress)
+                    draw_direction_arrows(
+                        frame_r, w, h, *arrows_r, progress,
+                        swap_colors=arrow_policy.get("swap_colors", False),
+                    )
                 writer.write(np.concatenate([frame_l, frame_r], axis=1))
 
     writer.release()
