@@ -4,6 +4,20 @@
 
 这份文档用于在另一台电脑上继续修复并重新生成 supplementary video。目标是从原始视频和 CSV 数据重新渲染，不能在已有 MP4 上用颜色遮罩或像素涂抹修补。
 
+## 完成记录（2026-09-20）
+
+已在装有 `/mnt/SSD4T/teambruce/projects/navila-isaac/NaVILA-Bench/eval_results/` 的电脑上找到本片所需的 8 组原始评估视频，以及匹配的轨迹 JSONL、overlay CSV 和 5 组地图。已从这些原始输入重新渲染并合成：
+
+`investigations/数据补全/video/final_v2_source_render_fix_20260920.mp4`
+
+- SHA-256：`2dfaefb5eaa13f9e0a9b8e7fd2104ca783a17a382de62068f11959fea7798b82`
+- `ffprobe`：H.264、1920×1080、25 fps、177.88 秒、116,765,521 字节。
+- Segment 2 / ep33 的 step 1905 已无暂停；保留的暂停在 step 2005、2480。
+- Segment 3 / ep1006 的 step 2155 暂停只在右侧显示绿色向前箭头；另一个暂停在 step 4130。
+- 抽帧检查了原始 `vlm_action_raw` 文字、红色终止状态文字、移除的暂停和箭头。旧版 MP4 均未覆盖。
+
+这次成片使用本机独立工作目录中的脚本副本。当前仓库的 `overlay_lib.py` 在 step 2155 的箭头逻辑与成片仍有差异：它会从左侧 baseline 的 `vlm_action_raw` 取方向，并在两侧绘制多余的箭头。要复现成片，应在该步隐藏左侧箭头，且仅用右侧 online 的 `vlm_action_raw` 绘制绿色向前箭头。此处记录差异，避免以后误以为仓库脚本能逐帧复现已上传视频。
+
 ## 当前仓库
 
 - Repository: `BruceWayne1245/NaVILA-video-upload-demo`
@@ -38,7 +52,7 @@ Implementation details:
 
 The modified Python files passed `py_compile` and AST syntax checks.
 
-## Important blocker
+## Previous-machine blocker (resolved on the rendering computer above)
 
 The local machine currently has no source inputs required by `render_segments_v2.py`:
 
